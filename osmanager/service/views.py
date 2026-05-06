@@ -53,4 +53,6 @@ def manage_service_api(request):
     """
     服务管理接口 - POST方法，用于服务启动、停止、重启等操作
     """
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    SCRIPTS_DIR = os.path.join(current_dir, 'manager-script')
     pass
