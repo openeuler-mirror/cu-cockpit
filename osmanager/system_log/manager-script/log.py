@@ -8,6 +8,8 @@ from datetime import datetime
 
 def parse_log_line(line):
     """解析单行日志为结构化数据"""
+    pattern = '^(\\w{3})\\s+(\\d{1,2})\\s+(\\d{2}:\\d{2}:\\d{2})\\s+(\\S+)\\s+(\\S+)\\[(\\d+)\\]:\\s+(.*)$'
+    match = re.match(pattern, line.strip())
     pass
 
 def extract_summary_fields(log_entry):
