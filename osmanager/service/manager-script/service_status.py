@@ -20,7 +20,14 @@ def run_command(cmd):
 
 def parse_unit_files(lines):
     """解析 systemctl list-unit-files 输出，返回 {服务名: 注册状态}"""
-    pass
+    services = {}
+    for line in lines:
+        parts = re.split('\\s+', line.strip())
+        if len(parts) >= 2:
+            name = parts[0]
+            status = parts[1].strip()
+            services[name] = status
+    return services
 
 def parse_units(lines):
     """解析 systemctl list-units 输出，返回 {服务名: 运行状态}"""
