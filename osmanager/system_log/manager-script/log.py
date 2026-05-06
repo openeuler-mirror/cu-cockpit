@@ -10,11 +10,14 @@ def parse_log_line(line):
     """解析单行日志为结构化数据"""
     pattern = '^(\\w{3})\\s+(\\d{1,2})\\s+(\\d{2}:\\d{2}:\\d{2})\\s+(\\S+)\\s+(\\S+)\\[(\\d+)\\]:\\s+(.*)$'
     match = re.match(pattern, line.strip())
-    pass
+    if match:
+        month, day, time, hostname, service, pid, message = match.groups()
+        return {'date': f'{month} {day}', 'time': time, 'hostname': hostname, 'service': service, 'pid': int(pid), 'message': message, 'raw': line.strip()}
+    return {'date': '', 'time': '', 'hostname': '', 'service': '', 'pid': 0, 'message': line.strip(), 'raw': line.strip()}
 
 def extract_summary_fields(log_entry):
     """从完整日志条目中提取摘要字段（用于列表快速渲染）。"""
-    pass
+    return {'timestamp': log_entry.get('__REALTIME_TIMESTAMP', ''), 'message': log_entry.get('MESSAGE', ''), 'service': log_entry.get('_SYSTEMD_UNIT', log_entry.get('UNIT', '')), 'identifier': log_entry.get('SYSLOG_IDENTIFIER', ''), 'hostname': log_entry.get('_HOSTNAME', ''), 'cursor': log_entry.get('__CURSOR', '')}
 
 def main():
     pass
