@@ -19,7 +19,11 @@ def get_hardware_info(device):
 
 def process_device(dev):
     """递归处理设备及其子设备"""
-    pass
+    if dev['type'] in ['disk', 'rom']:
+        dev['hardware'] = get_hardware_info(dev['name'])
+    if 'children' in dev:
+        for child in dev['children']:
+            process_device(child)
 
 def main():
     pass
