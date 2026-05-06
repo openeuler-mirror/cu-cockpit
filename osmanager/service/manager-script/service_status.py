@@ -5,7 +5,18 @@ import json
 
 def run_command(cmd):
     """运行 shell 命令并返回输出行列表"""
-    pass
+    try:
+        result = subprocess.run(cmd, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        return result.stdout.splitlines()
+    except subprocess.CalledProcessError as e:
+        error_msg = f'命令执行失败: {cmd}\n返回码: {e.returncode}\n错误输出: {e.stderr}'
+        raise RuntimeError(error_msg) from e
+    except FileNotFoundError as e:
+        error_msg = f'命令不存在: {cmd}'
+        raise RuntimeError(error_msg) from e
+    except Exception as e:
+        error_msg = f'执行命令时发生未知错误: {cmd}\n错误: {str(e)}'
+        raise RuntimeError(error_msg) from e
 
 def parse_unit_files(lines):
     """解析 systemctl list-unit-files 输出，返回 {服务名: 注册状态}"""
