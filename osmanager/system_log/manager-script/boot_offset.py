@@ -7,7 +7,16 @@ def list_boot_offsets():
         print(e.stderr or 'journalctl --list-boots失败', file=sys.stderr)
         return []
     offsets = []
-    pass
+    for line in r.stdout.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        first = line.split(None, 1)[0]
+        try:
+            offsets.append(int(first))
+        except ValueError:
+            continue
+    return offsets
 if __name__ == '__main__':
     boot_id = list_boot_offsets()
     print(boot_id)
