@@ -1,0 +1,52 @@
+import sys
+import os
+import unittest
+from unittest.mock import patch, MagicMock
+import json
+from io import StringIO
+import subprocess
+sys.path.insert(0, '/opt/chinaunicom/osmanager/osmanager/rescrouce_monitor/manager-script')
+from importlib.util import spec_from_file_location, module_from_spec
+spec = spec_from_file_location('service_status', '/opt/chinaunicom/osmanager/osmanager/rescrouce_monitor/manager-script/service_status.py')
+service_status = module_from_spec(spec)
+sys.modules['service_status'] = service_status
+spec.loader.exec_module(service_status)
+
+class TestServiceStatus(unittest.TestCase):
+
+    def setUp(self):
+        self.maxDiff = None
+
+    @patch('subprocess.run')
+    def test_run_command_success(self, mock_run):
+        """测试成功执行命令的情况"""
+        pass
+
+    @patch('subprocess.run')
+    def test_run_command_failure(self, mock_run):
+        """测试命令执行失败的情况"""
+        pass
+
+    def test_parse_unit_files(self):
+        """测试解析unit files输出"""
+        pass
+
+    def test_parse_units(self):
+        """测试解析units输出"""
+        pass
+
+    def test_merge_and_print(self):
+        """测试合并和打印功能"""
+        pass
+
+    @patch('service_status.run_command')
+    def test_main_logic_success(self, mock_run):
+        """测试主业务逻辑成功执行"""
+        pass
+
+    @patch('service_status.run_command')
+    def test_main_logic_error(self, mock_run):
+        """测试主业务逻辑错误处理"""
+        pass
+if __name__ == '__main__':
+    unittest.main()
