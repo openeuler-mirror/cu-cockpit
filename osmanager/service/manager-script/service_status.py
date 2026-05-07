@@ -31,7 +31,15 @@ def parse_unit_files(lines):
 
 def parse_units(lines):
     """解析 systemctl list-units 输出，返回 {服务名: 运行状态}"""
-    pass
+    services = {}
+    for line in lines:
+        parts = re.split('\\s+', line.strip(), maxsplit=4)
+        if len(parts) >= 4:
+            name = parts[0]
+            run_state = parts[2].strip()
+            description = ' '.join(parts[4:]) if len(parts) > 4 else ''
+            services[name] = {'运行状态': run_state, '描述': description}
+    return services
 
 def merge_and_print(unit_files, units):
     """合并两者并打印结果：服务名 + 运行状态 + 注册状态"""
