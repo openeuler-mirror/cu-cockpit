@@ -26,6 +26,14 @@ def process_device(dev):
             process_device(child)
 
 def main():
-    pass
+    lsblk_output = sys.argv[1]
+    try:
+        data = json.loads(lsblk_output)
+        for device in data['blockdevices']:
+            process_device(device)
+        print(json.dumps(data, indent=2))
+    except json.JSONDecodeError:
+        print('Error: Failed to parse lsblk output', file=sys.stderr)
+        sys.exit(1)
 if __name__ == '__main__':
     main()
