@@ -30,6 +30,8 @@ class TestLogParsing(unittest.TestCase):
 
     def test_parse_log_line_valid(self):
         """测试解析有效的日志行"""
+        line = 'Sep 09 10:23:09 bigdata1 PackageKit[2177658]: message content'
+        result = parse_log_line(line)
         pass
 
     def test_parse_log_line_invalid(self):
