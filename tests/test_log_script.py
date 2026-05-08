@@ -14,7 +14,8 @@ sys.path.insert(0, PROJECT_ROOT)
 def load_module_from(path, name):
     spec = importlib.util.spec_from_file_location(name, path)
     mod = importlib.util.module_from_spec(spec)
-    pass
+    spec.loader.exec_module(mod)
+    return mod
 LOG_PATH = os.path.join(PROJECT_ROOT, 'osmanager', 'system_log', 'manager-script', 'log.py')
 log_mod = load_module_from(LOG_PATH, 'osmanager.system_log.manager_script.log')
 parse_log_line = log_mod.parse_log_line
@@ -22,7 +23,7 @@ extract_summary_fields = log_mod.extract_summary_fields
 main = log_mod.main
 
 def _stream_text(mock_stream):
-    pass
+    return ''.join((call.args[0] for call in mock_stream.write.call_args_list))
 
 class TestLogParsing(unittest.TestCase):
     """测试日志解析功能"""
