@@ -15,7 +15,8 @@ sys.path.insert(0, PROJECT_ROOT)
 def load_module_from(path, name):
     spec = importlib.util.spec_from_file_location(name, path)
     mod = importlib.util.module_from_spec(spec)
-    pass
+    spec.loader.exec_module(mod)
+    return mod
 LOG_PATH = os.path.join(PROJECT_ROOT, 'osmanager', 'system_log', 'manager-script', 'boot_offset.py')
 boot_mod = load_module_from(LOG_PATH, 'osmanager.system_log.manager_script.boot_offset')
 list_boot_offsets = boot_mod.list_boot_offsets
