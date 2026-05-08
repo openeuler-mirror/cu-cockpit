@@ -24,11 +24,20 @@ class AuthViewsTest(TestCase):
         self.valid_username = 'testuser'
         self.valid_password = 'testpass123'
         self.invalid_username = 'invaliduser'
-        pass
+        self.invalid_password = 'wrongpass'
+        self.empty_username = ''
+        self.empty_password = ''
 
     def test_login_view_success(self):
         """测试成功登录的情况"""
-        pass
+        with patch('osmanager.auth.views.verify_with_pam', return_value=True):
+            data = {'username': self.valid_username, 'password': self.valid_password}
+            response = self.client.post('/api/auth/login/', data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            response_data = response.json()
+            self.assertEqual(response_data['code'], 200)
+            self.assertEqual(response_data['message'], '登录成功')
+            self.assertEqual(response_data['user'], self.valid_username)
 
     def test_login_view_json_format(self):
         """测试JSON格式的登录请求"""
