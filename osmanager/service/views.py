@@ -57,4 +57,16 @@ def manage_service_api(request):
     SCRIPTS_DIR = os.path.join(current_dir, 'manager-script')
     script_name = 'service_manage.sh'
     script_path = os.path.join(SCRIPTS_DIR, script_name)
+    if not os.path.isfile(script_path):
+        return JsonResponse({'error': 'not found manager_script', 'script_path': script_path}, status=404)
+    if request.content_type == 'application/json':
+        try:
+            data = json.loads(request.body)
+            service_name = data.get('service_name')
+            operation = data.get('operation')
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'JSON格式错误', 'message': '请求体必须是有效的JSON格式'}, status=400, json_dumps_params={'ensure_ascii': False})
+    else:
+        service_name = request.POST.get('service_name')
+        operation = request.POST.get('operation')
     pass
