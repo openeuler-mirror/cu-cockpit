@@ -34,6 +34,13 @@ class TestGetServiceStatusApi:
         mock_result.stdout = json.dumps([{'服务名称': 'nginx', '运行状态': 'active', '注册状态': 'enabled', '描述': 'nginx web server'}, {'服务名称': 'mysql', '运行状态': 'inactive', '注册状态': 'enabled', '描述': 'mysql database server'}])
         mock_result.stderr = ''
         mock_subprocess.return_value = mock_result
+        client = Client()
+        session = client.session
+        session['username'] = 'testuser'
+        session.save()
+        response = client.get('/api/service/status')
+        assert response.status_code == status.HTTP_200_OK
+        response_data = json.loads(response.content)
         pass
 
     @patch('osmanager.service.views.os.path.isfile')
