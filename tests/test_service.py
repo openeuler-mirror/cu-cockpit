@@ -20,6 +20,10 @@ class TestServiceStatus(unittest.TestCase):
     @patch('subprocess.run')
     def test_run_command_success(self, mock_run):
         """测试成功执行命令的情况"""
+        mock_result = MagicMock()
+        mock_result.stdout = 'line1\nline2\nline3'
+        mock_result.stderr = ''
+        mock_result.returncode = 0
         pass
 
     @patch('subprocess.run')
