@@ -30,10 +30,16 @@ class ConfigViewsTest(TestCase):
 
     def _get_response_data(self, response):
         """统一处理响应数据提取"""
-        pass
+        try:
+            if hasattr(response, 'data'):
+                return response.data
+            return json.loads(response.content.decode('utf-8'))
+        except (AttributeError, json.JSONDecodeError):
+            return {'error': '无法解析响应数据'}
 
     def test_get_config_api_success(self):
         """测试成功执行配置脚本的情况"""
+        test_cases = [('sshkey', None, 'json'), ('gethostname', None, 'text'), ('time', None, 'json'), ('get', 'bashrc', 'text')]
         pass
 
     def test_get_config_api_script_not_found(self):
