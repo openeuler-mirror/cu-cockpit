@@ -24,6 +24,12 @@ def main():
     parser.add_argument('--since', help="开始时间，如 '2025-09-01 10:00:00' 或 '1h ago'；默认 '24h ago'")
     parser.add_argument('--until', help="结束时间，如 '2025-09-01 12:00:00' 或 'now'")
     parser.add_argument('--priority', '-p', help="优先级，如 'err', 'info', '0..3'；默认 'err'")
+    parser.add_argument('--service', '-s', help="服务名/Unit，如 'nginx' 或 'nginx.service'")
+    parser.add_argument('--limit', '-n', type=int, help='显示行数；不传则显示所有')
+    parser.add_argument('--keyword', '-g', help='关键字/正则，等价 journalctl -g')
+    parser.add_argument('--boot', '-b', nargs='?', const='', help="引导选择：不带值=当前引导；'-1' 表示上一引导，'0' 表示当前引导，或指定 boot ID")
+    parser.add_argument('--output_format', choices=['raw', 'json', 'all_json', 'summary'], default='summary', help='输出格式：raw(原始), json(JSON), all_json(完整JSON), summary(摘要JSON)')
+    parser.add_argument('--identifier', '-t', help='按 SYSLOG_IDENTIFIER 过滤，如 sshd')
     pass
 if __name__ == '__main__':
     main()
