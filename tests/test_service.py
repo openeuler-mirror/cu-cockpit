@@ -24,12 +24,16 @@ class TestServiceStatus(unittest.TestCase):
         mock_result.stdout = 'line1\nline2\nline3'
         mock_result.stderr = ''
         mock_result.returncode = 0
-        pass
+        mock_run.return_value = mock_result
+        result = service_status.run_command('echo test')
+        self.assertEqual(result, ['line1', 'line2', 'line3'])
 
     @patch('subprocess.run')
     def test_run_command_failure(self, mock_run):
         """测试命令执行失败的情况"""
-        pass
+        mock_run.side_effect = subprocess.CalledProcessError(returncode=1, cmd='false', stderr='Command failed')
+        with self.assertRaises(RuntimeError):
+            service_status.run_command('false')
 
     def test_parse_unit_files(self):
         """测试解析unit files输出"""
