@@ -32,6 +32,14 @@ class TestMonitorStatusShModes(TestCase):
         mock_result = MagicMock()
         mock_result.returncode = 0
         mock_result.stdout = json.dumps({'cpu': {'total_utilization_percent': '50%'}, 'disk': {'total_usage_percent': '60%'}, 'memory': {'used_mb': 4096}, 'network': {'interfaces': []}})
+        mock_result.stderr = ''
+        mock_subprocess.return_value = mock_result
+        response = self.client.get('/api/rescrouce/monitor/monitor_status.sh?mode=all')
+        if mock_subprocess.called:
+            call_args = mock_subprocess.call_args[0][0]
+            self.assertIn('all', call_args)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = json.loads(response.content)
         pass
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
