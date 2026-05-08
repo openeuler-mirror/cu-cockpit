@@ -23,7 +23,10 @@ class ConfigViewsTest(TestCase):
         session = self.client.session
         session['username'] = 'testuser'
         session.save()
-        pass
+        self.valid_script = 'config.sh'
+        self.invalid_script = 'nonexistent_script.sh'
+        self.valid_modes = ['sshkey', 'gethostname', 'time', 'get']
+        self.invalid_mode = 'invalid_mode'
 
     def _get_response_data(self, response):
         """统一处理响应数据提取"""
