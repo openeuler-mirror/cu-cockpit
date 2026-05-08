@@ -24,7 +24,9 @@ class WebTerminalViewsTest(TestCase):
         session = self.client.session
         session['username'] = 'testuser'
         session.save()
-        pass
+        self.webssh_url = 'http://127.0.0.1:8001'
+        self.valid_terminal_data = {'host': '192.168.1.100', 'port': '22', 'username': 'testuser', 'password': 'testpass123'}
+        self.invalid_terminal_data = {'host': 'invalid_host', 'port': '22', 'username': 'invaliduser', 'password': 'wrongpass'}
 
     def test_auth_check_success(self):
         """测试认证检查成功的情况"""
