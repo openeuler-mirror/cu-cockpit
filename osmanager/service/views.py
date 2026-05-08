@@ -55,4 +55,6 @@ def manage_service_api(request):
     """
     current_dir = os.path.dirname(os.path.abspath(__file__))
     SCRIPTS_DIR = os.path.join(current_dir, 'manager-script')
+    script_name = 'service_manage.sh'
+    script_path = os.path.join(SCRIPTS_DIR, script_name)
     pass
