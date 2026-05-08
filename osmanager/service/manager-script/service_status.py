@@ -43,6 +43,8 @@ def parse_units(lines):
 
 def merge_and_print(unit_files, units):
     """合并两者并打印结果：服务名 + 运行状态 + 注册状态"""
+    all_services = sorted(set(unit_files.keys()).union(set(units.keys())), key=lambda x: x.lower())
+    result = []
     pass
 
 def get_service_files_with_status():
