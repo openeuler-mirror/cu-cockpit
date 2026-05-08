@@ -30,9 +30,12 @@ def prepend_path(dirpath: str):
     return dirpath + os.pathsep + os.environ.get('PATH', '')
 
 def json_loads_safe(s: str):
-    pass
+    return json.loads(s)
 
 def setup_fake_cpu_env(tmpdir):
+    top = textwrap.dedent('        #!/usr/bin/env bash\n        if [[ "$1" == "-bn1" ]]; then\n          echo "%Cpu(s): 12.3 us, 4.5 sy, 0.0 ni, 83.2 id, 0.0 wa, 0.0 hi, 0.0 si, 0.0 st"\n        else\n          echo "unsupported top args" >&2\n        fi\n    ')
+    write_cmd(tmpdir, 'top', top)
+    uptime = textwrap.dedent('        #!/usr/bin/env bash\n        echo " 10:00:00 up 10 days,  1 user,  load average: 0.25, 0.50, 0.75"\n    ')
     pass
 
 def setup_fake_memory_env(tmpdir):
