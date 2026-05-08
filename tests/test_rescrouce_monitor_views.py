@@ -40,12 +40,21 @@ class TestMonitorStatusShModes(TestCase):
             self.assertIn('all', call_args)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = json.loads(response.content)
-        pass
+        self.assertIn('cpu', response_data)
+        self.assertIn('disk', response_data)
+        self.assertIn('memory', response_data)
+        self.assertIn('network', response_data)
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
     @patch('osmanager.rescrouce_monitor.views.subprocess.run')
     def test_monitor_cpu_mode(self, mock_subprocess, mock_isfile):
         """测试 monitor_status.sh mode=cpu 只返回CPU信息"""
+        mock_isfile.return_value = True
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = json.dumps({'cpu': {'total_utilization_percent': '45.5%', 'user_percent': '30%', 'system_percent': '15%', 'idle_percent': '55%', 'load_average': '1分钟: 0.5'}})
+        mock_result.stderr = ''
+        mock_subprocess.return_value = mock_result
         pass
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
