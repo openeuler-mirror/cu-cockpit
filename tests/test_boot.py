@@ -22,7 +22,7 @@ boot_mod = load_module_from(LOG_PATH, 'osmanager.system_log.manager_script.boot_
 list_boot_offsets = boot_mod.list_boot_offsets
 
 def _stream_text(mock_stream):
-    pass
+    return ''.join((call.args[0] for call in mock_stream.write.call_args_list))
 
 class TestBootOffset(unittest.TestCase):
     """测试boot偏移号功能"""
@@ -30,6 +30,8 @@ class TestBootOffset(unittest.TestCase):
     @patch('subprocess.run')
     def test_list_boot_offsets_success(self, mock_run):
         """测试成功获取boot偏移号列表"""
+        mock_output = '0 12345678-1234-1234-1234-123456789abc Mon 2025-01-01 10:00:00 CST—Mon 2025-01-01 12:00:00 CST\n1 87654321-4321-4321-4321-cba987654321 Mon 2025-01-01 08:00:00 CST—Mon 2025-01-01 10:00:00 CST\n2 abcdef12-3456-7890-abcd-ef1234567890 Sun 2024-12-31 20:00:00 CST—Mon 2025-01-01 08:00:00 CST\n'
+        mock_run.return_value = MagicMock(returncode=0, stdout=mock_output, stderr='')
         pass
 
     @patch('subprocess.run')
