@@ -18,13 +18,16 @@ def write_cmd(tmpdir, name, content):
     p = os.path.join(tmpdir, name)
     with open(p, 'w', encoding='utf-8') as f:
         f.write(content)
-    pass
+    make_executable(p)
+    return p
 
 def run_script(args, env=None):
-    pass
+    cmd = ['bash', SCRIPT_PATH] + args
+    r = subprocess.run(cmd, capture_output=True, text=True, env=env)
+    return (r.returncode, r.stdout, r.stderr)
 
 def prepend_path(dirpath: str):
-    pass
+    return dirpath + os.pathsep + os.environ.get('PATH', '')
 
 def json_loads_safe(s: str):
     pass
