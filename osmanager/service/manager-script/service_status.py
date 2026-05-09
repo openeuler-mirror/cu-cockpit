@@ -45,7 +45,15 @@ def merge_and_print(unit_files, units):
     """合并两者并打印结果：服务名 + 运行状态 + 注册状态"""
     all_services = sorted(set(unit_files.keys()).union(set(units.keys())), key=lambda x: x.lower())
     result = []
-    pass
+    for name in all_services:
+        run_state = units.get(name, {}).get('运行状态', 'N/A')
+        description = units.get(name, {}).get('描述', '')
+        reg_state = unit_files.get(name, 'N/A')
+        if run_state == 'N/A' and reg_state != 'alias' and (reg_state != 'N/A'):
+            run_state = 'inactive'
+        name = name.removesuffix('.service')
+        result.append({'服务名称': name, '运行状态': run_state, '注册状态': reg_state, '描述': description})
+    print(json.dumps(result, ensure_ascii=False, indent=2))
 
 def get_service_files_with_status():
     pass
