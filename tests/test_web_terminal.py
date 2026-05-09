@@ -37,6 +37,8 @@ class WebTerminalViewsTest(TestCase):
 
     def test_auth_check_without_login(self):
         """测试未登录时的认证检查"""
+        session = self.client.session
+        session.clear()
         pass
 
     def test_csrf_token_success(self):
