@@ -32,10 +32,13 @@ class TestLogParsing(unittest.TestCase):
         """测试解析有效的日志行"""
         line = 'Sep 09 10:23:09 bigdata1 PackageKit[2177658]: message content'
         result = parse_log_line(line)
-        pass
+        expected = {'date': 'Sep 09', 'time': '10:23:09', 'hostname': 'bigdata1', 'service': 'PackageKit', 'pid': 2177658, 'message': 'message content', 'raw': line}
+        self.assertEqual(result, expected)
 
     def test_parse_log_line_invalid(self):
         """测试解析无效的日志行"""
+        line = 'invalid log format'
+        result = parse_log_line(line)
         pass
 
     def test_parse_log_line_edge_cases(self):
