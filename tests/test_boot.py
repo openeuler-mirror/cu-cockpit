@@ -39,7 +39,9 @@ class TestBootOffset(unittest.TestCase):
     @patch('subprocess.run')
     def test_list_boot_offsets_empty(self, mock_run):
         """测试boot偏移号空输出情况"""
-        pass
+        mock_run.return_value = MagicMock(returncode=0, stdout='', stderr='')
+        result = list_boot_offsets()
+        self.assertEqual(result, [])
 
     @patch('subprocess.run')
     def test_list_boot_offsets_with_blank_lines(self, mock_run):
