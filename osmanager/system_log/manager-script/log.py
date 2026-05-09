@@ -34,6 +34,14 @@ def main():
     parser.add_argument('--service-match', choices=['any', 'strict', 'unit'], default='any', help='服务匹配模式：any(默认，_SYSTEMD_UNIT或UNIT 字段任一匹配)、strict(仅 _SYSTEMD_UNIT匹配，等价 -u)、unit(仅 UNIT字段匹配)')
     parser.add_argument('--cursor', help='根据__SEQNUM 获取单条日志详情（总是返回all_json格式）')
     args = parser.parse_args()
+    cmd = ['journalctl', '--no-pager', '-r']
+    since = None
+    if args.since is not None:
+        since = args.since
+    elif args.until is None:
+        since = '24h ago'
+    if since is not None:
+        cmd += ['-S', since]
     pass
 if __name__ == '__main__':
     main()
