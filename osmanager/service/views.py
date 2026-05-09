@@ -72,4 +72,23 @@ def manage_service_api(request):
     if not service_name or not operation:
         return JsonResponse({'error': '缺少必需参数', 'message': '需要提供 service_name 和 operation 两个参数', 'usage': {'method': 'POST', 'content_type': 'application/json', 'body': {'service_name': '服务名称', 'operation': '操作类型'}, 'allowed_operations': ['start', 'stop', 'restart']}}, status=400, json_dumps_params={'ensure_ascii': False})
     allowed_operations = ['start', 'stop', 'restart']
-    pass
+    if operation not in allowed_operations:
+        return JsonResponse({'error': '参数错误', 'message': f'operation 只允许为 {allowed_operations}，你传入的是: {operation}'}, status=401, json_dumps_params={'ensure_ascii': False})
+    try:
+        result = subprocess.run(['bash', script_path, service_name, operation], check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=30)
+        return_code = result.returncode
+        stdout = result.stdout.strip()
+        stderr = result.stderr.strip()
+        response_data = {'service_name': service_name, 'operation': operation, 'return_code': return_code, 'success_flag': return_code == 0}
+        if return_code == 0:
+            response_data['message'] = f'服务 {service_name} {operation} 操作成功'
+            response_data['output'] = stdout if stdout else '操作完成'
+            return JsonResponse(response_data, json_dumps_params={'ensure_ascii': False})
+        elif return_code != 0 or stderr:
+            response_data['message'] = f'服务 {service_name} {operation} 操作失败'
+            response_data['error'] = stderr if stderr else '未知错误'
+            if stdout:
+                response_data['output'] = stdout
+            return JsonResponse(response_data, status=402, json_dumps_params={'ensure_ascii': False})
+    except Exception as e:
+        return JsonResponse({'error': '操作异常', 'message': f'服务管理操作发生异常: {str(e)}', 'service_name': service_name, 'operation': operation}, status=500, json_dumps_params={'ensure_ascii': False})
