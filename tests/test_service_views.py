@@ -41,11 +41,19 @@ class TestGetServiceStatusApi:
         response = client.get('/api/service/status')
         assert response.status_code == status.HTTP_200_OK
         response_data = json.loads(response.content)
-        pass
+        assert isinstance(response_data, list)
+        assert len(response_data) == 2
+        assert response_data[0]['服务名称'] == 'nginx'
 
     @patch('osmanager.service.views.os.path.isfile')
     def test_get_service_status_script_not_found(self, mock_isfile):
         """测试脚本文件不存在"""
+        mock_isfile.return_value = False
+        client = Client()
+        session = client.session
+        session['username'] = 'testuser'
+        session.save()
+        response = client.get('/api/service/status')
         pass
 
     @patch('osmanager.service.views.os.path.isfile')
