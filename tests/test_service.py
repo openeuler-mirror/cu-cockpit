@@ -37,6 +37,8 @@ class TestServiceStatus(unittest.TestCase):
 
     def test_parse_unit_files(self):
         """测试解析unit files输出"""
+        sample_input = ['sshd.service enabled', 'nginx.service disabled', 'docker.service static', '  extra.space.service  masked  ', 'invalidline', '']
+        expected = {'sshd.service': 'enabled', 'nginx.service': 'disabled', 'docker.service': 'static', 'extra.space.service': 'masked'}
         pass
 
     def test_parse_units(self):
