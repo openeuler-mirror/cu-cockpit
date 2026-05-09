@@ -40,7 +40,27 @@ class ConfigViewsTest(TestCase):
     def test_get_config_api_success(self):
         """测试成功执行配置脚本的情况"""
         test_cases = [('sshkey', None, 'json'), ('gethostname', None, 'text'), ('time', None, 'json'), ('get', 'bashrc', 'text')]
-        pass
+        for mode, key, expected_format in test_cases:
+            with self.subTest(mode=mode):
+                with patch('os.path.isfile', return_value=True), patch('subprocess.run') as mock_subprocess:
+                    mock_result = MagicMock()
+                    mock_result.returncode = 0
+                    if expected_format == 'json':
+                        mock_result.stdout = '{"status": "ok"}'
+                    else:
+                        mock_result.stdout = 'output text'
+                    mock_result.stderr = ''
+                    mock_subprocess.return_value = mock_result
+                    url = f'/api/config/get/{self.valid_script}?mode={mode}'
+                    if key:
+                        url += f'&key={key}'
+                    response = self.client.get(url)
+                    self.assertEqual(response.status_code, status.HTTP_200_OK)
+                    if expected_format == 'json':
+                        data = self._get_response_data(response)
+                        self.assertIn('status', data)
+                    else:
+                        self.assertEqual(response['content-type'], 'text/plain; charset=utf-8')
 
     def test_get_config_api_script_not_found(self):
         """测试脚本不存在的情况"""
