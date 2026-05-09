@@ -30,6 +30,10 @@ def main():
     parser.add_argument('--boot', '-b', nargs='?', const='', help="引导选择：不带值=当前引导；'-1' 表示上一引导，'0' 表示当前引导，或指定 boot ID")
     parser.add_argument('--output_format', choices=['raw', 'json', 'all_json', 'summary'], default='summary', help='输出格式：raw(原始), json(JSON), all_json(完整JSON), summary(摘要JSON)')
     parser.add_argument('--identifier', '-t', help='按 SYSLOG_IDENTIFIER 过滤，如 sshd')
+    parser.add_argument('--debug', action='store_true', help='显示调试信息，包括执行的命令和详细输出')
+    parser.add_argument('--service-match', choices=['any', 'strict', 'unit'], default='any', help='服务匹配模式：any(默认，_SYSTEMD_UNIT或UNIT 字段任一匹配)、strict(仅 _SYSTEMD_UNIT匹配，等价 -u)、unit(仅 UNIT字段匹配)')
+    parser.add_argument('--cursor', help='根据__SEQNUM 获取单条日志详情（总是返回all_json格式）')
+    args = parser.parse_args()
     pass
 if __name__ == '__main__':
     main()
