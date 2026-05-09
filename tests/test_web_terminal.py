@@ -30,7 +30,10 @@ class WebTerminalViewsTest(TestCase):
 
     def test_auth_check_success(self):
         """测试认证检查成功的情况"""
-        pass
+        response = self.client.get('/api/terminal/check')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertTrue(data['ok'])
 
     def test_auth_check_without_login(self):
         """测试未登录时的认证检查"""
