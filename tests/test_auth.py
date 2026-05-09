@@ -51,10 +51,19 @@ class AuthViewsTest(TestCase):
 
     def test_login_view_form_format(self):
         """测试表单格式的登录请求"""
-        pass
+        with patch('osmanager.auth.views.verify_with_pam', return_value=True):
+            data = {'username': self.valid_username, 'password': self.valid_password}
+            response = self.client.post('/api/auth/login/', data)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            response_data = response.json()
+            self.assertEqual(response_data['code'], 200)
+            self.assertEqual(response_data['user'], self.valid_username)
 
     def test_login_view_missing_username(self):
         """测试缺少用户名的情况"""
+        data = {'password': self.valid_password}
+        response = self.client.post('/api/auth/login/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         pass
 
     def test_login_view_missing_password(self):
