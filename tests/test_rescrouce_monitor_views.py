@@ -55,7 +55,14 @@ class TestMonitorStatusShModes(TestCase):
         mock_result.stdout = json.dumps({'cpu': {'total_utilization_percent': '45.5%', 'user_percent': '30%', 'system_percent': '15%', 'idle_percent': '55%', 'load_average': '1分钟: 0.5'}})
         mock_result.stderr = ''
         mock_subprocess.return_value = mock_result
-        pass
+        response = self.client.get('/api/rescrouce/monitor/monitor_status.sh?mode=cpu')
+        if mock_subprocess.called:
+            call_args = mock_subprocess.call_args[0][0]
+            self.assertIn('cpu', call_args)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = json.loads(response.content)
+        self.assertIn('cpu', response_data)
+        self.assertIn('total_utilization_percent', response_data['cpu'])
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
     @patch('osmanager.rescrouce_monitor.views.subprocess.run')
