@@ -69,4 +69,7 @@ def manage_service_api(request):
     else:
         service_name = request.POST.get('service_name')
         operation = request.POST.get('operation')
+    if not service_name or not operation:
+        return JsonResponse({'error': '缺少必需参数', 'message': '需要提供 service_name 和 operation 两个参数', 'usage': {'method': 'POST', 'content_type': 'application/json', 'body': {'service_name': '服务名称', 'operation': '操作类型'}, 'allowed_operations': ['start', 'stop', 'restart']}}, status=400, json_dumps_params={'ensure_ascii': False})
+    allowed_operations = ['start', 'stop', 'restart']
     pass
