@@ -54,12 +54,18 @@ class TestGetServiceStatusApi:
         session['username'] = 'testuser'
         session.save()
         response = client.get('/api/service/status')
-        pass
+        assert response.status_code == 404
+        response_data = json.loads(response.content)
+        assert 'not found manager_script' in response_data['error']
 
     @patch('osmanager.service.views.os.path.isfile')
     @patch('osmanager.service.views.subprocess.run')
     def test_get_service_status_execution_failure(self, mock_subprocess, mock_isfile):
         """测试脚本执行失败"""
+        mock_isfile.return_value = True
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stdout = ''
         pass
 
 class TestManageServiceApi:
