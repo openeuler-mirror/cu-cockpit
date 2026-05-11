@@ -64,7 +64,11 @@ class ConfigViewsTest(TestCase):
 
     def test_get_config_api_script_not_found(self):
         """测试脚本不存在的情况"""
-        pass
+        with patch('os.path.isfile', return_value=False):
+            response = self.client.get(f'/api/config/get/{self.invalid_script}?mode=sshkey')
+            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+            data = self._get_response_data(response)
+            self.assertIn('not found', data.get('error', '').lower())
 
     def test_get_config_api_missing_mode(self):
         """测试缺少必需mode参数的情况"""
