@@ -39,7 +39,9 @@ class WebTerminalViewsTest(TestCase):
         """测试未登录时的认证检查"""
         session = self.client.session
         session.clear()
-        pass
+        session.save()
+        response = self.client.get('/api/terminal/check')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_csrf_token_success(self):
         """测试获取CSRF token成功的情况"""
