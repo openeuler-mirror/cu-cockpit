@@ -39,7 +39,8 @@ class TestLogParsing(unittest.TestCase):
         """测试解析无效的日志行"""
         line = 'invalid log format'
         result = parse_log_line(line)
-        pass
+        expected = {'date': '', 'time': '', 'hostname': '', 'service': '', 'pid': 0, 'message': line, 'raw': line}
+        self.assertEqual(result, expected)
 
     def test_parse_log_line_edge_cases(self):
         """测试边界情况"""
