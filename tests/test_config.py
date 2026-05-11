@@ -72,7 +72,11 @@ class ConfigViewsTest(TestCase):
 
     def test_get_config_api_missing_mode(self):
         """测试缺少必需mode参数的情况"""
-        pass
+        with patch('os.path.isfile', return_value=True):
+            response = self.client.get(f'/api/config/get/{self.valid_script}')
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            data = self._get_response_data(response)
+            self.assertIn('mode 必填', data.get('message', ''))
 
     def test_get_config_api_invalid_mode(self):
         """测试无效的mode参数"""
