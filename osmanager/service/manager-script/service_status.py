@@ -58,7 +58,16 @@ def merge_and_print(unit_files, units):
 def get_service_files_with_status():
     raw_lines = run_command("systemctl list-unit-files --type=service --no-legend | grep -vE '@.service'")
     services = []
-    pass
+    for line in raw_lines:
+        print(type(line))
+        line = line.strip()
+        if not line:
+            continue
+        parts = line.split()
+        if len(parts) >= 2:
+            service_name, status = (parts[0], parts[1])
+            services.append((service_name, status))
+    return services
 if __name__ == '__main__':
     try:
         unit_files_lines = run_command("systemctl list-unit-files --type=service --no-legend | grep -vE '@.service'")
