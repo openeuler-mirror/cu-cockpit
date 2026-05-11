@@ -46,7 +46,11 @@ class TestBootOffset(unittest.TestCase):
     @patch('subprocess.run')
     def test_list_boot_offsets_with_blank_lines(self, mock_run):
         """测试包含空行的情况"""
-        pass
+        mock_output = '0 12345678-1234-1234-1234-123456789abc Mon 2025-01-01 10:00:00 CST—Mon 2025-01-01 12:00:00 CST\n\n1 87654321-4321-4321-4321-cba987654321 Mon 2025-01-01 08:00:00 CST—Mon 2025-01-01 10:00:00 CST\n\n'
+        mock_run.return_value = MagicMock(returncode=0, stdout=mock_output, stderr='')
+        result = list_boot_offsets()
+        expected = [0, 1]
+        self.assertEqual(result, expected)
 
     @patch('subprocess.run')
     def test_list_boot_offsets_invalid_lines(self, mock_run):
