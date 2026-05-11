@@ -79,12 +79,20 @@ class TestMonitorStatusShModes(TestCase):
             call_args = mock_subprocess.call_args[0][0]
             self.assertIn('disk', call_args)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        pass
+        response_data = json.loads(response.content)
+        self.assertIn('disk', response_data)
+        self.assertEqual(response_data['disk']['usage_percent'], '60%')
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
     @patch('osmanager.rescrouce_monitor.views.subprocess.run')
     def test_monitor_memory_mode(self, mock_subprocess, mock_isfile):
         """测试 monitor_status.sh mode=memory 只返回内存信息"""
+        mock_isfile.return_value = True
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = json.dumps({'memory': {'total_mb': 8192, 'used_mb': 4096, 'available_mb': 4096}})
+        mock_result.stderr = ''
+        mock_subprocess.return_value = mock_result
         pass
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
