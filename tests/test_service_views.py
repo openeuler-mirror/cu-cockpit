@@ -72,7 +72,10 @@ class TestGetServiceStatusApi:
         session = client.session
         session['username'] = 'testuser'
         session.save()
-        pass
+        response = client.get('/api/service/status')
+        assert response.status_code == 500
+        response_data = json.loads(response.content)
+        assert '获取服务状态失败' in response_data['error']
 
 class TestManageServiceApi:
     """测试服务管理接口"""
@@ -81,6 +84,9 @@ class TestManageServiceApi:
     @patch('osmanager.service.views.subprocess.run')
     def test_start_service_success(self, mock_subprocess, mock_isfile):
         """测试启动服务成功"""
+        mock_isfile.return_value = True
+        mock_result = MagicMock()
+        mock_result.returncode = 0
         pass
 
     @patch('osmanager.service.views.os.path.isfile')
