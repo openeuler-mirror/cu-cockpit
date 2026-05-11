@@ -68,6 +68,17 @@ class TestMonitorStatusShModes(TestCase):
     @patch('osmanager.rescrouce_monitor.views.subprocess.run')
     def test_monitor_disk_mode(self, mock_subprocess, mock_isfile):
         """测试 monitor_status.sh mode=disk 只返回磁盘信息"""
+        mock_isfile.return_value = True
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = json.dumps({'disk': {'total_size_gb': 500, 'used_gb': 300, 'available_gb': 200, 'usage_percent': '60%'}})
+        mock_result.stderr = ''
+        mock_subprocess.return_value = mock_result
+        response = self.client.get('/api/rescrouce/monitor/monitor_status.sh?mode=disk')
+        if mock_subprocess.called:
+            call_args = mock_subprocess.call_args[0][0]
+            self.assertIn('disk', call_args)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         pass
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
