@@ -44,7 +44,13 @@ class TestLogParsing(unittest.TestCase):
 
     def test_parse_log_line_edge_cases(self):
         """测试边界情况"""
-        pass
+        result = parse_log_line('')
+        self.assertEqual(result['message'], '')
+        result = parse_log_line('   ')
+        self.assertEqual(result['message'], '')
+        line = 'Sep 09 10:23:09 host service[123]: message with special chars !@#$%'
+        result = parse_log_line(line)
+        self.assertEqual(result['message'], 'message with special chars !@#$%')
 
     def test_extract_summary_fields(self):
         """测试提取摘要字段"""
