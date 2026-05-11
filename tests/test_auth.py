@@ -79,6 +79,9 @@ class AuthViewsTest(TestCase):
 
     def test_login_view_empty_username(self):
         """测试空用户名的情况"""
+        data = {'username': self.empty_username, 'password': self.valid_password}
+        response = self.client.post('/api/auth/login/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         pass
 
     def test_login_view_empty_password(self):
