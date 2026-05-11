@@ -45,9 +45,17 @@ def setup_fake_memory_env(tmpdir):
     write_cmd(tmpdir, 'grep', grep)
 
 def setup_fake_disk_env(tmpdir):
-    pass
+    df = textwrap.dedent('        #!/usr/bin/env bash\n        if [[ "$1" == "-h" && "$2" == "/" ]]; then\n          # header + data\n          echo "Filesystem      Size  Used Avail Use% Mounted on"\n          echo "/dev/sda1        50G   20G   28G  42% /"\n        elif [[ "$1" == "-h" && "$2" == "/boot" ]]; then\n          echo "Filesystem      Size  Used Avail Use% Mounted on"\n          echo "/dev/sda2       1024M  256M  700M  27% /boot"\n        else\n          echo "unexpected df args: $@" >&2\n          exit 1\n        fi\n    ')
+    write_cmd(tmpdir, 'df', df)
 
 def test_cpu_output_json(tmp_path):
+    bin_dir = tmp_path / 'bin'
+    bin_dir.mkdir()
+    setup_fake_cpu_env(str(bin_dir))
+    env = os.environ.copy()
+    env['PATH'] = prepend_path(str(bin_dir))
+    code, out, err = run_script(['cpu'], env=env)
+    print(f'Debug - stdout: {repr(out)}')
     pass
 
 def test_memory_output_json(tmp_path):
