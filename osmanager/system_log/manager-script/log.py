@@ -42,6 +42,29 @@ def main():
         since = '24h ago'
     if since is not None:
         cmd += ['-S', since]
+    if args.until:
+        cmd += ['-U', args.until]
+    if args.priority:
+        cmd += ['-p', args.priority]
+    else:
+        cmd += ['-p', 'err']
+    if args.service:
+        unit = args.service if args.service.endswith('.service') else f'{args.service}.service'
+        if args.service_match == 'strict':
+            cmd += ['-u', unit]
+        elif args.service_match == 'unit':
+            cmd += [f'UNIT={unit}']
+        else:
+            cmd += ['_SYSTEMD_UNIT=' + unit, '+', 'UNIT=' + unit]
+    if args.keyword:
+        cmd += ['-g', args.keyword]
+    if args.limit is not None:
+        cmd += ['-n', str(args.limit)]
+    if args.boot is not None:
+        if args.boot == '' or args.boot.lower() == 'current':
+            cmd += ['-b']
+        else:
+            cmd += ['-b', args.boot]
     pass
 if __name__ == '__main__':
     main()
