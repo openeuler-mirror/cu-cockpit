@@ -80,7 +80,11 @@ class ConfigViewsTest(TestCase):
 
     def test_get_config_api_invalid_mode(self):
         """测试无效的mode参数"""
-        pass
+        with patch('os.path.isfile', return_value=True):
+            response = self.client.get(f'/api/config/get/{self.valid_script}?mode={self.invalid_mode}')
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            data = self._get_response_data(response)
+            self.assertIn('只允许为', data.get('message', ''))
 
     def test_get_config_api_missing_key_for_get_mode(self):
         """测试get模式缺少key参数的情况"""
