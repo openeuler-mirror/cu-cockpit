@@ -65,6 +65,83 @@ def main():
             cmd += ['-b']
         else:
             cmd += ['-b', args.boot]
-    pass
+    if args.identifier:
+        cmd += ['-t', args.identifier]
+    if args.cursor:
+        cmd = ['journalctl', '--no-pager', '--cursor', args.cursor, '-o', 'json', '-n', '1']
+    elif args.output_format in ('all_json', 'summary'):
+        cmd += ['-o', 'json']
+        if args.output_format == 'summary':
+            cmd += ['--output-fields', '__REALTIME_TIMESTAMP,MESSAGE,_SYSTEMD_UNIT,UNIT,SYSLOG_IDENTIFIER,_HOSTNAME,__CURSOR']
+    if args.debug:
+        print(f"执行命令: {' '.join(cmd)}", file=sys.stderr)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False, env={**os.environ, 'SYSTEMD_COLORS': '0', 'TZ': os.environ.get('TZ', 'Asia/Shanghai')})
+        if result.returncode == 1 and '-- No entries --' in result.stdout:
+            if args.output_format == 'raw':
+                print(result.stdout)
+            elif args.output_format == 'json':
+                print('[]')
+            elif args.output_format == 'all_json':
+                print('[]')
+            elif args.output_format == 'summary':
+                print('[]')
+            return
+        if result.returncode == 1 and (not result.stderr.strip()):
+            if args.output_format == 'raw':
+                print('')
+            elif args.output_format == 'json':
+                print('[]')
+            elif args.output_format == 'all_json':
+                print('[]')
+            elif args.output_format == 'summary':
+                print('[]')
+            return
+        if result.returncode != 0:
+            error_msg = result.stderr.strip() or 'journalctl返回非0且无错误信息'
+            cmd = ' '.join(cmd)
+            err = {'error': 'journalctl执行失败', 'returncode': result.returncode, 'cmd': cmd, 'message': error_msg}
+            if args.debug:
+                err['stdout'] = result.stdout
+                err['stderr'] = result.stderr
+            print(json.dumps(err, ensure_ascii=False), file=sys.stderr)
+            sys.exit(result.returncode)
+        if args.output_format == 'raw':
+            print(result.stdout)
+        elif args.output_format == 'json':
+            logs = []
+            for line in result.stdout.strip().split('\n'):
+                if line.strip():
+                    parsed_log = parse_log_line(line)
+                    logs.append(parsed_log)
+            print(json.dumps(logs, indent=2, ensure_ascii=False))
+        elif args.output_format == 'all_json':
+            logs = []
+            for line in result.stdout.splitlines():
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    logs.append(json.loads(line))
+                except json.JSONDecodeError:
+                    pass
+            print(json.dumps(logs, indent=2, ensure_ascii=False))
+        elif args.output_format == 'summary':
+            logs = []
+            for line in result.stdout.splitlines():
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    full_log = json.loads(line)
+                    logs.append(extract_summary_fields(full_log))
+                except json.JSONDecodeError:
+                    pass
+            print(json.dumps(logs, indent=2, ensure_ascii=False))
+    except FileNotFoundError:
+        print('未找到journalctl', file=sys.stderr)
+        sys.exit(127)
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
 if __name__ == '__main__':
     main()
