@@ -66,6 +66,12 @@ class TestGetServiceStatusApi:
         mock_result = MagicMock()
         mock_result.returncode = 1
         mock_result.stdout = ''
+        mock_result.stderr = 'Command failed'
+        mock_subprocess.return_value = mock_result
+        client = Client()
+        session = client.session
+        session['username'] = 'testuser'
+        session.save()
         pass
 
 class TestManageServiceApi:
