@@ -70,7 +70,12 @@ class AuthViewsTest(TestCase):
 
     def test_login_view_missing_password(self):
         """测试缺少密码的情况"""
-        pass
+        data = {'username': self.valid_username}
+        response = self.client.post('/api/auth/login/', data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        response_data = response.json()
+        self.assertEqual(response_data['code'], 400)
+        self.assertEqual(response_data['message'], '请输入用户名和密码')
 
     def test_login_view_empty_username(self):
         """测试空用户名的情况"""
