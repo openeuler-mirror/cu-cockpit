@@ -56,6 +56,12 @@ def test_cpu_output_json(tmp_path):
     env['PATH'] = prepend_path(str(bin_dir))
     code, out, err = run_script(['cpu'], env=env)
     print(f'Debug - stdout: {repr(out)}')
+    print(f'Debug - stderr: {repr(err)}')
+    print(f'Debug - return code: {code}')
+    assert code == 0, err
+    data = json_loads_safe(out)
+    print(f'Debug - parsed data: {data}')
+    assert 'cpu' in data
     pass
 
 def test_memory_output_json(tmp_path):
