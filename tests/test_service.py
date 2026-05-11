@@ -44,6 +44,8 @@ class TestServiceStatus(unittest.TestCase):
 
     def test_parse_units(self):
         """测试解析units输出"""
+        sample_input = ['sshd.service loaded active running OpenSSH server', 'nginx.service loaded inactive dead nginx web server', '  docker.service  loaded  active  running  Docker Application Container Engine  ', 'invalid.line', '']
+        expected = {'sshd.service': {'运行状态': 'active', '描述': 'OpenSSH server'}, 'nginx.service': {'运行状态': 'inactive', '描述': 'nginx web server'}, 'docker.service': {'运行状态': 'active', '描述': 'Docker Application Container Engine'}}
         pass
 
     def test_merge_and_print(self):
