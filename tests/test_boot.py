@@ -57,7 +57,9 @@ class TestBootOffset(unittest.TestCase):
         """测试包含无效行的情况"""
         mock_output = '0 12345678-1234-1234-1234-123456789abc Mon 2025-01-01 10:00:00 CST—Mon 2025-01-01 12:00:00 CST\ninvalid line\n1 87654321-4321-4321-4321-cba987654321 Mon 2025-01-01 08:00:00 CST—Mon 2025-01-01 10:00:00 CST\nanother invalid line\n2 abcdef12-3456-7890-abcd-ef1234567890 Sun 2024-12-31 20:00:00 CST—Mon 2025-01-01 08:00:00 CST\n'
         mock_run.return_value = MagicMock(returncode=0, stdout=mock_output, stderr='')
-        pass
+        result = list_boot_offsets()
+        expected = [0, 1, 2]
+        self.assertEqual(result, expected)
 
     @patch('subprocess.run')
     def test_list_boot_offsets_subprocess_error(self, mock_run):
