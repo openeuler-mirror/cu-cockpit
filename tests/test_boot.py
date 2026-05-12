@@ -64,7 +64,9 @@ class TestBootOffset(unittest.TestCase):
     @patch('subprocess.run')
     def test_list_boot_offsets_subprocess_error(self, mock_run):
         """测试subprocess执行错误"""
-        pass
+        mock_run.side_effect = subprocess.CalledProcessError(1, 'journalctl', stderr='Permission denied')
+        result = list_boot_offsets()
+        self.assertEqual(result, [])
 
     @patch('subprocess.run')
     def test_list_boot_offsets_subprocess_error_with_stderr(self, mock_run):
