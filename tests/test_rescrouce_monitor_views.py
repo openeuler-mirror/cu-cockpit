@@ -93,7 +93,14 @@ class TestMonitorStatusShModes(TestCase):
         mock_result.stdout = json.dumps({'memory': {'total_mb': 8192, 'used_mb': 4096, 'available_mb': 4096}})
         mock_result.stderr = ''
         mock_subprocess.return_value = mock_result
-        pass
+        response = self.client.get('/api/rescrouce/monitor/monitor_status.sh?mode=memory')
+        if mock_subprocess.called:
+            call_args = mock_subprocess.call_args[0][0]
+            self.assertIn('memory', call_args)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = json.loads(response.content)
+        self.assertIn('memory', response_data)
+        self.assertIn('total_mb', response_data['memory'])
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
     @patch('osmanager.rescrouce_monitor.views.subprocess.run')
