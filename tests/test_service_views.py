@@ -109,6 +109,12 @@ class TestManageServiceApi:
         mock_isfile.return_value = True
         mock_result = MagicMock()
         mock_result.returncode = 0
+        mock_result.stdout = 'Service stopped successfully'
+        mock_result.stderr = ''
+        mock_subprocess.return_value = mock_result
+        client = Client()
+        session = client.session
+        session['username'] = 'testuser'
         pass
 
     @patch('osmanager.service.views.os.path.isfile')
