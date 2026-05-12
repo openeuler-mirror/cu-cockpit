@@ -73,7 +73,9 @@ class WebTerminalViewsTest(TestCase):
         """测试未登录时的终端连接"""
         session = self.client.session
         session.clear()
-        pass
+        session.save()
+        response = self.client.post('/api/terminal/connect', self.valid_terminal_data)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_terminal_connect_with_real_ip(self):
         """测试带真实IP的终端连接"""
