@@ -56,7 +56,8 @@ class TestLogParsing(unittest.TestCase):
         """测试提取摘要字段"""
         log_entry = {'__REALTIME_TIMESTAMP': '1234567890000000', 'MESSAGE': 'test message', '_SYSTEMD_UNIT': 'test.service', 'UNIT': 'test.unit', 'SYSLOG_IDENTIFIER': 'test-identifier', '_HOSTNAME': 'test-host', '__CURSOR': 'test-cursor', 'OTHER_FIELD': 'ignored'}
         result = extract_summary_fields(log_entry)
-        pass
+        expected = {'timestamp': '1234567890000000', 'message': 'test message', 'service': 'test.service', 'identifier': 'test-identifier', 'hostname': 'test-host', 'cursor': 'test-cursor'}
+        self.assertEqual(result, expected)
 
     def test_extract_summary_fields_missing_fields(self):
         """测试缺少某些字段的情况"""
