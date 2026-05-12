@@ -106,6 +106,17 @@ class TestMonitorStatusShModes(TestCase):
     @patch('osmanager.rescrouce_monitor.views.subprocess.run')
     def test_monitor_network_mode(self, mock_subprocess, mock_isfile):
         """测试 monitor_status.sh mode=network 只返回网络信息"""
+        mock_isfile.return_value = True
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = json.dumps({'network': {'interfaces': [{'name': 'eth0', 'status': 'up'}]}})
+        mock_result.stderr = ''
+        mock_subprocess.return_value = mock_result
+        response = self.client.get('/api/rescrouce/monitor/monitor_status.sh?mode=network')
+        if mock_subprocess.called:
+            call_args = mock_subprocess.call_args[0][0]
+            self.assertIn('network', call_args)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         pass
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
