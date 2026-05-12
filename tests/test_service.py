@@ -53,11 +53,19 @@ class TestServiceStatus(unittest.TestCase):
         """测试合并和打印功能"""
         unit_files = {'sshd.service': 'enabled', 'nginx.service': 'disabled', 'missing.service': 'static'}
         units = {'sshd.service': {'运行状态': 'active', '描述': 'OpenSSH server'}, 'docker.service': {'运行状态': 'active', '描述': 'Docker'}}
-        pass
+        expected = [{'服务名称': 'docker', '运行状态': 'active', '注册状态': 'N/A', '描述': 'Docker'}, {'服务名称': 'missing', '运行状态': 'inactive', '注册状态': 'static', '描述': ''}, {'服务名称': 'nginx', '运行状态': 'inactive', '注册状态': 'disabled', '描述': ''}, {'服务名称': 'sshd', '运行状态': 'active', '注册状态': 'enabled', '描述': 'OpenSSH server'}]
+        with patch('sys.stdout', new=StringIO()) as fake_out:
+            service_status.merge_and_print(unit_files, units)
+            output = fake_out.getvalue().strip()
+            result = json.loads(output)
+            self.assertEqual(result, expected)
 
     @patch('service_status.run_command')
     def test_main_logic_success(self, mock_run):
         """测试主业务逻辑成功执行"""
+        mock_run.side_effect = [['sshd.service enabled', 'nginx.service disabled', ''], ['sshd.service loaded active running OpenSSH', 'nginx.service loaded inactive dead nginx', '']]
+        unit_files_lines = service_status.run_command('unit-files-command')
+        units_lines = service_status.run_command('units-command')
         pass
 
     @patch('service_status.run_command')
