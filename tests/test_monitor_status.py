@@ -62,9 +62,18 @@ def test_cpu_output_json(tmp_path):
     data = json_loads_safe(out)
     print(f'Debug - parsed data: {data}')
     assert 'cpu' in data
-    pass
+    cpu = data['cpu']
+    print(f'Debug - cpu data: {cpu}')
+    print(f"Debug - total_utilization_percent: {repr(cpu['total_utilization_percent'])}")
+    assert cpu['user_percent'] == '12.3%'
+    assert cpu['system_percent'] == '4.5%'
+    assert cpu['idle_percent'] == '83.2%'
+    assert cpu['total_utilization_percent'] == '16.8%'
 
 def test_memory_output_json(tmp_path):
+    bin_dir = tmp_path / 'bin'
+    bin_dir.mkdir()
+    setup_fake_memory_env(str(bin_dir))
     pass
 
 def test_disk_output_json(tmp_path):
