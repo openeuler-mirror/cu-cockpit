@@ -98,12 +98,17 @@ class TestManageServiceApi:
         response = client.post('/api/service/manage', data=json.dumps(data), content_type='application/json')
         assert response.status_code == status.HTTP_200_OK
         response_data = json.loads(response.content)
-        pass
+        assert response_data['success_flag'] is True
+        assert 'nginx' in response_data['message']
+        assert 'start' in response_data['message']
 
     @patch('osmanager.service.views.os.path.isfile')
     @patch('osmanager.service.views.subprocess.run')
     def test_stop_service_success(self, mock_subprocess, mock_isfile):
         """测试停止服务成功"""
+        mock_isfile.return_value = True
+        mock_result = MagicMock()
+        mock_result.returncode = 0
         pass
 
     @patch('osmanager.service.views.os.path.isfile')
