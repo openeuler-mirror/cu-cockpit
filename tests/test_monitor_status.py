@@ -81,7 +81,12 @@ def test_memory_output_json(tmp_path):
     data = json_loads_safe(out)
     assert 'memory' in data
     mem = data['memory']
-    pass
+    assert mem['total_mb'] == 4000
+    assert mem['available_mb'] == 1000
+    assert mem['used_mb'] == 3000
+    assert mem['swap_total_mb'] == 2000
+    assert mem['swap_free_mb'] == 500
+    assert mem['swap_used_mb'] == 1500
 
 def test_disk_output_json(tmp_path):
     pass
