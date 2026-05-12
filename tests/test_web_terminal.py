@@ -53,10 +53,26 @@ class WebTerminalViewsTest(TestCase):
 
     def test_terminal_connect_success(self):
         """测试终端连接成功的情况"""
-        pass
+        with patch('requests.Session') as mock_session_class:
+            mock_session = MagicMock()
+            mock_session_class.return_value = mock_session
+            mock_get_response = MagicMock()
+            mock_get_response.cookies = {'_xsrf': 'test_xsrf_token'}
+            mock_session.get.return_value = mock_get_response
+            mock_post_response = MagicMock()
+            mock_post_response.status_code = 200
+            mock_post_response.json.return_value = {'status': 'success', 'message': 'Connected'}
+            mock_session.post.return_value = mock_post_response
+            response = self.client.post('/api/terminal/connect', self.valid_terminal_data)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            data = response.json()
+            self.assertEqual(data['status'], 'success')
+            self.assertEqual(data['message'], 'Connected')
 
     def test_terminal_connect_without_login(self):
         """测试未登录时的终端连接"""
+        session = self.client.session
+        session.clear()
         pass
 
     def test_terminal_connect_with_real_ip(self):
