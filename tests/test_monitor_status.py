@@ -74,6 +74,13 @@ def test_memory_output_json(tmp_path):
     bin_dir = tmp_path / 'bin'
     bin_dir.mkdir()
     setup_fake_memory_env(str(bin_dir))
+    env = os.environ.copy()
+    env['PATH'] = prepend_path(str(bin_dir))
+    code, out, err = run_script(['memory'], env=env)
+    assert code == 0, err
+    data = json_loads_safe(out)
+    assert 'memory' in data
+    mem = data['memory']
     pass
 
 def test_disk_output_json(tmp_path):
