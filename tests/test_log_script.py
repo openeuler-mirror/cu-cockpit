@@ -61,7 +61,10 @@ class TestLogParsing(unittest.TestCase):
 
     def test_extract_summary_fields_missing_fields(self):
         """测试缺少某些字段的情况"""
-        pass
+        log_entry = {'MESSAGE': 'test message', 'UNIT': 'test.unit'}
+        result = extract_summary_fields(log_entry)
+        expected = {'timestamp': '', 'message': 'test message', 'service': 'test.unit', 'identifier': '', 'hostname': '', 'cursor': ''}
+        self.assertEqual(result, expected)
 
 class TestLogMain(unittest.TestCase):
     """测试main函数"""
