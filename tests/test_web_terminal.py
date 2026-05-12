@@ -47,7 +47,9 @@ class WebTerminalViewsTest(TestCase):
         """测试获取CSRF token成功的情况"""
         response = self.client.get('/api/terminal/token')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        pass
+        data = response.json()
+        self.assertIn('csrftoken', data)
+        self.assertIsNotNone(data['csrftoken'])
 
     def test_terminal_connect_success(self):
         """测试终端连接成功的情况"""
