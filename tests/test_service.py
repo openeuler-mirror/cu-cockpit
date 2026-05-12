@@ -51,6 +51,8 @@ class TestServiceStatus(unittest.TestCase):
 
     def test_merge_and_print(self):
         """测试合并和打印功能"""
+        unit_files = {'sshd.service': 'enabled', 'nginx.service': 'disabled', 'missing.service': 'static'}
+        units = {'sshd.service': {'运行状态': 'active', '描述': 'OpenSSH server'}, 'docker.service': {'运行状态': 'active', '描述': 'Docker'}}
         pass
 
     @patch('service_status.run_command')
