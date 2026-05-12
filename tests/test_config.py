@@ -109,7 +109,16 @@ class ConfigViewsTest(TestCase):
 
     def test_get_config_api_non_json_output_for_json_mode(self):
         """测试JSON模式返回非JSON输出的情况"""
-        pass
+        with patch('os.path.isfile', return_value=True), patch('subprocess.run') as mock_subprocess:
+            mock_result = MagicMock()
+            mock_result.returncode = 0
+            mock_result.stdout = 'This is not JSON'
+            mock_result.stderr = ''
+            mock_subprocess.return_value = mock_result
+            response = self.client.get(f'/api/config/get/{self.valid_script}?mode=sshkey')
+            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+            data = self._get_response_data(response)
+            self.assertIn('not json', data.get('error', ''))
 
     def test_set_time_hostname_api_success(self):
         """测试成功设置时间和主机名的情况"""
