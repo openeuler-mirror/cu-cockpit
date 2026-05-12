@@ -117,11 +117,15 @@ class TestMonitorStatusShModes(TestCase):
             call_args = mock_subprocess.call_args[0][0]
             self.assertIn('network', call_args)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        pass
+        response_data = json.loads(response.content)
+        self.assertIn('network', response_data)
+        self.assertIn('interfaces', response_data['network'])
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
     def test_monitor_invalid_mode(self, mock_isfile):
         """测试 monitor_status.sh 传入无效mode"""
+        mock_isfile.return_value = True
+        response = self.client.get('/api/rescrouce/monitor/monitor_status.sh?mode=invalid')
         pass
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
