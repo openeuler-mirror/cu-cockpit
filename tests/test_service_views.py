@@ -87,6 +87,17 @@ class TestManageServiceApi:
         mock_isfile.return_value = True
         mock_result = MagicMock()
         mock_result.returncode = 0
+        mock_result.stdout = 'Service started successfully'
+        mock_result.stderr = ''
+        mock_subprocess.return_value = mock_result
+        client = Client()
+        session = client.session
+        session['username'] = 'testuser'
+        session.save()
+        data = {'service_name': 'nginx', 'operation': 'start'}
+        response = client.post('/api/service/manage', data=json.dumps(data), content_type='application/json')
+        assert response.status_code == status.HTTP_200_OK
+        response_data = json.loads(response.content)
         pass
 
     @patch('osmanager.service.views.os.path.isfile')
