@@ -89,4 +89,13 @@ def test_memory_output_json(tmp_path):
     assert mem['swap_used_mb'] == 1500
 
 def test_disk_output_json(tmp_path):
+    bin_dir = tmp_path / 'bin'
+    bin_dir.mkdir()
+    setup_fake_disk_env(str(bin_dir))
+    env = os.environ.copy()
+    env['PATH'] = prepend_path(str(bin_dir))
+    code, out, err = run_script(['disk'], env=env)
+    assert code == 0, err
+    data = json_loads_safe(out)
+    assert 'total_disk' in data and 'boot_disk' in data
     pass
