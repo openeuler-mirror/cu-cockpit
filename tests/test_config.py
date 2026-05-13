@@ -123,7 +123,18 @@ class ConfigViewsTest(TestCase):
     def test_set_time_hostname_api_success(self):
         """测试成功设置时间和主机名的情况"""
         test_cases = [('set_time.sh', {'type': 'autotime'}), ('set_time.sh', {'type': 'settime', 'time': '2025-09-01 12:00:00 +0800'}), ('config.sh', {'hostname': 'newhostname'})]
-        pass
+        for script_name, data in test_cases:
+            with self.subTest(script_name=script_name):
+                with patch('os.path.isfile', return_value=True), patch('subprocess.run') as mock_subprocess:
+                    mock_result = MagicMock()
+                    mock_result.returncode = 0
+                    mock_result.stdout = 'success'
+                    mock_result.stderr = ''
+                    mock_subprocess.return_value = mock_result
+                    response = self.client.post(f'/api/config/set/{script_name}', data=data, format='json')
+                    self.assertEqual(response.status_code, status.HTTP_200_OK)
+                    response_data = self._get_response_data(response)
+                    self.assertTrue(response_data.get('success_flag', False))
 
     def test_set_time_hostname_api_unsupported_script(self):
         """测试不支持的脚本名称"""
