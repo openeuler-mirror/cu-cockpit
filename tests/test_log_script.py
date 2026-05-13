@@ -82,12 +82,23 @@ class TestLogMain(unittest.TestCase):
     @patch('subprocess.run')
     def test_main_success_json_output(self, mock_run):
         """测试成功执行json输出格式"""
-        pass
+        mock_run.return_value = MagicMock(returncode=0, stdout='Sep 09 10:23:09 host service[123]: test message\n', stderr='')
+        with patch('sys.argv', ['log.py', '--output_format', 'json']):
+            with patch('sys.stdout') as mock_stdout:
+                main()
+                out = _stream_text(mock_stdout)
+                data = json.loads(out)
+                self.assertEqual(len(data), 1)
+                self.assertEqual(data[0]['message'], 'test message')
 
     @patch('subprocess.run')
     def test_main_no_entries(self, mock_run):
         """测试没有日志条目的情况"""
-        pass
+        mock_run.return_value = MagicMock(returncode=1, stdout='-- No entries --\n', stderr='')
+        with patch('sys.argv', ['log.py', '--output_format', 'raw']):
+            with patch('sys.stdout') as mock_stdout:
+                out = _stream_text(mock_stdout)
+                self.assertEqual(out, '')
 
     @patch('subprocess.run')
     def test_main_journalctl_error(self, mock_run):
