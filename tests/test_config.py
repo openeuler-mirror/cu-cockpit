@@ -138,11 +138,19 @@ class ConfigViewsTest(TestCase):
 
     def test_set_time_hostname_api_unsupported_script(self):
         """测试不支持的脚本名称"""
-        pass
+        with patch('os.path.isfile', return_value=True):
+            response = self.client.post('/api/config/set/invalid_script.sh', data={'type': 'autotime'}, format='json')
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            response_data = self._get_response_data(response)
+            self.assertIn('不支持的脚本', response_data.get('error', ''))
 
     def test_set_time_hostname_api_script_not_found(self):
         """测试脚本文件不存在的情况"""
-        pass
+        with patch('os.path.isfile', return_value=False):
+            response = self.client.post(f'/api/config/set/{self.valid_script}', data={'hostname': 'test'}, format='json')
+            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+            response_data = self._get_response_data(response)
+            self.assertIn('not found', response_data.get('error', '').lower())
 
     def test_set_time_hostname_api_invalid_params(self):
         """测试无效参数的情况"""
