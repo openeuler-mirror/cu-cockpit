@@ -154,7 +154,15 @@ class ConfigViewsTest(TestCase):
 
     def test_set_time_hostname_api_invalid_params(self):
         """测试无效参数的情况"""
-        pass
+        test_cases = [('set_time.sh', {'type': 'invalid_type'}, 'type只允许为'), ('set_time.sh', {}, 'type只允许为'), ('set_time.sh', {'type': 'settime'}, 'time'), ('config.sh', {}, 'hostname')]
+        for script_name, data, error_keyword in test_cases:
+            with self.subTest(script_name=script_name):
+                with patch('os.path.isfile', return_value=True):
+                    response = self.client.post(f'/api/config/set/{script_name}', data=data, format='json')
+                    self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                    response_data = self._get_response_data(response)
+                    message = response_data.get('message', '')
+                    self.assertTrue(any((keyword in message for keyword in [error_keyword, '错误'])), f"Message should contain '{error_keyword}', but got: '{message}'")
 
     def test_set_time_hostname_api_script_failure(self):
         """测试脚本执行失败的情况"""
