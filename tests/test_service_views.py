@@ -144,6 +144,12 @@ class TestManageServiceApi:
 
     def test_manage_service_missing_parameters(self):
         """测试缺少必需参数"""
+        client = Client()
+        session = client.session
+        session['username'] = 'testuser'
+        session.save()
+        data = {'service_name': 'nginx'}
+        response = client.post('/api/service/manage', data=json.dumps(data), content_type='application/json')
         pass
 
     def test_manage_service_invalid_operation(self):
