@@ -166,7 +166,16 @@ class ConfigViewsTest(TestCase):
 
     def test_set_time_hostname_api_script_failure(self):
         """测试脚本执行失败的情况"""
-        pass
+        with patch('os.path.isfile', return_value=True), patch('subprocess.run') as mock_subprocess:
+            mock_result = MagicMock()
+            mock_result.returncode = 1
+            mock_result.stdout = ''
+            mock_result.stderr = 'Command failed'
+            mock_subprocess.return_value = mock_result
+            response = self.client.post('/api/config/set/config.sh', data={'hostname': 'test'}, format='json')
+            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+            response_data = self._get_response_data(response)
+            self.assertFalse(response_data.get('success_flag', True))
 
     def test_write_bytes_to_file_success(self):
         """测试成功写入字节数据到文件"""
