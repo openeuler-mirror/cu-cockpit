@@ -98,4 +98,9 @@ def test_disk_output_json(tmp_path):
     assert code == 0, err
     data = json_loads_safe(out)
     assert 'total_disk' in data and 'boot_disk' in data
-    pass
+    assert data['total_disk']['total'] == '50G'
+    assert data['total_disk']['used'] == '20G'
+    assert data['total_disk']['free'] == '28G'
+    assert data['boot_disk']['boot_total'] == '1024M'
+    assert data['boot_disk']['boot_used'] == '256M'
+    assert data['boot_disk']['boot_free'] == '700M'
