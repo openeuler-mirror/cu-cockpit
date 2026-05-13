@@ -144,12 +144,18 @@ class TestHardInfoShModes(TestCase):
 
     def setUp(self):
         """测试前设置"""
-        pass
+        self.client = Client()
+        session = self.client.session
+        session['username'] = 'testuser'
+        session.save()
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
     @patch('osmanager.rescrouce_monitor.views.subprocess.run')
     def test_hard_info_cpu_mode(self, mock_subprocess, mock_isfile):
         """测试 hard_info.sh mode=cpu 返回CPU硬件信息"""
+        mock_isfile.return_value = True
+        mock_result = MagicMock()
+        mock_result.returncode = 0
         pass
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
