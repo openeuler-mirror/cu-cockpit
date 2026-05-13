@@ -150,10 +150,15 @@ class TestManageServiceApi:
         session.save()
         data = {'service_name': 'nginx'}
         response = client.post('/api/service/manage', data=json.dumps(data), content_type='application/json')
-        pass
+        assert response.status_code == 400
+        response_data = json.loads(response.content)
+        assert '缺少必需参数' in response_data['error']
 
     def test_manage_service_invalid_operation(self):
         """测试无效的操作类型"""
+        client = Client()
+        session = client.session
+        session['username'] = 'testuser'
         pass
 
     @patch('osmanager.service.views.os.path.isfile')
