@@ -143,10 +143,18 @@ class AuthViewsTest(TestCase):
 
     def test_login_view_session_storage(self):
         """测试登录成功后session存储的情况"""
-        pass
+        with patch('osmanager.auth.views.verify_with_pam', return_value=True):
+            data = {'username': self.valid_username, 'password': self.valid_password}
+            response = self.client.post('/api/auth/login/', data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(self.client.session.get('username'), self.valid_username)
 
     def test_logout_view_success(self):
         """测试成功登出的情况"""
+        session = self.client.session
+        session['username'] = self.valid_username
+        session.save()
+        response = self.client.post('/api/auth/logout/')
         pass
 
     def test_logout_view_no_session(self):
