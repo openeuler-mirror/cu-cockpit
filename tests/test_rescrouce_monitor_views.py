@@ -156,6 +156,14 @@ class TestHardInfoShModes(TestCase):
         mock_isfile.return_value = True
         mock_result = MagicMock()
         mock_result.returncode = 0
+        mock_result.stdout = json.dumps({'cpu': {'model': 'Intel Core i7-10700K', 'cores': 8, 'vendor': 'Intel'}})
+        mock_result.stderr = ''
+        mock_subprocess.return_value = mock_result
+        response = self.client.get('/api/rescrouce/monitor/hard_info.sh?mode=cpu')
+        if mock_subprocess.called:
+            call_args = mock_subprocess.call_args[0][0]
+            self.assertIn('cpu', call_args)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         pass
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
