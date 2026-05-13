@@ -138,7 +138,8 @@ class AuthViewsTest(TestCase):
 
     def test_login_view_get_method(self):
         """测试使用GET方法请求登录的情况"""
-        pass
+        response = self.client.get('/api/auth/login/')
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_login_view_session_storage(self):
         """测试登录成功后session存储的情况"""
