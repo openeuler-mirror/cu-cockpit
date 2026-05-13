@@ -125,6 +125,20 @@ class TestLogMain(unittest.TestCase):
     def test_argument_parsing(self):
         """测试命令行参数解析"""
         test_cases = [(['log.py', '--since', '1h ago', '--priority', 'info'], {'since': '1h ago', 'priority': 'info'}), (['log.py', '--service', 'nginx', '--limit', '10'], {'service': 'nginx', 'limit': 10}), (['log.py', '--keyword', 'error', '--identifier', 'sshd'], {'keyword': 'error', 'identifier': 'sshd'})]
-        pass
+        for args, expected in test_cases:
+            with patch('sys.argv', args):
+                with patch('subprocess.run') as mock_run:
+                    mock_run.return_value = MagicMock(returncode=0, stdout='', stderr='')
+                    with patch('sys.stdout'):
+                        main()
+                        call_args = mock_run.call_args[0][0]
+                        if 'since' in expected:
+                            self.assertIn('-S', call_args)
+                        if 'priority' in expected:
+                            self.assertIn('-p', call_args)
+                        if 'service' in expected:
+                            self.assertIn('_SYSTEMD_UNIT=nginx.service', call_args)
+                            self.assertIn('+', call_args)
+                            self.assertIn('UNIT=nginx.service', call_args)
 if __name__ == '__main__':
     unittest.main()
