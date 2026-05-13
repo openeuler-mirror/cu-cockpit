@@ -106,7 +106,13 @@ class AuthViewsTest(TestCase):
 
     def test_login_view_invalid_credentials(self):
         """测试无效凭据的情况"""
-        pass
+        with patch('osmanager.auth.views.verify_with_pam', return_value=False):
+            data = {'username': self.invalid_username, 'password': self.invalid_password}
+            response = self.client.post('/api/auth/login/', data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+            response_data = response.json()
+            self.assertEqual(response_data['code'], 401)
+            self.assertEqual(response_data['message'], '用户名或密码错误')
 
     def test_login_view_pam_not_available(self):
         """测试PAM服务不可用的情况"""
