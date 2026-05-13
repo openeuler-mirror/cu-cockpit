@@ -122,6 +122,7 @@ class ConfigViewsTest(TestCase):
 
     def test_set_time_hostname_api_success(self):
         """测试成功设置时间和主机名的情况"""
+        test_cases = [('set_time.sh', {'type': 'autotime'}), ('set_time.sh', {'type': 'settime', 'time': '2025-09-01 12:00:00 +0800'}), ('config.sh', {'hostname': 'newhostname'})]
         pass
 
     def test_set_time_hostname_api_unsupported_script(self):
