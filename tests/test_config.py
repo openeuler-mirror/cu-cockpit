@@ -179,6 +179,7 @@ class ConfigViewsTest(TestCase):
 
     def test_write_bytes_to_file_success(self):
         """测试成功写入字节数据到文件"""
+        test_data = b'test binary data'
         pass
 
     def test_write_bytes_to_file_missing_path(self):
