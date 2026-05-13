@@ -70,7 +70,13 @@ class TestBootOffset(unittest.TestCase):
 
     @patch('subprocess.run')
     def test_list_boot_offsets_subprocess_error_with_stderr(self, mock_run):
-        pass
+        import subprocess
+        mock_run.side_effect = subprocess.CalledProcessError(1, 'journalctl', stderr='Permission denied')
+        with patch('sys.stderr') as mock_stderr:
+            result = list_boot_offsets()
+            self.assertEqual(result, [])
+            out = _stream_text(mock_stderr)
+            self.assertEqual(out, 'Permission denied\n')
 
     def test_list_boot_offsets_environment(self):
         """测试环境变量设置"""
