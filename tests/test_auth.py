@@ -162,7 +162,11 @@ class AuthViewsTest(TestCase):
 
     def test_logout_view_no_session(self):
         """测试没有session时的登出情况"""
-        pass
+        response = self.client.post('/api/auth/logout/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()
+        self.assertEqual(response_data['code'], 200)
+        self.assertEqual(response_data['message'], '登出成功')
 
     def test_logout_view_session_cleared(self):
         """测试登出后session被清除的情况"""
