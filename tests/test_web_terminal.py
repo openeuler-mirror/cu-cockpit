@@ -143,7 +143,13 @@ class WebTerminalViewsTest(TestCase):
 
     def test_terminal_connect_webssh_connection_error(self):
         """测试webssh连接错误的情况"""
-        pass
+        import requests
+        with patch('requests.Session') as mock_session_class:
+            mock_session = MagicMock()
+            mock_session_class.return_value = mock_session
+            mock_session.get.side_effect = requests.ConnectionError('Connection failed')
+            with self.assertRaises(requests.ConnectionError):
+                self.client.post('/api/terminal/connect', self.valid_terminal_data)
 
     def test_terminal_connect_post_timeout(self):
         """测试POST请求超时的情况"""
