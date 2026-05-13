@@ -104,6 +104,11 @@ class TestBootOffset(unittest.TestCase):
 class TestBootOffsetMain(unittest.TestCase):
 
     def test_main_execution(self):
-        pass
+        mock_output = '0 aaaa Mon 2025-01-01 10:00:00—Mon 2025-01-01 12:00:00\n1 bbbb Mon 2025-01-01 08:00:00—Mon 2025-01-01 10:00:00\n2 cccc Sun 2024-12-31 20:00:00—Mon 2025-01-01 08:00:00\n'
+        with patch('subprocess.run') as mock_run:
+            mock_run.return_value = MagicMock(returncode=0, stdout=mock_output, stderr='')
+            with patch('sys.stdout') as mock_stdout:
+                runpy.run_path(BOOT_PATH, run_name='__main__')
+                out = _stream_text(mock_stdout)
 if __name__ == '__main__':
     unittest.main()
