@@ -132,7 +132,15 @@ class TestManageServiceApi:
         mock_result.stdout = 'Service restarted successfully'
         mock_result.stderr = ''
         mock_subprocess.return_value = mock_result
-        pass
+        client = Client()
+        session = client.session
+        session['username'] = 'testuser'
+        session.save()
+        data = {'service_name': 'nginx', 'operation': 'restart'}
+        response = client.post('/api/service/manage', data=json.dumps(data), content_type='application/json')
+        assert response.status_code == status.HTTP_200_OK
+        response_data = json.loads(response.content)
+        assert response_data['success_flag'] is True
 
     def test_manage_service_missing_parameters(self):
         """测试缺少必需参数"""
