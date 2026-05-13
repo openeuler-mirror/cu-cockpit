@@ -97,7 +97,22 @@ class WebTerminalViewsTest(TestCase):
 
     def test_terminal_connect_with_x_forwarded_for(self):
         """测试带X-Forwarded-For头的终端连接"""
-        pass
+        with patch('requests.Session') as mock_session_class:
+            mock_session = MagicMock()
+            mock_session_class.return_value = mock_session
+            mock_get_response = MagicMock()
+            mock_get_response.cookies = {'_xsrf': 'test_xsrf_token'}
+            mock_session.get.return_value = mock_get_response
+            mock_post_response = MagicMock()
+            mock_post_response.status_code = 200
+            mock_post_response.json.return_value = {'status': 'success'}
+            mock_session.post.return_value = mock_post_response
+            response = self.client.post('/api/terminal/connect', self.valid_terminal_data, HTTP_X_FORWARDED_FOR='192.168.1.10, 192.168.1.20')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            call_args = mock_session.post.call_args
+            headers = call_args[1]['headers']
+            self.assertIn('192.168.1.10', headers['X-Forwarded-For'])
+            self.assertIn('192.168.1.20', headers['X-Forwarded-For'])
 
     def test_terminal_connect_webssh_error(self):
         """测试webssh服务错误的情况"""
