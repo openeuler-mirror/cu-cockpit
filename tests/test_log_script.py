@@ -103,7 +103,12 @@ class TestLogMain(unittest.TestCase):
     @patch('subprocess.run')
     def test_main_journalctl_error(self, mock_run):
         """测试journalctl执行错误"""
-        pass
+        mock_run.return_value = MagicMock(returncode=1, stdout='', stderr='Permission denied')
+        with patch('sys.argv', ['log.py']):
+            with patch('sys.stderr') as mock_stderr:
+                with self.assertRaises(SystemExit):
+                    main()
+                self.assertTrue(mock_stderr.write.called)
 
     @patch('subprocess.run')
     def test_main_file_not_found(self, mock_run):
