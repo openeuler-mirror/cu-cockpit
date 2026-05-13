@@ -126,12 +126,18 @@ class TestMonitorStatusShModes(TestCase):
         """测试 monitor_status.sh 传入无效mode"""
         mock_isfile.return_value = True
         response = self.client.get('/api/rescrouce/monitor/monitor_status.sh?mode=invalid')
-        pass
+        self.assertEqual(response.status_code, 400)
+        response_data = json.loads(response.content)
+        self.assertIn('mode 只允许为', response_data['message'])
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
     def test_monitor_missing_mode(self, mock_isfile):
         """测试 monitor_status.sh 缺少mode参数"""
-        pass
+        mock_isfile.return_value = True
+        response = self.client.get('/api/rescrouce/monitor/monitor_status.sh')
+        self.assertEqual(response.status_code, 400)
+        response_data = json.loads(response.content)
+        self.assertIn('mode 必填且不能为空', response_data['message'])
 
 class TestHardInfoShModes(TestCase):
     """测试 hard_info.sh 的不同模式功能"""
