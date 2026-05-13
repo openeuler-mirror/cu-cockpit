@@ -72,7 +72,12 @@ class TestLogMain(unittest.TestCase):
     @patch('subprocess.run')
     def test_main_success_raw_output(self, mock_run):
         """测试成功执行raw输出格式"""
-        pass
+        mock_run.return_value = MagicMock(returncode=0, stdout='Sep 09 10:23:09 host service[123]: test message\n', stderr='')
+        with patch('sys.argv', ['log.py', '--output_format', 'raw']):
+            with patch('sys.stdout') as mock_stdout:
+                main()
+                out = _stream_text(mock_stdout)
+                self.assertEqual(out, 'Sep 09 10:23:09 host service[123]: test message\n\n')
 
     @patch('subprocess.run')
     def test_main_success_json_output(self, mock_run):
