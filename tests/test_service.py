@@ -82,6 +82,8 @@ class TestServiceStatus(unittest.TestCase):
     @patch('service_status.run_command')
     def test_main_logic_error(self, mock_run):
         """测试主业务逻辑错误处理"""
-        pass
+        mock_run.side_effect = RuntimeError('Command failed')
+        with self.assertRaises(RuntimeError):
+            service_status.run_command('invalid-command')
 if __name__ == '__main__':
     unittest.main()
