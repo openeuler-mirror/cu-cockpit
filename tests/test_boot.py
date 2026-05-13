@@ -80,11 +80,26 @@ class TestBootOffset(unittest.TestCase):
 
     def test_list_boot_offsets_environment(self):
         """测试环境变量设置"""
-        pass
+        with patch('subprocess.run') as mock_run:
+            mock_run.return_value = MagicMock(returncode=0, stdout='', stderr='')
+            list_boot_offsets()
+            call_kwargs = mock_run.call_args[1]
+            env = call_kwargs['env']
+            self.assertEqual(env['SYSTEMD_COLORS'], '0')
+            self.assertIn('SYSTEMD_COLORS', env)
 
     def test_list_boot_offsets_command_args(self):
         """测试命令参数"""
-        pass
+        with patch('subprocess.run') as mock_run:
+            mock_run.return_value = MagicMock(returncode=0, stdout='', stderr='')
+            list_boot_offsets()
+            call_args = mock_run.call_args[0][0]
+            expected_cmd = ['journalctl', '--no-pager', '--list-boots']
+            self.assertEqual(call_args, expected_cmd)
+            call_kwargs = mock_run.call_args[1]
+            self.assertTrue(call_kwargs['capture_output'])
+            self.assertTrue(call_kwargs['text'])
+            self.assertTrue(call_kwargs['check'])
 
 class TestBootOffsetMain(unittest.TestCase):
 
