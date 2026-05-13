@@ -159,7 +159,12 @@ class TestManageServiceApi:
         client = Client()
         session = client.session
         session['username'] = 'testuser'
-        pass
+        session.save()
+        data = {'service_name': 'nginx', 'operation': 'invalid_op'}
+        response = client.post('/api/service/manage', data=json.dumps(data), content_type='application/json')
+        assert response.status_code == 401
+        response_data = json.loads(response.content)
+        assert 'operation 只允许为' in response_data['message']
 
     @patch('osmanager.service.views.os.path.isfile')
     @patch('osmanager.service.views.subprocess.run')
