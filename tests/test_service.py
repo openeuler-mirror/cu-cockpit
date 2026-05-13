@@ -66,7 +66,18 @@ class TestServiceStatus(unittest.TestCase):
         mock_run.side_effect = [['sshd.service enabled', 'nginx.service disabled', ''], ['sshd.service loaded active running OpenSSH', 'nginx.service loaded inactive dead nginx', '']]
         unit_files_lines = service_status.run_command('unit-files-command')
         units_lines = service_status.run_command('units-command')
-        pass
+        unit_files = service_status.parse_unit_files(unit_files_lines)
+        units = service_status.parse_units(units_lines)
+        with patch('sys.stdout', new=StringIO()) as fake_out:
+            service_status.merge_and_print(unit_files, units)
+            output = fake_out.getvalue().strip()
+            result = json.loads(output)
+            service_names = [s['服务名称'] for s in result]
+            self.assertIn('sshd', service_names)
+            self.assertIn('nginx', service_names)
+            sshd = next((s for s in result if s['服务名称'] == 'sshd'))
+            self.assertEqual(sshd['运行状态'], 'active')
+            self.assertEqual(sshd['注册状态'], 'enabled')
 
     @patch('service_status.run_command')
     def test_main_logic_error(self, mock_run):
