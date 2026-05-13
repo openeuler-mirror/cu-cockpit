@@ -168,7 +168,20 @@ class WebTerminalViewsTest(TestCase):
 
     def test_terminal_connect_invalid_json_response(self):
         """测试webssh返回无效JSON的情况"""
-        pass
+        with patch('requests.Session') as mock_session_class:
+            mock_session = MagicMock()
+            mock_session_class.return_value = mock_session
+            mock_get_response = MagicMock()
+            mock_cookies = MagicMock()
+            mock_cookies.get.return_value = 'test_xsrf_token'
+            mock_get_response.cookies = mock_cookies
+            mock_session.get.return_value = mock_get_response
+            mock_post_response = MagicMock()
+            mock_post_response.status_code = 200
+            mock_post_response.json.side_effect = ValueError('Invalid JSON')
+            mock_session.post.return_value = mock_post_response
+            with self.assertRaises(ValueError):
+                self.client.post('/api/terminal/connect', self.valid_terminal_data)
 
     def test_terminal_connect_empty_data(self):
         """测试空数据的终端连接"""
