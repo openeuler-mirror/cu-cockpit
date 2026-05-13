@@ -115,7 +115,12 @@ class TestManageServiceApi:
         client = Client()
         session = client.session
         session['username'] = 'testuser'
-        pass
+        session.save()
+        data = {'service_name': 'nginx', 'operation': 'stop'}
+        response = client.post('/api/service/manage', data=json.dumps(data), content_type='application/json')
+        assert response.status_code == status.HTTP_200_OK
+        response_data = json.loads(response.content)
+        assert response_data['success_flag'] is True
 
     @patch('osmanager.service.views.os.path.isfile')
     @patch('osmanager.service.views.subprocess.run')
