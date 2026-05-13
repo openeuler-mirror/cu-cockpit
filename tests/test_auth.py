@@ -116,11 +116,25 @@ class AuthViewsTest(TestCase):
 
     def test_login_view_pam_not_available(self):
         """测试PAM服务不可用的情况"""
-        pass
+        from osmanager.auth.auth_pam import PamNotAvailable
+        with patch('osmanager.auth.views.verify_with_pam', side_effect=PamNotAvailable('python-pam 未安装')):
+            data = {'username': self.valid_username, 'password': self.valid_password}
+            response = self.client.post('/api/auth/login/', data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+            response_data = response.json()
+            self.assertEqual(response_data['code'], 500)
+            self.assertEqual(response_data['message'], '认证服务不可用，请安装系统包python3-pam')
 
     def test_login_view_pam_auth_error(self):
         """测试PAM认证异常的情况"""
-        pass
+        from osmanager.auth.auth_pam import PamAuthError
+        with patch('osmanager.auth.views.verify_with_pam', side_effect=PamAuthError('PAM 认证异常')):
+            data = {'username': self.valid_username, 'password': self.valid_password}
+            response = self.client.post('/api/auth/login/', data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+            response_data = response.json()
+            self.assertEqual(response_data['code'], 500)
+            self.assertEqual(response_data['message'], 'PAM 认证异常')
 
     def test_login_view_get_method(self):
         """测试使用GET方法请求登录的情况"""
