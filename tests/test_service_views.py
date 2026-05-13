@@ -126,6 +126,12 @@ class TestManageServiceApi:
     @patch('osmanager.service.views.subprocess.run')
     def test_restart_service_success(self, mock_subprocess, mock_isfile):
         """测试重启服务成功"""
+        mock_isfile.return_value = True
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = 'Service restarted successfully'
+        mock_result.stderr = ''
+        mock_subprocess.return_value = mock_result
         pass
 
     def test_manage_service_missing_parameters(self):
