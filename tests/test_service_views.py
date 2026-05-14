@@ -170,6 +170,16 @@ class TestManageServiceApi:
     @patch('osmanager.service.views.subprocess.run')
     def test_manage_service_execution_failure(self, mock_subprocess, mock_isfile):
         """测试服务管理执行失败"""
+        mock_isfile.return_value = True
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stdout = 'Service not found'
+        mock_result.stderr = 'Failed to start service'
+        mock_subprocess.return_value = mock_result
+        client = Client()
+        session = client.session
+        session['username'] = 'testuser'
+        session.save()
         pass
 
 class TestServiceAuthentication:
