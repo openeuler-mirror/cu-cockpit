@@ -116,11 +116,30 @@ class WebTerminalViewsTest(TestCase):
 
     def test_terminal_connect_webssh_error(self):
         """测试webssh服务错误的情况"""
-        pass
+        with patch('requests.Session') as mock_session_class:
+            mock_session = MagicMock()
+            mock_session_class.return_value = mock_session
+            mock_get_response = MagicMock()
+            mock_get_response.cookies = {'_xsrf': 'test_xsrf_token'}
+            mock_session.get.return_value = mock_get_response
+            mock_post_response = MagicMock()
+            mock_post_response.status_code = 500
+            mock_post_response.json.return_value = {'error': 'WebSSH service error'}
+            mock_session.post.return_value = mock_post_response
+            response = self.client.post('/api/terminal/connect', self.valid_terminal_data)
+            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+            data = response.json()
+            self.assertEqual(data['error'], 'WebSSH service error')
 
     def test_terminal_connect_webssh_timeout(self):
         """测试webssh服务超时的情况"""
-        pass
+        import requests
+        with patch('requests.Session') as mock_session_class:
+            mock_session = MagicMock()
+            mock_session_class.return_value = mock_session
+            mock_session.get.side_effect = requests.Timeout('Connection timeout')
+            with self.assertRaises(requests.Timeout):
+                self.client.post('/api/terminal/connect', self.valid_terminal_data)
 
     def test_terminal_connect_webssh_connection_error(self):
         """测试webssh连接错误的情况"""
