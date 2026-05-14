@@ -164,12 +164,21 @@ class TestHardInfoShModes(TestCase):
             call_args = mock_subprocess.call_args[0][0]
             self.assertIn('cpu', call_args)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        pass
+        response_data = json.loads(response.content)
+        self.assertIn('cpu', response_data)
+        self.assertIn('model', response_data['cpu'])
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
     @patch('osmanager.rescrouce_monitor.views.subprocess.run')
     def test_hard_info_system_mode(self, mock_subprocess, mock_isfile):
         """测试 hard_info.sh mode=system 返回系统信息"""
+        mock_isfile.return_value = True
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = json.dumps({'system': {'manufacturer': 'Dell Inc.', 'product_name': 'PowerEdge R740'}})
+        mock_result.stderr = ''
+        mock_subprocess.return_value = mock_result
+        response = self.client.get('/api/rescrouce/monitor/hard_info.sh?mode=system')
         pass
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
