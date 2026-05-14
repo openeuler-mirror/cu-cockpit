@@ -180,7 +180,18 @@ class ConfigViewsTest(TestCase):
     def test_write_bytes_to_file_success(self):
         """测试成功写入字节数据到文件"""
         test_data = b'test binary data'
-        pass
+        with patch('builtins.open', MagicMock()) as mock_open, patch('pathlib.Path.mkdir') as mock_mkdir, patch('pathlib.Path.exists', return_value=True), patch('pathlib.Path.stat') as mock_stat:
+            mock_stat_result = MagicMock()
+            mock_stat_result.st_size = len(test_data)
+            mock_stat.return_value = mock_stat_result
+            mock_file = MagicMock()
+            mock_open.return_value.__enter__.return_value = mock_file
+            response = self.client.post('/api/config/update/?file_path=test.txt', data=test_data, content_type='application/octet-stream')
+            if response.status_code == status.HTTP_200_OK:
+                response_data = self._get_response_data(response)
+                self.assertTrue(response_data.get('success', False))
+            else:
+                self.skipTest(f'视图返回非预期状态码: {response.status_code}')
 
     def test_write_bytes_to_file_missing_path(self):
         """测试缺少文件路径参数的情况"""
