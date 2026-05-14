@@ -153,7 +153,18 @@ class WebTerminalViewsTest(TestCase):
 
     def test_terminal_connect_post_timeout(self):
         """测试POST请求超时的情况"""
-        pass
+        import requests
+        with patch('requests.Session') as mock_session_class:
+            mock_session = MagicMock()
+            mock_session_class.return_value = mock_session
+            mock_get_response = MagicMock()
+            mock_cookies = MagicMock()
+            mock_cookies.get.return_value = 'test_xsrf_token'
+            mock_get_response.cookies = mock_cookies
+            mock_session.get.return_value = mock_get_response
+            mock_session.post.side_effect = requests.Timeout('POST timeout')
+            with self.assertRaises(requests.Timeout):
+                self.client.post('/api/terminal/connect', self.valid_terminal_data)
 
     def test_terminal_connect_invalid_json_response(self):
         """测试webssh返回无效JSON的情况"""
