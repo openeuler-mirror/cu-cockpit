@@ -113,10 +113,18 @@ class TestLogMain(unittest.TestCase):
     @patch('subprocess.run')
     def test_main_file_not_found(self, mock_run):
         """测试journalctl命令不存在"""
-        pass
+        mock_run.side_effect = FileNotFoundError()
+        with patch('sys.argv', ['log.py']):
+            with patch('sys.stderr') as mock_stderr:
+                with self.assertRaises(SystemExit) as cm:
+                    main()
+                self.assertEqual(cm.exception.code, 127)
+                err = _stream_text(mock_stderr)
+                self.assertIn('未找到journalctl', err)
 
     def test_argument_parsing(self):
         """测试命令行参数解析"""
+        test_cases = [(['log.py', '--since', '1h ago', '--priority', 'info'], {'since': '1h ago', 'priority': 'info'}), (['log.py', '--service', 'nginx', '--limit', '10'], {'service': 'nginx', 'limit': 10}), (['log.py', '--keyword', 'error', '--identifier', 'sshd'], {'keyword': 'error', 'identifier': 'sshd'})]
         pass
 if __name__ == '__main__':
     unittest.main()
