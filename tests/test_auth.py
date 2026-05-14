@@ -155,7 +155,10 @@ class AuthViewsTest(TestCase):
         session['username'] = self.valid_username
         session.save()
         response = self.client.post('/api/auth/logout/')
-        pass
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = response.json()
+        self.assertEqual(response_data['code'], 200)
+        self.assertEqual(response_data['message'], '登出成功')
 
     def test_logout_view_no_session(self):
         """测试没有session时的登出情况"""
