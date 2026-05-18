@@ -189,7 +189,8 @@ class AuthViewsTest(TestCase):
 
     def test_logout_view_get_method(self):
         """测试使用GET方法请求登出的情况"""
-        pass
+        response = self.client.get('/api/auth/logout/')
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_login_logout_flow(self):
         """测试完整的登录-登出流程"""
