@@ -174,11 +174,18 @@ class AuthViewsTest(TestCase):
         session['username'] = self.valid_username
         session.save()
         self.assertEqual(self.client.session.get('username'), self.valid_username)
-        pass
+        response = self.client.post('/api/auth/logout/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNone(self.client.session.get('username'))
 
     def test_logout_view_exception(self):
         """测试登出过程中发生异常的情况"""
-        pass
+        with patch('django.contrib.sessions.backends.db.SessionStore.flush', side_effect=Exception('Session error')):
+            response = self.client.post('/api/auth/logout/')
+            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+            response_data = response.json()
+            self.assertEqual(response_data['code'], 500)
+            self.assertEqual(response_data['message'], '登出失败')
 
     def test_logout_view_get_method(self):
         """测试使用GET方法请求登出的情况"""
