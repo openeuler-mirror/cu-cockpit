@@ -230,7 +230,8 @@ class WebTerminalViewsTest(TestCase):
         """测试使用GET方法请求认证检查的情况"""
         response = self.client.get('/api/terminal/check')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        pass
+        data = response.json()
+        self.assertTrue(data['ok'])
 
     def test_csrf_token_get_method(self):
         """测试使用GET方法请求CSRF token的情况"""
