@@ -192,4 +192,8 @@ class TestServiceAuthentication:
 
     def test_unauthenticated_access_denied(self):
         """测试未登录用户访问被拒绝"""
-        pass
+        client = Client()
+        response = client.get('/api/service/status')
+        assert response.status_code == 401
+        response_data = json.loads(response.content)
+        assert response_data['code'] == 401
