@@ -194,7 +194,14 @@ class AuthViewsTest(TestCase):
 
     def test_login_logout_flow(self):
         """测试完整的登录-登出流程"""
-        pass
+        with patch('osmanager.auth.views.verify_with_pam', return_value=True):
+            login_data = {'username': self.valid_username, 'password': self.valid_password}
+            login_response = self.client.post('/api/auth/login/', login_data, format='json')
+            self.assertEqual(login_response.status_code, status.HTTP_200_OK)
+            self.assertEqual(self.client.session.get('username'), self.valid_username)
+        logout_response = self.client.post('/api/auth/logout/')
+        self.assertEqual(logout_response.status_code, status.HTTP_200_OK)
+        self.assertIsNone(self.client.session.get('username'))
 
     def test_multiple_login_attempts(self):
         """测试多次登录尝试的情况"""
