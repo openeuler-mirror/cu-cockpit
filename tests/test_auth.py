@@ -170,6 +170,10 @@ class AuthViewsTest(TestCase):
 
     def test_logout_view_session_cleared(self):
         """测试登出后session被清除的情况"""
+        session = self.client.session
+        session['username'] = self.valid_username
+        session.save()
+        self.assertEqual(self.client.session.get('username'), self.valid_username)
         pass
 
     def test_logout_view_exception(self):
