@@ -217,7 +217,20 @@ class ConfigViewsTest(TestCase):
     def test_debug_view_response(self):
         """调试视图的实际响应"""
         test_cases = [('正常数据', b'test data', 'test.txt'), ('缺少路径', b'test data', None), ('无效数据', 'string data', 'test.txt')]
-        pass
+        for desc, data, file_path in test_cases:
+            with self.subTest(desc=desc):
+                url = '/api/config/update/'
+                if file_path:
+                    url += f'?file_path={file_path}'
+                response = self.client.post(url, data=data, content_type='application/octet-stream')
+                print(f'\n=== {desc} ===')
+                print(f'状态码: {response.status_code}')
+                print(f'响应头: {dict(response.headers)}')
+                try:
+                    response_data = self._get_response_data(response)
+                    print(f'响应内容: {response_data}')
+                except:
+                    print(f'响应内容: {response.content}')
 if __name__ == '__main__':
     import unittest
     unittest.main()
