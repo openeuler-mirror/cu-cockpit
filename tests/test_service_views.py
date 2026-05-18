@@ -180,7 +180,12 @@ class TestManageServiceApi:
         session = client.session
         session['username'] = 'testuser'
         session.save()
-        pass
+        data = {'service_name': 'nonexistent', 'operation': 'start'}
+        response = client.post('/api/service/manage', data=json.dumps(data), content_type='application/json')
+        assert response.status_code == 402
+        response_data = json.loads(response.content)
+        assert response_data['success_flag'] is False
+        assert '操作失败' in response_data['message']
 
 class TestServiceAuthentication:
     """测试服务模块认证功能"""
