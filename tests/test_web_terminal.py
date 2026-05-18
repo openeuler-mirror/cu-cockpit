@@ -218,7 +218,13 @@ class WebTerminalViewsTest(TestCase):
 
     def test_terminal_connect_get_method(self):
         """测试使用GET方法请求终端连接的情况"""
-        pass
+        with patch('requests.Session') as mock_session_class:
+            mock_session = MagicMock()
+            mock_session_class.return_value = mock_session
+            mock_session.get.side_effect = Exception('Connection error')
+            with self.assertRaises(Exception) as context:
+                self.client.get('/api/terminal/connect')
+            self.assertEqual(str(context.exception), 'Connection error')
 
     def test_auth_check_get_method(self):
         """测试使用GET方法请求认证检查的情况"""
