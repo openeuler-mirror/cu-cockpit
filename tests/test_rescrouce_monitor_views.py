@@ -242,13 +242,18 @@ class TestHardInfoShModes(TestCase):
 
     def test_hard_info_invalid_mode(self):
         """测试 hard_info.sh 传入无效mode"""
-        pass
+        response = self.client.get('/api/rescrouce/monitor/hard_info.sh?mode=invalid')
+        self.assertEqual(response.status_code, 400)
+        response_data = json.loads(response.content)
+        self.assertIn('mode 只允许为', response_data['message'])
 
 class TestScriptsWithoutMode(TestCase):
     """测试不需要mode参数的脚本"""
 
     def setUp(self):
         """测试前设置"""
+        self.client = Client()
+        session = self.client.session
         pass
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
