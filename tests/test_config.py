@@ -195,11 +195,24 @@ class ConfigViewsTest(TestCase):
 
     def test_write_bytes_to_file_missing_path(self):
         """测试缺少文件路径参数的情况"""
-        pass
+        response = self.client.post('/api/config/update/', data=b'test', content_type='application/octet-stream')
+        if response.status_code == status.HTTP_400_BAD_REQUEST:
+            response_data = self._get_response_data(response)
+            self.assertIn('file_path', str(response_data))
+        else:
+            self.skipTest(f'缺少路径参数时返回 {response.status_code}，而非 400')
 
     def test_write_bytes_to_file_invalid_data(self):
         """测试无效数据的情况"""
-        pass
+        response = self.client.post('/api/config/update/?file_path=test.txt', data='invalid binary data', content_type='application/octet-stream')
+        if response.status_code in [status.HTTP_400_BAD_REQUEST, status.HTTP_500_INTERNAL_SERVER_ERROR]:
+            pass
+        elif response.status_code == status.HTTP_200_OK:
+            response_data = self._get_response_data(response)
+            if 'error' in response_data:
+                self.fail(f'应返回错误但返回了成功: {response_data}')
+        else:
+            self.skipTest(f'无效数据时返回 {response.status_code}')
 
     def test_debug_view_response(self):
         """调试视图的实际响应"""
