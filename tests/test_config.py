@@ -216,6 +216,7 @@ class ConfigViewsTest(TestCase):
 
     def test_debug_view_response(self):
         """调试视图的实际响应"""
+        test_cases = [('正常数据', b'test data', 'test.txt'), ('缺少路径', b'test data', None), ('无效数据', 'string data', 'test.txt')]
         pass
 if __name__ == '__main__':
     import unittest
