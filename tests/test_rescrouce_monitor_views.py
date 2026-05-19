@@ -294,11 +294,15 @@ class TestScriptsWithoutMode(TestCase):
         """测试 memory_slot.sh 传入mode参数应该失败"""
         mock_isfile.return_value = True
         response = self.client.get('/api/rescrouce/monitor/memory_slot.sh?mode=test')
-        pass
+        self.assertEqual(response.status_code, 400)
+        response_data = json.loads(response.content)
+        self.assertIn('该脚本不支持 mode 参数', response_data['message'])
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
     def test_pci_info_with_extra_mode_fails(self, mock_isfile):
         """测试 pci_info.sh 传入mode参数应该失败"""
+        mock_isfile.return_value = True
+        response = self.client.get('/api/rescrouce/monitor/pci_info.sh?mode=test')
         pass
 
 class TestDifferentModeFunctionality(TestCase):
