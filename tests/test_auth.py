@@ -217,11 +217,24 @@ class AuthViewsTest(TestCase):
 
     def test_login_with_special_characters(self):
         """测试用户名包含特殊字符的情况"""
-        pass
+        special_username = 'test@user#123'
+        with patch('osmanager.auth.views.verify_with_pam', return_value=True):
+            data = {'username': special_username, 'password': self.valid_password}
+            response = self.client.post('/api/auth/login/', data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            response_data = response.json()
+            self.assertEqual(response_data['user'], special_username)
+            self.assertEqual(self.client.session.get('username'), special_username)
 
     def test_login_with_long_password(self):
         """测试长密码的情况"""
-        pass
+        long_password = 'a' * 1000
+        with patch('osmanager.auth.views.verify_with_pam', return_value=True):
+            data = {'username': self.valid_username, 'password': long_password}
+            response = self.client.post('/api/auth/login/', data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            response_data = response.json()
+            self.assertEqual(response_data['code'], 200)
 
     def test_login_with_unicode_username(self):
         """测试Unicode用户名的情况"""
