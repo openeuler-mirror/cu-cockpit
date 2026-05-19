@@ -411,11 +411,17 @@ class TestServiceManagementAPI(TestCase):
 
     def setUp(self):
         """测试前设置"""
-        pass
+        self.client = Client()
+        session = self.client.session
+        session['username'] = 'testuser'
+        session.save()
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
     def test_manage_service_script_not_found(self, mock_isfile):
         """测试服务管理脚本不存在的情况"""
+        mock_isfile.return_value = False
+        data = {'service_name': 'nginx', 'operation': 'start'}
+        response = self.client.post('/api/rescrouce/service/service_manage.sh', data=json.dumps(data), content_type='application/json')
         pass
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
