@@ -432,12 +432,19 @@ class TestServiceManagementAPI(TestCase):
         mock_isfile.return_value = True
         data = {'service_name': 'nginx'}
         response = self.client.post('/api/rescrouce/service/service_manage.sh', data=json.dumps(data), content_type='application/json')
-        pass
+        self.assertEqual(response.status_code, 400)
+        response_data = json.loads(response.content)
+        self.assertIn('缺少必需参数', response_data['error'])
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
     def test_manage_service_invalid_operation(self, mock_isfile):
         """测试服务管理使用无效操作"""
-        pass
+        mock_isfile.return_value = True
+        data = {'service_name': 'nginx', 'operation': 'invalid_operation'}
+        response = self.client.post('/api/rescrouce/service/service_manage.sh', data=json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, 401)
+        response_data = json.loads(response.content)
+        self.assertIn('operation 只允许为', response_data['message'])
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
     @patch('osmanager.rescrouce_monitor.views.subprocess.run')
