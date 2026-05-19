@@ -238,4 +238,11 @@ class AuthViewsTest(TestCase):
 
     def test_login_with_unicode_username(self):
         """测试Unicode用户名的情况"""
-        pass
+        unicode_username = '测试用户'
+        with patch('osmanager.auth.views.verify_with_pam', return_value=True):
+            data = {'username': unicode_username, 'password': self.valid_password}
+            response = self.client.post('/api/auth/login/', data, format='json')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            response_data = response.json()
+            self.assertEqual(response_data['user'], unicode_username)
+            self.assertEqual(self.client.session.get('username'), unicode_username)
