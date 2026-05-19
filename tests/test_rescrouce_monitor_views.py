@@ -450,6 +450,13 @@ class TestServiceManagementAPI(TestCase):
     @patch('osmanager.rescrouce_monitor.views.subprocess.run')
     def test_manage_service_success_start(self, mock_subprocess, mock_isfile):
         """测试服务管理成功启动服务"""
+        mock_isfile.return_value = True
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = 'Service started successfully'
+        mock_result.stderr = ''
+        mock_subprocess.return_value = mock_result
+        data = {'service_name': 'nginx', 'operation': 'start'}
         pass
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
