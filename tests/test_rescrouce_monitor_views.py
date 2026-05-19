@@ -397,11 +397,14 @@ class TestAuthentication(TestCase):
 
     def setUp(self):
         """测试前设置"""
-        pass
+        self.client = Client()
 
     def test_unauthenticated_access_denied(self):
         """测试未登录用户访问被拒绝"""
-        pass
+        response = self.client.get('/api/rescrouce/monitor/monitor_status.sh?mode=all')
+        self.assertEqual(response.status_code, 401)
+        response_data = json.loads(response.content)
+        self.assertEqual(response_data['code'], 401)
 
 class TestServiceManagementAPI(TestCase):
     """测试服务管理API"""
