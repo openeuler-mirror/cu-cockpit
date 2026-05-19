@@ -511,6 +511,12 @@ class TestServiceManagementAPI(TestCase):
         mock_result = MagicMock()
         mock_result.returncode = 1
         mock_result.stdout = ''
+        mock_result.stderr = 'Failed to start service'
+        mock_subprocess.return_value = mock_result
+        data = {'service_name': 'nonexistent', 'operation': 'start'}
+        response = self.client.post('/api/rescrouce/service/service_manage.sh', data=json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, 402)
+        response_data = json.loads(response.content)
         pass
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
