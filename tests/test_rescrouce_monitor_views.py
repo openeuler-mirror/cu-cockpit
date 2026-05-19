@@ -347,15 +347,28 @@ class TestFailedModes(TestCase):
         session = self.client.session
         session['username'] = 'testuser'
         session.save()
-        pass
+        self.valid_script = 'monitor_status.sh'
+        self.invalid_script = 'nonexistent_script.sh'
+        self.valid_mode = 'cpu'
 
     def test_run_shell_script_api_script_not_found(self):
         """测试脚本不存在的情况"""
-        pass
+        with patch('os.path.isfile', return_value=False):
+            response = self.client.get(f'/api/rescrouce/monitor/{self.invalid_script}?mode={self.valid_mode}')
+            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+            self.assertIn('not found manager_script', response.json()['error'])
 
     def test_run_shell_script_api_script_execution_failure(self):
         """测试脚本执行失败的情况"""
-        pass
+        with patch('os.path.isfile', return_value=True), patch('subprocess.run') as mock_subprocess:
+            mock_result = MagicMock()
+            mock_result.returncode = 1
+            mock_result.stdout = ''
+            mock_result.stderr = 'Permission denied'
+            mock_subprocess.return_value = mock_result
+            response = self.client.get(f'/api/rescrouce/monitor/{self.valid_script}?mode={self.valid_mode}')
+            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+            self.assertIn('脚本执行失败', response.json()['error'])
 
     def test_run_shell_script_api_timeout(self):
         """测试脚本执行超时的情况"""
