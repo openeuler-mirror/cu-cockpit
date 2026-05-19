@@ -5,10 +5,15 @@ import os
 import sys
 import django
 from pathlib import Path
+
+# 添加项目根目录到 Python 路径
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
+
+# 设置 Django 环境
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'osmanager.settings')
 django.setup()
+
 import json
 from unittest.mock import patch, MagicMock
 from django.test import TestCase, Client
@@ -16,21 +21,36 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 
-class WebTerminalViewsTest(TestCase):
 
+class WebTerminalViewsTest(TestCase):
     def setUp(self):
         """测试初始化设置"""
         self.client = APIClient()
+
+        # 模拟已登录用户（根据你的认证系统）
         session = self.client.session
         session['username'] = 'testuser'
         session.save()
-        self.webssh_url = 'http://127.0.0.1:8001'
-        self.valid_terminal_data = {'host': '192.168.1.100', 'port': '22', 'username': 'testuser', 'password': 'testpass123'}
-        self.invalid_terminal_data = {'host': 'invalid_host', 'port': '22', 'username': 'invaliduser', 'password': 'wrongpass'}
+
+        # 测试数据
+        self.webssh_url = "http://127.0.0.1:8001"
+        self.valid_terminal_data = {
+            'host': '192.168.1.100',
+            'port': '22',
+            'username': 'testuser',
+            'password': 'testpass123'
+        }
+        self.invalid_terminal_data = {
+            'host': 'invalid_host',
+            'port': '22',
+            'username': 'invaliduser',
+            'password': 'wrongpass'
+        }
 
     def test_auth_check_success(self):
         """测试认证检查成功的情况"""
         response = self.client.get('/api/terminal/check')
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertTrue(data['ok'])
@@ -40,12 +60,16 @@ class WebTerminalViewsTest(TestCase):
         session = self.client.session
         session.clear()
         session.save()
+
         response = self.client.get('/api/terminal/check')
+
+        # 应该返回401未授权
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_csrf_token_success(self):
         """测试获取CSRF token成功的情况"""
         response = self.client.get('/api/terminal/token')
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertIn('csrftoken', data)
@@ -54,16 +78,23 @@ class WebTerminalViewsTest(TestCase):
     def test_terminal_connect_success(self):
         """测试终端连接成功的情况"""
         with patch('requests.Session') as mock_session_class:
+            # 模拟requests.Session
             mock_session = MagicMock()
             mock_session_class.return_value = mock_session
+
+            # 模拟第一次GET请求
             mock_get_response = MagicMock()
             mock_get_response.cookies = {'_xsrf': 'test_xsrf_token'}
             mock_session.get.return_value = mock_get_response
+
+            # 模拟POST请求
             mock_post_response = MagicMock()
             mock_post_response.status_code = 200
             mock_post_response.json.return_value = {'status': 'success', 'message': 'Connected'}
             mock_session.post.return_value = mock_post_response
+
             response = self.client.post('/api/terminal/connect', self.valid_terminal_data)
+
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             data = response.json()
             self.assertEqual(data['status'], 'success')
@@ -71,10 +102,14 @@ class WebTerminalViewsTest(TestCase):
 
     def test_terminal_connect_without_login(self):
         """测试未登录时的终端连接"""
+        # 清除session模拟未登录状态
         session = self.client.session
         session.clear()
         session.save()
+
         response = self.client.post('/api/terminal/connect', self.valid_terminal_data)
+
+        # 应该返回401未授权
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_terminal_connect_with_real_ip(self):
@@ -82,15 +117,23 @@ class WebTerminalViewsTest(TestCase):
         with patch('requests.Session') as mock_session_class:
             mock_session = MagicMock()
             mock_session_class.return_value = mock_session
+
             mock_get_response = MagicMock()
             mock_get_response.cookies = {'_xsrf': 'test_xsrf_token'}
             mock_session.get.return_value = mock_get_response
+
             mock_post_response = MagicMock()
             mock_post_response.status_code = 200
             mock_post_response.json.return_value = {'status': 'success'}
             mock_session.post.return_value = mock_post_response
-            response = self.client.post('/api/terminal/connect', self.valid_terminal_data, HTTP_X_REAL_IP='192.168.1.50')
+
+            # 设置X-Real-IP头
+            response = self.client.post('/api/terminal/connect', self.valid_terminal_data,
+                                      HTTP_X_REAL_IP='192.168.1.50')
+
             self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+            # 验证headers被正确传递
             call_args = mock_session.post.call_args
             headers = call_args[1]['headers']
             self.assertEqual(headers['X-Real-IP'], '192.168.1.50')
@@ -100,33 +143,47 @@ class WebTerminalViewsTest(TestCase):
         with patch('requests.Session') as mock_session_class:
             mock_session = MagicMock()
             mock_session_class.return_value = mock_session
+
             mock_get_response = MagicMock()
             mock_get_response.cookies = {'_xsrf': 'test_xsrf_token'}
             mock_session.get.return_value = mock_get_response
+
             mock_post_response = MagicMock()
             mock_post_response.status_code = 200
             mock_post_response.json.return_value = {'status': 'success'}
             mock_session.post.return_value = mock_post_response
-            response = self.client.post('/api/terminal/connect', self.valid_terminal_data, HTTP_X_FORWARDED_FOR='192.168.1.10, 192.168.1.20')
+
+            # 设置X-Forwarded-For头
+            response = self.client.post('/api/terminal/connect', self.valid_terminal_data,
+                                      HTTP_X_FORWARDED_FOR='192.168.1.10, 192.168.1.20')
+
             self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+            # 验证headers被正确传递
             call_args = mock_session.post.call_args
             headers = call_args[1]['headers']
             self.assertIn('192.168.1.10', headers['X-Forwarded-For'])
             self.assertIn('192.168.1.20', headers['X-Forwarded-For'])
+
 
     def test_terminal_connect_webssh_error(self):
         """测试webssh服务错误的情况"""
         with patch('requests.Session') as mock_session_class:
             mock_session = MagicMock()
             mock_session_class.return_value = mock_session
+
             mock_get_response = MagicMock()
             mock_get_response.cookies = {'_xsrf': 'test_xsrf_token'}
             mock_session.get.return_value = mock_get_response
+
+            # 模拟webssh返回错误
             mock_post_response = MagicMock()
             mock_post_response.status_code = 500
             mock_post_response.json.return_value = {'error': 'WebSSH service error'}
             mock_session.post.return_value = mock_post_response
+
             response = self.client.post('/api/terminal/connect', self.valid_terminal_data)
+
             self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
             data = response.json()
             self.assertEqual(data['error'], 'WebSSH service error')
@@ -134,35 +191,51 @@ class WebTerminalViewsTest(TestCase):
     def test_terminal_connect_webssh_timeout(self):
         """测试webssh服务超时的情况"""
         import requests
+
         with patch('requests.Session') as mock_session_class:
             mock_session = MagicMock()
             mock_session_class.return_value = mock_session
+
+            # 模拟GET请求超时
             mock_session.get.side_effect = requests.Timeout('Connection timeout')
+
+            # 由于视图函数没有处理超时异常，异常会直接抛出
             with self.assertRaises(requests.Timeout):
                 self.client.post('/api/terminal/connect', self.valid_terminal_data)
 
     def test_terminal_connect_webssh_connection_error(self):
         """测试webssh连接错误的情况"""
         import requests
+
         with patch('requests.Session') as mock_session_class:
             mock_session = MagicMock()
             mock_session_class.return_value = mock_session
+
+            # 模拟连接错误
             mock_session.get.side_effect = requests.ConnectionError('Connection failed')
+
+            # 由于视图函数没有处理连接异常，异常会直接抛出
             with self.assertRaises(requests.ConnectionError):
                 self.client.post('/api/terminal/connect', self.valid_terminal_data)
 
     def test_terminal_connect_post_timeout(self):
         """测试POST请求超时的情况"""
         import requests
+
         with patch('requests.Session') as mock_session_class:
             mock_session = MagicMock()
             mock_session_class.return_value = mock_session
+
             mock_get_response = MagicMock()
             mock_cookies = MagicMock()
             mock_cookies.get.return_value = 'test_xsrf_token'
             mock_get_response.cookies = mock_cookies
             mock_session.get.return_value = mock_get_response
+
+            # 模拟POST请求超时
             mock_session.post.side_effect = requests.Timeout('POST timeout')
+
+            # 由于视图函数没有处理超时异常，异常会直接抛出
             with self.assertRaises(requests.Timeout):
                 self.client.post('/api/terminal/connect', self.valid_terminal_data)
 
@@ -171,15 +244,19 @@ class WebTerminalViewsTest(TestCase):
         with patch('requests.Session') as mock_session_class:
             mock_session = MagicMock()
             mock_session_class.return_value = mock_session
+
             mock_get_response = MagicMock()
             mock_cookies = MagicMock()
             mock_cookies.get.return_value = 'test_xsrf_token'
             mock_get_response.cookies = mock_cookies
             mock_session.get.return_value = mock_get_response
+
+            # 模拟返回无效JSON
             mock_post_response = MagicMock()
             mock_post_response.status_code = 200
             mock_post_response.json.side_effect = ValueError('Invalid JSON')
             mock_session.post.return_value = mock_post_response
+
             with self.assertRaises(ValueError):
                 self.client.post('/api/terminal/connect', self.valid_terminal_data)
 
@@ -188,14 +265,18 @@ class WebTerminalViewsTest(TestCase):
         with patch('requests.Session') as mock_session_class:
             mock_session = MagicMock()
             mock_session_class.return_value = mock_session
+
             mock_get_response = MagicMock()
             mock_get_response.cookies = {'_xsrf': 'test_xsrf_token'}
             mock_session.get.return_value = mock_get_response
+
             mock_post_response = MagicMock()
             mock_post_response.status_code = 200
             mock_post_response.json.return_value = {'status': 'success'}
             mock_session.post.return_value = mock_post_response
+
             response = self.client.post('/api/terminal/connect', {})
+
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_terminal_connect_with_remote_addr(self):
@@ -203,15 +284,22 @@ class WebTerminalViewsTest(TestCase):
         with patch('requests.Session') as mock_session_class:
             mock_session = MagicMock()
             mock_session_class.return_value = mock_session
+
             mock_get_response = MagicMock()
             mock_get_response.cookies = {'_xsrf': 'test_xsrf_token'}
             mock_session.get.return_value = mock_get_response
+
             mock_post_response = MagicMock()
             mock_post_response.status_code = 200
             mock_post_response.json.return_value = {'status': 'success'}
             mock_session.post.return_value = mock_post_response
+
+            # 不设置X-Real-IP，应该使用REMOTE_ADDR
             response = self.client.post('/api/terminal/connect', self.valid_terminal_data)
+
             self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+            # 验证headers被正确传递
             call_args = mock_session.post.call_args
             headers = call_args[1]['headers']
             self.assertIn('X-Real-IP', headers)
@@ -221,14 +309,20 @@ class WebTerminalViewsTest(TestCase):
         with patch('requests.Session') as mock_session_class:
             mock_session = MagicMock()
             mock_session_class.return_value = mock_session
+
+            # 模拟GET请求超时或连接错误
             mock_session.get.side_effect = Exception('Connection error')
+
+            # 由于异常没有被处理，异常会直接抛出
             with self.assertRaises(Exception) as context:
                 self.client.get('/api/terminal/connect')
+
             self.assertEqual(str(context.exception), 'Connection error')
 
     def test_auth_check_get_method(self):
         """测试使用GET方法请求认证检查的情况"""
         response = self.client.get('/api/terminal/check')
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertTrue(data['ok'])
@@ -236,6 +330,7 @@ class WebTerminalViewsTest(TestCase):
     def test_csrf_token_get_method(self):
         """测试使用GET方法请求CSRF token的情况"""
         response = self.client.get('/api/terminal/token')
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
         self.assertIn('csrftoken', data)
@@ -245,14 +340,19 @@ class WebTerminalViewsTest(TestCase):
         with patch('requests.Session') as mock_session_class:
             mock_session = MagicMock()
             mock_session_class.return_value = mock_session
+
             mock_get_response = MagicMock()
             mock_get_response.cookies = {'_xsrf': 'test_xsrf_token'}
             mock_session.get.return_value = mock_get_response
+
             mock_post_response = MagicMock()
             mock_post_response.status_code = 200
             mock_post_response.json.return_value = {'status': 'success'}
             mock_session.post.return_value = mock_post_response
+
+            # 使用表单数据而不是JSON
             response = self.client.post('/api/terminal/connect', self.valid_terminal_data)
+
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_terminal_connect_webssh_redirect(self):
@@ -260,14 +360,19 @@ class WebTerminalViewsTest(TestCase):
         with patch('requests.Session') as mock_session_class:
             mock_session = MagicMock()
             mock_session_class.return_value = mock_session
+
             mock_get_response = MagicMock()
             mock_get_response.cookies = {'_xsrf': 'test_xsrf_token'}
             mock_session.get.return_value = mock_get_response
+
+            # 模拟重定向响应
             mock_post_response = MagicMock()
             mock_post_response.status_code = 302
             mock_post_response.json.return_value = {'redirect': '/login'}
             mock_session.post.return_value = mock_post_response
+
             response = self.client.post('/api/terminal/connect', self.valid_terminal_data)
+
             self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             data = response.json()
             self.assertEqual(data['redirect'], '/login')
@@ -277,14 +382,19 @@ class WebTerminalViewsTest(TestCase):
         with patch('requests.Session') as mock_session_class:
             mock_session = MagicMock()
             mock_session_class.return_value = mock_session
+
             mock_get_response = MagicMock()
             mock_get_response.cookies = {'_xsrf': 'test_xsrf_token'}
             mock_session.get.return_value = mock_get_response
+
+            # 模拟未授权响应
             mock_post_response = MagicMock()
             mock_post_response.status_code = 401
             mock_post_response.json.return_value = {'error': 'Unauthorized'}
             mock_session.post.return_value = mock_post_response
+
             response = self.client.post('/api/terminal/connect', self.valid_terminal_data)
+
             self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
             data = response.json()
             self.assertEqual(data['error'], 'Unauthorized')
