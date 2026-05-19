@@ -332,13 +332,21 @@ class TestDifferentModeFunctionality(TestCase):
             call1 = mock_subprocess.call_args_list[0][0][0]
             self.assertIn('cpu', call1)
         response2 = self.client.get('/api/rescrouce/monitor/monitor_status.sh?mode=memory')
-        pass
+        if mock_subprocess.call_count >= 2:
+            call2 = mock_subprocess.call_args_list[1][0][0]
+            self.assertIn('memory', call2)
+        self.assertEqual(response1.status_code, status.HTTP_200_OK)
+        self.assertEqual(response2.status_code, status.HTTP_200_OK)
 
 class TestFailedModes(TestCase):
     """测试失败场景下的资源管理模块"""
 
     def setUp(self):
         """测试前设置"""
+        self.client = Client()
+        session = self.client.session
+        session['username'] = 'testuser'
+        session.save()
         pass
 
     def test_run_shell_script_api_script_not_found(self):
