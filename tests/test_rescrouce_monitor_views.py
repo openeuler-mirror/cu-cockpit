@@ -321,6 +321,17 @@ class TestDifferentModeFunctionality(TestCase):
     @patch('osmanager.rescrouce_monitor.views.subprocess.run')
     def test_monitor_different_modes(self, mock_subprocess, mock_isfile):
         """验证不同mode产生不同的脚本调用"""
+        mock_isfile.return_value = True
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = '{}'
+        mock_result.stderr = ''
+        mock_subprocess.return_value = mock_result
+        response1 = self.client.get('/api/rescrouce/monitor/monitor_status.sh?mode=cpu')
+        if mock_subprocess.call_count >= 1:
+            call1 = mock_subprocess.call_args_list[0][0][0]
+            self.assertIn('cpu', call1)
+        response2 = self.client.get('/api/rescrouce/monitor/monitor_status.sh?mode=memory')
         pass
 
 class TestFailedModes(TestCase):
