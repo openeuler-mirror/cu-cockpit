@@ -19,7 +19,7 @@ class AnyBinaryParser(BaseParser):
     media_type = '*/*'
 
     def parse(self, stream, media_type=None, parser_context=None):
-        pass
+        return stream.read()
 ALLOWED_SCRIPT_MODES = {'config.sh': ['sshkey', 'gethostname', 'time', 'get']}
 SCRIPT_OUTPUT_FORMATS = {'sshkey': 'json', 'gethostname': 'text', 'time': 'json', 'get': 'text'}
 ALLOWED_SCRIPTS = list(ALLOWED_SCRIPT_MODES.keys())
