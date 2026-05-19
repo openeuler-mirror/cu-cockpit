@@ -235,6 +235,8 @@ class WebTerminalViewsTest(TestCase):
 
     def test_csrf_token_get_method(self):
         """测试使用GET方法请求CSRF token的情况"""
+        response = self.client.get('/api/terminal/token')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         pass
 
     def test_terminal_connect_with_form_data(self):
