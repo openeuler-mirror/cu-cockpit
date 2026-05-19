@@ -372,11 +372,25 @@ class TestFailedModes(TestCase):
 
     def test_run_shell_script_api_timeout(self):
         """测试脚本执行超时的情况"""
-        pass
+        import subprocess
+        with patch('os.path.isfile', return_value=True), patch('subprocess.run') as mock_subprocess:
+            mock_subprocess.side_effect = subprocess.TimeoutExpired('bash', 30)
+            response = self.client.get(f'/api/rescrouce/monitor/{self.valid_script}?mode={self.valid_mode}')
+            self.assertEqual(response.status_code, 408)
+            data = response.json()
+            self.assertIn('脚本执行超时', data['error'])
 
     def test_run_shell_script_api_non_json_output(self):
         """测试脚本返回非JSON输出的情况"""
-        pass
+        with patch('os.path.isfile', return_value=True), patch('subprocess.run') as mock_subprocess:
+            mock_result = MagicMock()
+            mock_result.returncode = 0
+            mock_result.stdout = 'This is not JSON output'
+            mock_result.stderr = ''
+            mock_subprocess.return_value = mock_result
+            response = self.client.get(f'/api/rescrouce/monitor/{self.valid_script}?mode={self.valid_mode}')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertIn('success,but not json', response.json()['message'])
 
 class TestAuthentication(TestCase):
     """测试认证功能"""
