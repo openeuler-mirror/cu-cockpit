@@ -257,7 +257,20 @@ class WebTerminalViewsTest(TestCase):
 
     def test_terminal_connect_webssh_redirect(self):
         """测试webssh返回重定向的情况"""
-        pass
+        with patch('requests.Session') as mock_session_class:
+            mock_session = MagicMock()
+            mock_session_class.return_value = mock_session
+            mock_get_response = MagicMock()
+            mock_get_response.cookies = {'_xsrf': 'test_xsrf_token'}
+            mock_session.get.return_value = mock_get_response
+            mock_post_response = MagicMock()
+            mock_post_response.status_code = 302
+            mock_post_response.json.return_value = {'redirect': '/login'}
+            mock_session.post.return_value = mock_post_response
+            response = self.client.post('/api/terminal/connect', self.valid_terminal_data)
+            self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+            data = response.json()
+            self.assertEqual(data['redirect'], '/login')
 
     def test_terminal_connect_webssh_unauthorized(self):
         """测试webssh返回未授权的情况"""
