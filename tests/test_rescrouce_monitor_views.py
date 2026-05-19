@@ -280,11 +280,20 @@ class TestScriptsWithoutMode(TestCase):
         mock_isfile.return_value = True
         mock_result = MagicMock()
         mock_result.returncode = 0
-        pass
+        mock_result.stdout = json.dumps({'pci_devices': []})
+        mock_result.stderr = ''
+        mock_subprocess.return_value = mock_result
+        response = self.client.get('/api/rescrouce/monitor/pci_info.sh')
+        if mock_subprocess.called:
+            call_args = mock_subprocess.call_args[0][0]
+            self.assertEqual(len(call_args), 2)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
     def test_memory_slot_with_extra_mode_fails(self, mock_isfile):
         """测试 memory_slot.sh 传入mode参数应该失败"""
+        mock_isfile.return_value = True
+        response = self.client.get('/api/rescrouce/monitor/memory_slot.sh?mode=test')
         pass
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
