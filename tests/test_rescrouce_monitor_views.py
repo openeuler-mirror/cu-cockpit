@@ -422,11 +422,16 @@ class TestServiceManagementAPI(TestCase):
         mock_isfile.return_value = False
         data = {'service_name': 'nginx', 'operation': 'start'}
         response = self.client.post('/api/rescrouce/service/service_manage.sh', data=json.dumps(data), content_type='application/json')
-        pass
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        response_data = json.loads(response.content)
+        self.assertIn('not found manager_script', response_data['error'])
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
     def test_manage_service_missing_parameters(self, mock_isfile):
         """测试服务管理缺少必需参数"""
+        mock_isfile.return_value = True
+        data = {'service_name': 'nginx'}
+        response = self.client.post('/api/rescrouce/service/service_manage.sh', data=json.dumps(data), content_type='application/json')
         pass
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
