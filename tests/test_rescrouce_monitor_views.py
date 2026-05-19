@@ -517,9 +517,17 @@ class TestServiceManagementAPI(TestCase):
         response = self.client.post('/api/rescrouce/service/service_manage.sh', data=json.dumps(data), content_type='application/json')
         self.assertEqual(response.status_code, 402)
         response_data = json.loads(response.content)
-        pass
+        self.assertFalse(response_data['success_flag'])
+        self.assertEqual(response_data['service_name'], 'nonexistent')
+        self.assertEqual(response_data['operation'], 'start')
+        self.assertIn('操作失败', response_data['message'])
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
     def test_manage_service_invalid_json_format(self, mock_isfile):
         """测试服务管理使用无效JSON格式"""
-        pass
+        mock_isfile.return_value = True
+        invalid_json = '{invalid_json}'
+        response = self.client.post('/api/rescrouce/service/service_manage.sh', data=invalid_json, content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        response_data = json.loads(response.content)
+        self.assertIn('JSON格式错误', response_data['error'])
