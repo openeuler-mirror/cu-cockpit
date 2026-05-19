@@ -205,7 +205,15 @@ class AuthViewsTest(TestCase):
 
     def test_multiple_login_attempts(self):
         """测试多次登录尝试的情况"""
-        pass
+        with patch('osmanager.auth.views.verify_with_pam', return_value=False):
+            data = {'username': self.invalid_username, 'password': self.invalid_password}
+            response1 = self.client.post('/api/auth/login/', data, format='json')
+            self.assertEqual(response1.status_code, status.HTTP_401_UNAUTHORIZED)
+        with patch('osmanager.auth.views.verify_with_pam', return_value=True):
+            data = {'username': self.valid_username, 'password': self.valid_password}
+            response2 = self.client.post('/api/auth/login/', data, format='json')
+            self.assertEqual(response2.status_code, status.HTTP_200_OK)
+            self.assertEqual(self.client.session.get('username'), self.valid_username)
 
     def test_login_with_special_characters(self):
         """测试用户名包含特殊字符的情况"""
