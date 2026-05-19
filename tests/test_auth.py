@@ -5,10 +5,15 @@ import os
 import sys
 import django
 from pathlib import Path
+
+# 添加项目根目录到 Python 路径
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
+
+# 设置 Django 环境
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'osmanager.settings')
 django.setup()
+
 import json
 from unittest.mock import patch, MagicMock
 from django.test import TestCase, Client
@@ -16,11 +21,13 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 
-class AuthViewsTest(TestCase):
 
+class AuthViewsTest(TestCase):
     def setUp(self):
         """测试初始化设置"""
         self.client = APIClient()
+
+        # 测试数据
         self.valid_username = 'testuser'
         self.valid_password = 'testpass123'
         self.invalid_username = 'invaliduser'
@@ -31,8 +38,12 @@ class AuthViewsTest(TestCase):
     def test_login_view_success(self):
         """测试成功登录的情况"""
         with patch('osmanager.auth.views.verify_with_pam', return_value=True):
-            data = {'username': self.valid_username, 'password': self.valid_password}
+            data = {
+                'username': self.valid_username,
+                'password': self.valid_password
+            }
             response = self.client.post('/api/auth/login/', data, format='json')
+
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             response_data = response.json()
             self.assertEqual(response_data['code'], 200)
@@ -42,8 +53,12 @@ class AuthViewsTest(TestCase):
     def test_login_view_json_format(self):
         """测试JSON格式的登录请求"""
         with patch('osmanager.auth.views.verify_with_pam', return_value=True):
-            data = {'username': self.valid_username, 'password': self.valid_password}
+            data = {
+                'username': self.valid_username,
+                'password': self.valid_password
+            }
             response = self.client.post('/api/auth/login/', data, format='json')
+
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             response_data = response.json()
             self.assertEqual(response_data['code'], 200)
@@ -52,8 +67,12 @@ class AuthViewsTest(TestCase):
     def test_login_view_form_format(self):
         """测试表单格式的登录请求"""
         with patch('osmanager.auth.views.verify_with_pam', return_value=True):
-            data = {'username': self.valid_username, 'password': self.valid_password}
+            data = {
+                'username': self.valid_username,
+                'password': self.valid_password
+            }
             response = self.client.post('/api/auth/login/', data)
+
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             response_data = response.json()
             self.assertEqual(response_data['code'], 200)
@@ -61,8 +80,11 @@ class AuthViewsTest(TestCase):
 
     def test_login_view_missing_username(self):
         """测试缺少用户名的情况"""
-        data = {'password': self.valid_password}
+        data = {
+            'password': self.valid_password
+        }
         response = self.client.post('/api/auth/login/', data, format='json')
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response_data = response.json()
         self.assertEqual(response_data['code'], 400)
@@ -70,8 +92,11 @@ class AuthViewsTest(TestCase):
 
     def test_login_view_missing_password(self):
         """测试缺少密码的情况"""
-        data = {'username': self.valid_username}
+        data = {
+            'username': self.valid_username
+        }
         response = self.client.post('/api/auth/login/', data, format='json')
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response_data = response.json()
         self.assertEqual(response_data['code'], 400)
@@ -79,8 +104,12 @@ class AuthViewsTest(TestCase):
 
     def test_login_view_empty_username(self):
         """测试空用户名的情况"""
-        data = {'username': self.empty_username, 'password': self.valid_password}
+        data = {
+            'username': self.empty_username,
+            'password': self.valid_password
+        }
         response = self.client.post('/api/auth/login/', data, format='json')
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response_data = response.json()
         self.assertEqual(response_data['code'], 400)
@@ -88,8 +117,12 @@ class AuthViewsTest(TestCase):
 
     def test_login_view_empty_password(self):
         """测试空密码的情况"""
-        data = {'username': self.valid_username, 'password': self.empty_password}
+        data = {
+            'username': self.valid_username,
+            'password': self.empty_password
+        }
         response = self.client.post('/api/auth/login/', data, format='json')
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response_data = response.json()
         self.assertEqual(response_data['code'], 400)
@@ -97,8 +130,12 @@ class AuthViewsTest(TestCase):
 
     def test_login_view_empty_credentials(self):
         """测试用户名和密码都为空的情况"""
-        data = {'username': self.empty_username, 'password': self.empty_password}
+        data = {
+            'username': self.empty_username,
+            'password': self.empty_password
+        }
         response = self.client.post('/api/auth/login/', data, format='json')
+
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response_data = response.json()
         self.assertEqual(response_data['code'], 400)
@@ -107,8 +144,12 @@ class AuthViewsTest(TestCase):
     def test_login_view_invalid_credentials(self):
         """测试无效凭据的情况"""
         with patch('osmanager.auth.views.verify_with_pam', return_value=False):
-            data = {'username': self.invalid_username, 'password': self.invalid_password}
+            data = {
+                'username': self.invalid_username,
+                'password': self.invalid_password
+            }
             response = self.client.post('/api/auth/login/', data, format='json')
+
             self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
             response_data = response.json()
             self.assertEqual(response_data['code'], 401)
@@ -117,9 +158,14 @@ class AuthViewsTest(TestCase):
     def test_login_view_pam_not_available(self):
         """测试PAM服务不可用的情况"""
         from osmanager.auth.auth_pam import PamNotAvailable
-        with patch('osmanager.auth.views.verify_with_pam', side_effect=PamNotAvailable('python-pam 未安装')):
-            data = {'username': self.valid_username, 'password': self.valid_password}
+
+        with patch('osmanager.auth.views.verify_with_pam', side_effect=PamNotAvailable("python-pam 未安装")):
+            data = {
+                'username': self.valid_username,
+                'password': self.valid_password
+            }
             response = self.client.post('/api/auth/login/', data, format='json')
+
             self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
             response_data = response.json()
             self.assertEqual(response_data['code'], 500)
@@ -128,9 +174,14 @@ class AuthViewsTest(TestCase):
     def test_login_view_pam_auth_error(self):
         """测试PAM认证异常的情况"""
         from osmanager.auth.auth_pam import PamAuthError
-        with patch('osmanager.auth.views.verify_with_pam', side_effect=PamAuthError('PAM 认证异常')):
-            data = {'username': self.valid_username, 'password': self.valid_password}
+
+        with patch('osmanager.auth.views.verify_with_pam', side_effect=PamAuthError("PAM 认证异常")):
+            data = {
+                'username': self.valid_username,
+                'password': self.valid_password
+            }
             response = self.client.post('/api/auth/login/', data, format='json')
+
             self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
             response_data = response.json()
             self.assertEqual(response_data['code'], 500)
@@ -139,14 +190,20 @@ class AuthViewsTest(TestCase):
     def test_login_view_get_method(self):
         """测试使用GET方法请求登录的情况"""
         response = self.client.get('/api/auth/login/')
+
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_login_view_session_storage(self):
         """测试登录成功后session存储的情况"""
         with patch('osmanager.auth.views.verify_with_pam', return_value=True):
-            data = {'username': self.valid_username, 'password': self.valid_password}
+            data = {
+                'username': self.valid_username,
+                'password': self.valid_password
+            }
             response = self.client.post('/api/auth/login/', data, format='json')
+
             self.assertEqual(response.status_code, status.HTTP_200_OK)
+            # 验证session中是否存储了用户名
             self.assertEqual(self.client.session.get('username'), self.valid_username)
 
     def test_logout_view_success(self):
@@ -154,7 +211,9 @@ class AuthViewsTest(TestCase):
         session = self.client.session
         session['username'] = self.valid_username
         session.save()
+
         response = self.client.post('/api/auth/logout/')
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()
         self.assertEqual(response_data['code'], 200)
@@ -163,6 +222,7 @@ class AuthViewsTest(TestCase):
     def test_logout_view_no_session(self):
         """测试没有session时的登出情况"""
         response = self.client.post('/api/auth/logout/')
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         response_data = response.json()
         self.assertEqual(response_data['code'], 200)
@@ -170,18 +230,25 @@ class AuthViewsTest(TestCase):
 
     def test_logout_view_session_cleared(self):
         """测试登出后session被清除的情况"""
+        # 先设置一个session
         session = self.client.session
         session['username'] = self.valid_username
         session.save()
+
+        # 验证session存在
         self.assertEqual(self.client.session.get('username'), self.valid_username)
+
         response = self.client.post('/api/auth/logout/')
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # 验证session被清除
         self.assertIsNone(self.client.session.get('username'))
 
     def test_logout_view_exception(self):
         """测试登出过程中发生异常的情况"""
-        with patch('django.contrib.sessions.backends.db.SessionStore.flush', side_effect=Exception('Session error')):
+        with patch('django.contrib.sessions.backends.db.SessionStore.flush', side_effect=Exception("Session error")):
             response = self.client.post('/api/auth/logout/')
+
             self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
             response_data = response.json()
             self.assertEqual(response_data['code'], 500)
@@ -190,28 +257,48 @@ class AuthViewsTest(TestCase):
     def test_logout_view_get_method(self):
         """测试使用GET方法请求登出的情况"""
         response = self.client.get('/api/auth/logout/')
+
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_login_logout_flow(self):
         """测试完整的登录-登出流程"""
+        # 1. 登录
         with patch('osmanager.auth.views.verify_with_pam', return_value=True):
-            login_data = {'username': self.valid_username, 'password': self.valid_password}
+            login_data = {
+                'username': self.valid_username,
+                'password': self.valid_password
+            }
             login_response = self.client.post('/api/auth/login/', login_data, format='json')
+
             self.assertEqual(login_response.status_code, status.HTTP_200_OK)
             self.assertEqual(self.client.session.get('username'), self.valid_username)
+
+        # 2. 登出
         logout_response = self.client.post('/api/auth/logout/')
+
         self.assertEqual(logout_response.status_code, status.HTTP_200_OK)
         self.assertIsNone(self.client.session.get('username'))
 
     def test_multiple_login_attempts(self):
         """测试多次登录尝试的情况"""
+        # 第一次登录失败
         with patch('osmanager.auth.views.verify_with_pam', return_value=False):
-            data = {'username': self.invalid_username, 'password': self.invalid_password}
+            data = {
+                'username': self.invalid_username,
+                'password': self.invalid_password
+            }
             response1 = self.client.post('/api/auth/login/', data, format='json')
+
             self.assertEqual(response1.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # 第二次登录成功
         with patch('osmanager.auth.views.verify_with_pam', return_value=True):
-            data = {'username': self.valid_username, 'password': self.valid_password}
+            data = {
+                'username': self.valid_username,
+                'password': self.valid_password
+            }
             response2 = self.client.post('/api/auth/login/', data, format='json')
+
             self.assertEqual(response2.status_code, status.HTTP_200_OK)
             self.assertEqual(self.client.session.get('username'), self.valid_username)
 
@@ -219,8 +306,12 @@ class AuthViewsTest(TestCase):
         """测试用户名包含特殊字符的情况"""
         special_username = 'test@user#123'
         with patch('osmanager.auth.views.verify_with_pam', return_value=True):
-            data = {'username': special_username, 'password': self.valid_password}
+            data = {
+                'username': special_username,
+                'password': self.valid_password
+            }
             response = self.client.post('/api/auth/login/', data, format='json')
+
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             response_data = response.json()
             self.assertEqual(response_data['user'], special_username)
@@ -228,10 +319,14 @@ class AuthViewsTest(TestCase):
 
     def test_login_with_long_password(self):
         """测试长密码的情况"""
-        long_password = 'a' * 1000
+        long_password = 'a' * 1000  # 1000个字符的密码
         with patch('osmanager.auth.views.verify_with_pam', return_value=True):
-            data = {'username': self.valid_username, 'password': long_password}
+            data = {
+                'username': self.valid_username,
+                'password': long_password
+            }
             response = self.client.post('/api/auth/login/', data, format='json')
+
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             response_data = response.json()
             self.assertEqual(response_data['code'], 200)
@@ -240,9 +335,14 @@ class AuthViewsTest(TestCase):
         """测试Unicode用户名的情况"""
         unicode_username = '测试用户'
         with patch('osmanager.auth.views.verify_with_pam', return_value=True):
-            data = {'username': unicode_username, 'password': self.valid_password}
+            data = {
+                'username': unicode_username,
+                'password': self.valid_password
+            }
             response = self.client.post('/api/auth/login/', data, format='json')
+
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             response_data = response.json()
             self.assertEqual(response_data['user'], unicode_username)
             self.assertEqual(self.client.session.get('username'), unicode_username)
+
