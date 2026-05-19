@@ -495,12 +495,22 @@ class TestServiceManagementAPI(TestCase):
         mock_result.stderr = ''
         mock_subprocess.return_value = mock_result
         data = {'service_name': 'nginx', 'operation': 'restart'}
-        pass
+        response = self.client.post('/api/rescrouce/service/service_manage.sh', data=json.dumps(data), content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response_data = json.loads(response.content)
+        self.assertTrue(response_data['success_flag'])
+        self.assertEqual(response_data['service_name'], 'nginx')
+        self.assertEqual(response_data['operation'], 'restart')
+        self.assertIn('操作成功', response_data['message'])
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
     @patch('osmanager.rescrouce_monitor.views.subprocess.run')
     def test_manage_service_execution_failure(self, mock_subprocess, mock_isfile):
         """测试服务管理执行失败"""
+        mock_isfile.return_value = True
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stdout = ''
         pass
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
