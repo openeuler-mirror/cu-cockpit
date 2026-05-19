@@ -303,14 +303,19 @@ class TestScriptsWithoutMode(TestCase):
         """测试 pci_info.sh 传入mode参数应该失败"""
         mock_isfile.return_value = True
         response = self.client.get('/api/rescrouce/monitor/pci_info.sh?mode=test')
-        pass
+        self.assertEqual(response.status_code, 400)
+        response_data = json.loads(response.content)
+        self.assertIn('该脚本不支持 mode 参数', response_data['message'])
 
 class TestDifferentModeFunctionality(TestCase):
     """测试不同mode参数调用不同功能"""
 
     def setUp(self):
         """测试前设置"""
-        pass
+        self.client = Client()
+        session = self.client.session
+        session['username'] = 'testuser'
+        session.save()
 
     @patch('osmanager.rescrouce_monitor.views.os.path.isfile')
     @patch('osmanager.rescrouce_monitor.views.subprocess.run')
