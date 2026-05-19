@@ -237,11 +237,23 @@ class WebTerminalViewsTest(TestCase):
         """测试使用GET方法请求CSRF token的情况"""
         response = self.client.get('/api/terminal/token')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        pass
+        data = response.json()
+        self.assertIn('csrftoken', data)
 
     def test_terminal_connect_with_form_data(self):
         """测试使用表单数据的终端连接"""
-        pass
+        with patch('requests.Session') as mock_session_class:
+            mock_session = MagicMock()
+            mock_session_class.return_value = mock_session
+            mock_get_response = MagicMock()
+            mock_get_response.cookies = {'_xsrf': 'test_xsrf_token'}
+            mock_session.get.return_value = mock_get_response
+            mock_post_response = MagicMock()
+            mock_post_response.status_code = 200
+            mock_post_response.json.return_value = {'status': 'success'}
+            mock_session.post.return_value = mock_post_response
+            response = self.client.post('/api/terminal/connect', self.valid_terminal_data)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_terminal_connect_webssh_redirect(self):
         """测试webssh返回重定向的情况"""
