@@ -36,4 +36,10 @@ def login_view(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def logout_view(request):
-    pass
+    try:
+        if 'username' in request.session:
+            del request.session['username']
+        request.session.flush()
+        return Response({'code': 200, 'message': '登出成功'})
+    except Exception as e:
+        return Response({'code': 500, 'message': '登出失败'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
