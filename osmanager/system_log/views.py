@@ -21,6 +21,12 @@ def _build_cmd_from_request(request):
     支持: since, until, priority(-p), service(-s), limit(-n), keyword(-g), boot(-b)
     强制 --format json，方便接口返回 JSON
     """
+    cmd = [sys.executable or 'python3', LOG_SCRIPT_PATH]
+
+    def add_arg(flag, value):
+        pass
+    params = request.GET if request.method == 'GET' else request.POST
+    add_arg('--since', params.get('since'))
     pass
 
 @swagger_auto_schema(method='get', operation_summary='获取可用的引导偏移列表', operation_description='journalctl --list-boots返回可用的引导偏移号数组，如 [0, -1, -2]', responses={200: openapi.Response(description='成功返回', schema=openapi.Schema(type=openapi.TYPE_OBJECT, properties={'boots': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_INTEGER), example=[0, -1, -2, -3]), 'count': openapi.Schema(type=openapi.TYPE_INTEGER, example=4)})), 404: openapi.Response(description='脚本不存在', schema=openapi.Schema(type=openapi.TYPE_OBJECT, properties={'error': openapi.Schema(type=openapi.TYPE_STRING)})), 500: openapi.Response(description='服务端错误', schema=openapi.Schema(type=openapi.TYPE_OBJECT, properties={'error': openapi.Schema(type=openapi.TYPE_STRING), 'stderr': openapi.Schema(type=openapi.TYPE_STRING), 'cmd': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_STRING))}))}, tags=['system boot'])
