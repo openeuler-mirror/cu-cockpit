@@ -30,6 +30,7 @@ ALLOWED_SCRIPTS = list(ALLOWED_SCRIPT_MODES.keys())
 def get_config_api(request, script_name):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     SCRIPTS_DIR = os.path.join(current_dir, 'manager-script')
+    script_path = os.path.join(SCRIPTS_DIR, script_name)
     pass
 ALLOWED_OPERATION = ['autotime', 'settime']
 
