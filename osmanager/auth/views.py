@@ -30,7 +30,7 @@ def login_view(request):
             return Response({'code': 200, 'message': '登录成功', 'user': username})
         else:
             return Response({'code': 401, 'message': '用户名或密码错误'}, status=status.HTTP_401_UNAUTHORIZED)
-    pass
+    return Response({'code': 400, 'message': '请使用POST请求'}, status=status.HTTP_400_BAD_REQUEST)
 
 @swagger_auto_schema(method='post', operation_summary='用户登出', operation_description='清除用户会话，退出登录', responses={200: openapi.Response(description='登出成功', examples={'application/json': {'code': 200, 'message': '登出成功'}}), 400: openapi.Response(description='登出失败', examples={'application/json': {'code': 500, 'message': '登出失败'}})})
 @api_view(['POST'])
