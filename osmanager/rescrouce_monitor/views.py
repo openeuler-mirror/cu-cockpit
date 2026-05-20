@@ -22,4 +22,41 @@ def run_shell_script_api(request, script_name):
     script_path = os.path.join(SCRIPTS_DIR, script_name)
     if not os.path.isfile(script_path):
         return Response({'error': 'not found manager_script', 'script': script_name, 'script_path': script_path}, status=404)
-    pass
+    try:
+        script_args = ['bash', script_path]
+        mode = request.GET.get('mode')
+        if script_name == 'monitor_status.sh':
+            allowed_modes = ['all', 'cpu', 'disk', 'memory', 'network']
+        elif script_name == 'hard_info.sh':
+            allowed_modes = ['cpu', 'disk', 'network', 'system', 'bios', 'os_system', 'storage']
+        if script_name in ['monitor_status.sh', 'hard_info.sh']:
+            if mode is None or not str(mode).strip():
+                return JsonResponse({'error': '参数错误', 'message': 'mode 必填且不能为空'}, status=400)
+            if mode not in allowed_modes:
+                return JsonResponse({'error': '参数错误', 'message': f'mode 只允许为 {allowed_modes}，你传入的是: {mode}'}, status=400)
+            script_args.append(mode)
+        elif mode is not None:
+            return JsonResponse({'error': '参数错误', 'message': '该脚本不支持 mode 参数'}, status=400)
+        try:
+            result = subprocess.run(script_args, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            return_code = result.returncode
+            stdout = result.stdout.strip()
+            stderr = result.stderr.strip()
+            if return_code != 0 or stderr:
+                return JsonResponse({'error': '脚本执行失败', 'script': script_name, 'return_code': return_code, 'stdout': stdout if stdout else None, 'stderr': stderr if stderr else None}, status=500, json_dumps_params={'ensure_ascii': False})
+            else:
+                try:
+                    json_data = json.loads(stdout)
+                    return JsonResponse(json_data, safe=False, json_dumps_params={'ensure_ascii': False})
+                except json.JSONDecodeError:
+                    return JsonResponse({'message': 'success,but not json', 'output': stdout})
+        except subprocess.TimeoutExpired as e:
+            return JsonResponse({'error': '脚本执行超时', 'script': script_name, 'details': str(e)}, status=408, json_dumps_params={'ensure_ascii': False})
+        except FileNotFoundError as e:
+            return JsonResponse({'error': '脚本文件未找到或bash命令不存在', 'script': script_name, 'details': str(e)}, status=404, json_dumps_params={'ensure_ascii': False})
+        except Exception as e:
+            return JsonResponse({'error': '脚本执行异常', 'script': script_name, 'details': str(e)}, status=500, json_dumps_params={'ensure_ascii': False})
+    except subprocess.CalledProcessError as e:
+        return JsonResponse({'error': '调用脚本执行失败', 'script': script_name, 'stderr': e.stderr.strip()}, status=500, json_dumps_params={'ensure_ascii': False})
+    except Exception as e:
+        return JsonResponse({'error': '未知错误', 'details': str(e), 'script': script_name}, status=500, json_dumps_params={'ensure_ascii': False})
