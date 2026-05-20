@@ -33,7 +33,54 @@ def get_config_api(request, script_name):
     script_path = os.path.join(SCRIPTS_DIR, script_name)
     if not os.path.isfile(script_path):
         return Response({'error': 'not found manager_script', 'script': script_name, 'script_path': script_path}, status=404)
-    pass
+    try:
+        script_extension = os.path.splitext(script_name)[1].lower()
+        if script_extension == '.py':
+            script_args = ['python3', script_path]
+        elif script_extension == '.sh':
+            script_args = ['bash', script_path]
+        else:
+            script_args = ['bash', script_path]
+        mode = request.GET.get('mode')
+        allowed_modes = ALLOWED_SCRIPT_MODES['config.sh']
+        if mode is None or not str(mode).strip():
+            return JsonResponse({'error': '参数错误', 'message': 'mode 必填且不能为空'}, status=400, json_dumps_params={'ensure_ascii': False})
+        if mode not in allowed_modes:
+            return JsonResponse({'error': '参数错误', 'message': f'mode 只允许为 {allowed_modes}，你传入的是: {mode}'}, status=400, json_dumps_params={'ensure_ascii': False})
+        if mode == 'get':
+            key = request.GET.get('key')
+            if key is None or not str(key).strip():
+                return JsonResponse({'error': '参数错误', 'message': '当 mode=get 时，key 必填'}, status=400, json_dumps_params={'ensure_ascii': False})
+            script_args.extend([mode, key])
+        else:
+            script_args.append(mode)
+        try:
+            result = subprocess.run(script_args, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            return_code = result.returncode
+            stdout = result.stdout
+            stderr = result.stderr.strip()
+            if return_code != 0 or stderr:
+                return JsonResponse({'error': '脚本执行失败', 'script': script_name, 'return_code': return_code, 'stdout': stdout if stdout else None, 'stderr': stderr if stderr else None}, status=500, json_dumps_params={'ensure_ascii': False})
+            else:
+                expected_format = SCRIPT_OUTPUT_FORMATS.get(mode, 'auto')
+                if expected_format == 'json':
+                    try:
+                        json_data = json.loads(stdout)
+                        return JsonResponse(json_data, safe=False, json_dumps_params={'ensure_ascii': False})
+                    except json.JSONDecodeError:
+                        return JsonResponse({'error': 'not json', 'output': stdout}, status=500)
+                elif expected_format == 'text':
+                    return HttpResponse(stdout, content_type='text/plain; charset=utf-8')
+        except subprocess.TimeoutExpired as e:
+            return JsonResponse({'error': '脚本执行超时', 'script': script_name, 'details': str(e)}, status=408, json_dumps_params={'ensure_ascii': False})
+        except FileNotFoundError as e:
+            return JsonResponse({'error': '脚本文件未找到或bash命令不存在', 'script': script_name, 'details': str(e)}, status=404, json_dumps_params={'ensure_ascii': False})
+        except Exception as e:
+            return JsonResponse({'error': '脚本执行异常', 'script': script_name, 'details': str(e)}, status=500, json_dumps_params={'ensure_ascii': False})
+    except subprocess.CalledProcessError as e:
+        return JsonResponse({'error': '调用脚本执行失败', 'script': script_name, 'stderr': e.stderr.strip()}, status=500, json_dumps_params={'ensure_ascii': False})
+    except Exception as e:
+        return JsonResponse({'error': '未知错误', 'details': str(e), 'script': script_name}, status=500, json_dumps_params={'ensure_ascii': False})
 ALLOWED_OPERATION = ['autotime', 'settime']
 
 def build_args_settime(script_path, data):
