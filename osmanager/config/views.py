@@ -28,6 +28,7 @@ ALLOWED_SCRIPTS = list(ALLOWED_SCRIPT_MODES.keys())
 @login_required_api
 @api_view(['GET'])
 def get_config_api(request, script_name):
+    current_dir = os.path.dirname(os.path.abspath(__file__))
     pass
 ALLOWED_OPERATION = ['autotime', 'settime']
 
