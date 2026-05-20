@@ -20,4 +20,6 @@ def run_shell_script_api(request, script_name):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     SCRIPTS_DIR = os.path.join(current_dir, 'manager-script')
     script_path = os.path.join(SCRIPTS_DIR, script_name)
+    if not os.path.isfile(script_path):
+        return Response({'error': 'not found manager_script', 'script': script_name, 'script_path': script_path}, status=404)
     pass
