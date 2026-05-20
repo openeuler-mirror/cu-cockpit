@@ -19,9 +19,12 @@ def terminal_connect(request):
     s = requests.Session()
     s.get(WEBSSH_URL + '/', timeout=5)
     token = s.cookies.get('_xsrf')
-    pass
+    if token:
+        data['_xsrf'] = token
+    resp = s.post(WEBSSH_URL + '/', data=data, headers=headers, timeout=10)
+    return JsonResponse(resp.json(), status=resp.status_code)
 
 @login_required_api
 @ensure_csrf_cookie
 def csrf_token(request):
-    pass
+    return JsonResponse({'csrftoken': get_token(request)})
