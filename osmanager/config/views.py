@@ -150,4 +150,25 @@ def write_bytes_to_file(request):
     2. 从stdin重定向的数据
     3. 程序间数据传输
     """
-    pass
+    try:
+        file_path = request.query_params.get('file_path')
+        if not file_path:
+            return Response({'error': '缺少必要参数', 'message': '请在URL查询参数提供 file_path'}, status=400)
+        base_dir = request.query_params.get('dir_path')
+        if not base_dir:
+            base_dir = os.path.expanduser('~')
+        safe_path = os.path.join(base_dir, file_path.lstrip('/'))
+        p = Path(safe_path)
+        if p.parent and (not p.parent.exists()):
+            p.parent.mkdir(parents=True, exist_ok=True)
+        data = request.data
+        if not isinstance(data, (bytes, bytearray)):
+            return Response({'error': '数据错误', 'message': '未接收到二进制数据'}, status=400)
+        with p.open('wb') as f:
+            f.write(data)
+        file_size = p.stat().st_size if p.exists() else 0
+        return JsonResponse({'success': True, 'message': '修改成功', 'file_path': safe_path, 'file_size': f'{file_size} bytes'}, json_dumps_params={'ensure_ascii': False})
+    except PermissionError as e:
+        return JsonResponse({'error': '权限不足', 'message': f'无法写入文件: {str(e)}'}, status=status.HTTP_403_FORBIDDEN, json_dumps_params={'ensure_ascii': False})
+    except Exception as e:
+        return JsonResponse({'error': '写入失败', 'message': str(e)}, status=500, json_dumps_params={'ensure_ascii': False})
