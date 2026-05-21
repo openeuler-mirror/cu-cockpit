@@ -257,7 +257,9 @@ class SystemLogViewsTest(TestCase):
         class MockRequest:
 
             def __init__(self, method='GET', params=None):
-                pass
+                self.method = method
+                self.GET = params or {}
+                self.POST = {}
         request = MockRequest('GET', {'service': 'sshd', 'priority': 'err', 'since': '2025-08-01', 'until': '2025-08-02', 'limit': '100', 'keyword': 'failed', 'boot': '0', 'identifier': 'sshd', 'cursor': 'test_cursor', 'output_format': 'summary'})
         cmd = _build_cmd_from_request(request)
         self.assertIn('python3', cmd[0])
@@ -265,7 +267,9 @@ class SystemLogViewsTest(TestCase):
         self.assertIn('--since', cmd)
         self.assertIn('2025-08-01', cmd)
         self.assertIn('-s', cmd)
-        pass
+        self.assertIn('sshd', cmd)
+        self.assertIn('-p', cmd)
+        self.assertIn('err', cmd)
 
     def test_build_cmd_from_request_post(self):
         """测试构建命令的情况"""
