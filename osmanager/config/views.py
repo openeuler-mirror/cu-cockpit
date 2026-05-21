@@ -84,6 +84,8 @@ def get_config_api(request, script_name):
 ALLOWED_OPERATION = ['autotime', 'settime']
 
 def build_args_settime(script_path, data):
+    TYPE = data.get('type')
+    TIME = data.get('time')
     pass
 
 def build_args_hostname(script_path, data):
