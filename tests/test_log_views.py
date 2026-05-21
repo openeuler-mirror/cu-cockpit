@@ -215,11 +215,30 @@ class SystemLogViewsTest(TestCase):
 
     def test_logs_view_with_all_parameters(self):
         """测试使用所有查询参数的情况"""
-        pass
+        with patch('os.path.exists', return_value=True), patch('subprocess.run') as mock_subprocess:
+            mock_result = MagicMock()
+            mock_result.returncode = 0
+            mock_result.stdout = json.dumps([])
+            mock_result.stderr = ''
+            mock_subprocess.return_value = mock_result
+            url = f'/api/logs/logs/?service={self.valid_service}&priority={self.valid_priority}&since={self.valid_since}&until={self.valid_until}&limit={self.valid_limit}&keyword={self.valid_keyword}&boot={self.valid_boot}&identifier={self.valid_identifier}&cursor={self.valid_cursor}&output_format={self.valid_output_format}'
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            mock_subprocess.assert_called_once()
 
     def test_logs_view_structured_error_from_stderr(self):
         """测试日志脚本在stderr中返回结构化错误的情况"""
-        pass
+        with patch('os.path.exists', return_value=True), patch('subprocess.run') as mock_subprocess:
+            mock_result = MagicMock()
+            mock_result.returncode = 1
+            mock_result.stdout = ''
+            mock_result.stderr = json.dumps({'error': 'structured error', 'code': 1001})
+            mock_subprocess.return_value = mock_result
+            response = self.client.get('/api/logs/logs/')
+            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+            data = response.json()
+            self.assertEqual(data['error'], 'structured error')
+            self.assertEqual(data['code'], 1001)
 
     def test_logs_view_unknown_exception(self):
         """测试日志脚本抛出未知异常的情况"""
