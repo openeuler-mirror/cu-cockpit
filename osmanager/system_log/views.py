@@ -78,4 +78,15 @@ def logs_view(request):
     GET /api/logs?service=sshd&priority=err&since=2025-08-01&until=2025-09-09&limit=200
     直接调用 log.py 并返回 JSON
     """
+    if not os.path.exists(LOG_SCRIPT_PATH):
+        return JsonResponse({'error': f'log.py不存在: {LOG_SCRIPT_PATH}'}, status=404, json_dumps_params={'ensure_ascii': False})
+    cmd = _build_cmd_from_request(request)
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, env={**os.environ, 'PYTHONIOENCODING': 'utf-8', 'TZ': 'Asia/Shanghai'}, timeout=60, check=False)
+    except subprocess.TimeoutExpired:
+        return JsonResponse({'error': '调用 log.py 超时(60s)'}, status=504, json_dumps_params={'ensure_ascii': False})
+    except FileNotFoundError as e:
+        return JsonResponse({'error': f'执行失败: {str(e)}'}, status=500, json_dumps_params={'ensure_ascii': False})
+    except Exception as e:
+        return JsonResponse({'error': f'未知错误: {str(e)}'}, status=500, json_dumps_params={'ensure_ascii': False})
     pass
