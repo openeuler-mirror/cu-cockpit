@@ -86,7 +86,14 @@ ALLOWED_OPERATION = ['autotime', 'settime']
 def build_args_settime(script_path, data):
     TYPE = data.get('type')
     TIME = data.get('time')
-    pass
+    if TYPE not in ALLOWED_OPERATION:
+        raise ValueError(f'type只允许为{ALLOWED_OPERATION}')
+    if TYPE == 'settime' and (not TIME):
+        raise ValueError('当type为settime时,time为必填')
+    if TYPE == 'settime':
+        return ['sh', script_path, TYPE, TIME]
+    else:
+        return ['sh', script_path, TYPE]
 
 def build_args_hostname(script_path, data):
     pass
