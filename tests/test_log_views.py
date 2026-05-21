@@ -112,7 +112,20 @@ class SystemLogViewsTest(TestCase):
 
     def test_logs_view_success(self):
         """测试成功查询系统日志的情况"""
-        pass
+        with patch('os.path.exists', return_value=True), patch('subprocess.run') as mock_subprocess:
+            mock_result = MagicMock()
+            mock_result.returncode = 0
+            mock_result.stdout = json.dumps([{'date': 'Sep 09', 'time': '10:23:09', 'hostname': 'bigdata1', 'service': 'PackageKit', 'pid': 2177658, 'message': 'message content', 'raw': 'raw log line'}])
+            mock_result.stderr = ''
+            mock_subprocess.return_value = mock_result
+            response = self.client.get(f'/api/logs/logs/?service={self.valid_service}&priority={self.valid_priority}')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            data = response.json()
+            self.assertIn('logs', data)
+            self.assertIn('count', data)
+            self.assertEqual(len(data['logs']), 1)
+            self.assertEqual(data['count'], 1)
+            mock_subprocess.assert_called_once()
 
     def test_logs_view_script_not_found(self):
         """测试日志脚本不存在的情况"""
