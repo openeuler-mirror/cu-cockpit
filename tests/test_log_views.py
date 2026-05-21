@@ -88,11 +88,27 @@ class SystemLogViewsTest(TestCase):
 
     def test_boots_view_file_not_found(self):
         """测试引导脚本文件未找到的情况"""
-        pass
+        with patch('os.path.exists', return_value=True), patch('subprocess.run') as mock_subprocess:
+            mock_subprocess.side_effect = FileNotFoundError('File not found')
+            response = self.client.get('/api/logs/boot/')
+            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+            data = response.json()
+            self.assertIn('error', data)
+            self.assertIn('执行失败', data['error'])
 
     def test_boots_view_python_list_parse(self):
         """测试引导脚本返回Python列表字符串的情况"""
-        pass
+        with patch('os.path.exists', return_value=True), patch('subprocess.run') as mock_subprocess:
+            mock_result = MagicMock()
+            mock_result.returncode = 0
+            mock_result.stdout = '[0, -1, -2, -3]'
+            mock_result.stderr = ''
+            mock_subprocess.return_value = mock_result
+            response = self.client.get('/api/logs/boot/')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            data = response.json()
+            self.assertEqual(data['boots'], [0, -1, -2, -3])
+            self.assertEqual(data['count'], 4)
 
     def test_logs_view_success(self):
         """测试成功查询系统日志的情况"""
