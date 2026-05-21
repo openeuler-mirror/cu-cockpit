@@ -109,6 +109,9 @@ def set_time_hostname_api(request, script_name):
     """
     配置管理接口 - POST方法，用于系统时间及主机名修改
     """
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    SCRIPTS_DIR = os.path.join(current_dir, 'manager-script')
+    script_path = os.path.join(SCRIPTS_DIR, script_name)
     pass
 
 @login_required_api
