@@ -89,4 +89,19 @@ def logs_view(request):
         return JsonResponse({'error': f'执行失败: {str(e)}'}, status=500, json_dumps_params={'ensure_ascii': False})
     except Exception as e:
         return JsonResponse({'error': f'未知错误: {str(e)}'}, status=500, json_dumps_params={'ensure_ascii': False})
+    if proc.returncode != 0:
+        payload = {'error': 'log.py返回非0状态码', 'returncode': proc.returncode, 'stderr': proc.stderr.strip(), 'cmd': cmd}
+        try:
+            if proc.stderr.strip():
+                payload = json.loads(proc.stderr.strip())
+        except Exception:
+            pass
+        return JsonResponse(payload, status=500, json_dumps_params={'ensure_ascii': False})
+    stdout = (proc.stdout or '').strip()
+    if not stdout:
+        return JsonResponse({'logs': [], 'count': 0}, status=200, json_dumps_params={'ensure_ascii': False})
+    try:
+        data = json.loads(stdout)
+    except json.JSONDecodeError:
+        return JsonResponse({'raw_output': stdout}, status=200, json_dumps_params={'ensure_ascii': False})
     pass
