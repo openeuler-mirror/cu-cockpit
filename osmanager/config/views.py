@@ -96,7 +96,10 @@ def build_args_settime(script_path, data):
         return ['sh', script_path, TYPE]
 
 def build_args_hostname(script_path, data):
-    pass
+    hostname = data.get('hostname')
+    if not hostname:
+        raise ValueError('hostname必填')
+    return ['sh', script_path, 'sethostname', hostname]
 SCRIPT_REGISTRY = {'set_time.sh': build_args_settime, 'config.sh': build_args_hostname}
 
 @login_required_api
