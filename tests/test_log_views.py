@@ -262,6 +262,9 @@ class SystemLogViewsTest(TestCase):
         cmd = _build_cmd_from_request(request)
         self.assertIn('python3', cmd[0])
         self.assertIn('log.py', cmd[1])
+        self.assertIn('--since', cmd)
+        self.assertIn('2025-08-01', cmd)
+        self.assertIn('-s', cmd)
         pass
 
     def test_build_cmd_from_request_post(self):
