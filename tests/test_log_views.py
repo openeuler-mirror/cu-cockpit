@@ -273,6 +273,13 @@ class SystemLogViewsTest(TestCase):
 
     def test_build_cmd_from_request_post(self):
         """测试构建命令的情况"""
+        from osmanager.system_log.views import _build_cmd_from_request
+
+        class MockRequest:
+
+            def __init__(self, method='POST', params=None):
+                pass
+        request = MockRequest('POST', {'service': 'nginx', 'priority': 'info'})
         pass
 
     def test_build_cmd_from_request_empty_params(self):
