@@ -252,6 +252,16 @@ class SystemLogViewsTest(TestCase):
 
     def test_build_cmd_from_request_get(self):
         """测试从GET请求构建命令的情况"""
+        from osmanager.system_log.views import _build_cmd_from_request
+
+        class MockRequest:
+
+            def __init__(self, method='GET', params=None):
+                pass
+        request = MockRequest('GET', {'service': 'sshd', 'priority': 'err', 'since': '2025-08-01', 'until': '2025-08-02', 'limit': '100', 'keyword': 'failed', 'boot': '0', 'identifier': 'sshd', 'cursor': 'test_cursor', 'output_format': 'summary'})
+        cmd = _build_cmd_from_request(request)
+        self.assertIn('python3', cmd[0])
+        self.assertIn('log.py', cmd[1])
         pass
 
     def test_build_cmd_from_request_post(self):
