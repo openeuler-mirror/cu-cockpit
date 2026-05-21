@@ -30,11 +30,27 @@ class SystemLogViewsTest(TestCase):
         self.valid_until = '2025-08-02 23:59:59'
         self.valid_limit = 100
         self.valid_keyword = 'failed'
-        pass
+        self.valid_boot = '0'
+        self.valid_identifier = 'sshd'
+        self.valid_cursor = 's=;i=;b=;m=;t=;x='
+        self.valid_output_format = 'summary'
 
     def test_boots_view_success(self):
         """测试成功获取引导偏移列表的情况"""
-        pass
+        with patch('os.path.exists', return_value=True), patch('subprocess.run') as mock_subprocess:
+            mock_result = MagicMock()
+            mock_result.returncode = 0
+            mock_result.stdout = '[0, -1, -2, -3]'
+            mock_result.stderr = ''
+            mock_subprocess.return_value = mock_result
+            response = self.client.get('/api/logs/boot/')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            data = response.json()
+            self.assertIn('boots', data)
+            self.assertIn('count', data)
+            self.assertEqual(data['boots'], [0, -1, -2, -3])
+            self.assertEqual(data['count'], 4)
+            mock_subprocess.assert_called_once()
 
     def test_boots_view_script_not_found(self):
         """测试引导脚本不存在的情况"""
