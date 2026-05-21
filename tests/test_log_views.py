@@ -27,6 +27,9 @@ class SystemLogViewsTest(TestCase):
         self.valid_service = 'sshd'
         self.valid_priority = 'err'
         self.valid_since = '2025-08-01 00:00:00'
+        self.valid_until = '2025-08-02 23:59:59'
+        self.valid_limit = 100
+        self.valid_keyword = 'failed'
         pass
 
     def test_boots_view_success(self):
