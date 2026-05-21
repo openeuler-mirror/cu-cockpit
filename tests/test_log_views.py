@@ -129,7 +129,12 @@ class SystemLogViewsTest(TestCase):
 
     def test_logs_view_script_not_found(self):
         """测试日志脚本不存在的情况"""
-        pass
+        with patch('os.path.exists', return_value=False):
+            response = self.client.get('/api/logs/logs/')
+            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+            data = response.json()
+            self.assertIn('error', data)
+            self.assertIn('log.py不存在', data['error'])
 
     def test_logs_view_script_execution_failure(self):
         """测试日志脚本执行失败的情况"""
