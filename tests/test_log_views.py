@@ -187,11 +187,31 @@ class SystemLogViewsTest(TestCase):
 
     def test_logs_view_non_json_output(self):
         """测试日志脚本返回非JSON输出的情况"""
-        pass
+        with patch('os.path.exists', return_value=True), patch('subprocess.run') as mock_subprocess:
+            mock_result = MagicMock()
+            mock_result.returncode = 0
+            mock_result.stdout = 'This is not JSON output'
+            mock_result.stderr = ''
+            mock_subprocess.return_value = mock_result
+            response = self.client.get('/api/logs/logs/')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            data = response.json()
+            self.assertIn('raw_output', data)
+            self.assertEqual(data['raw_output'], 'This is not JSON output')
 
     def test_logs_view_dict_output(self):
         """测试日志脚本返回字典格式的情况"""
-        pass
+        with patch('os.path.exists', return_value=True), patch('subprocess.run') as mock_subprocess:
+            mock_result = MagicMock()
+            mock_result.returncode = 0
+            mock_result.stdout = json.dumps({'summary': 'test', 'count': 1})
+            mock_result.stderr = ''
+            mock_subprocess.return_value = mock_result
+            response = self.client.get('/api/logs/logs/')
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            data = response.json()
+            self.assertEqual(data['summary'], 'test')
+            self.assertEqual(data['count'], 1)
 
     def test_logs_view_with_all_parameters(self):
         """测试使用所有查询参数的情况"""
