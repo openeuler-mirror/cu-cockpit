@@ -242,7 +242,13 @@ class SystemLogViewsTest(TestCase):
 
     def test_logs_view_unknown_exception(self):
         """测试日志脚本抛出未知异常的情况"""
-        pass
+        with patch('os.path.exists', return_value=True), patch('subprocess.run') as mock_subprocess:
+            mock_subprocess.side_effect = Exception('Unknown error')
+            response = self.client.get('/api/logs/logs/')
+            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+            data = response.json()
+            self.assertIn('error', data)
+            self.assertIn('未知错误', data['error'])
 
     def test_build_cmd_from_request_get(self):
         """测试从GET请求构建命令的情况"""
