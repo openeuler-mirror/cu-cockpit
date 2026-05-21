@@ -104,4 +104,8 @@ def logs_view(request):
         data = json.loads(stdout)
     except json.JSONDecodeError:
         return JsonResponse({'raw_output': stdout}, status=200, json_dumps_params={'ensure_ascii': False})
-    pass
+    if isinstance(data, list):
+        return JsonResponse({'logs': data, 'count': len(data)}, status=200, json_dumps_params={'ensure_ascii': False})
+    if isinstance(data, dict):
+        return JsonResponse(data, status=200, json_dumps_params={'ensure_ascii': False})
+    return JsonResponse({'raw': data}, status=200, json_dumps_params={'ensure_ascii': False})
