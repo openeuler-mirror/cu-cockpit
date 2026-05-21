@@ -138,7 +138,17 @@ class SystemLogViewsTest(TestCase):
 
     def test_logs_view_script_execution_failure(self):
         """测试日志脚本执行失败的情况"""
-        pass
+        with patch('os.path.exists', return_value=True), patch('subprocess.run') as mock_subprocess:
+            mock_result = MagicMock()
+            mock_result.returncode = 1
+            mock_result.stdout = ''
+            mock_result.stderr = 'Permission denied'
+            mock_subprocess.return_value = mock_result
+            response = self.client.get('/api/logs/logs/')
+            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+            data = response.json()
+            self.assertIn('error', data)
+            self.assertIn('log.py返回非0状态码', data['error'])
 
     def test_logs_view_timeout(self):
         """测试日志脚本执行超时的情况"""
