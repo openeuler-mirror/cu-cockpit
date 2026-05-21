@@ -112,7 +112,31 @@ def set_time_hostname_api(request, script_name):
     current_dir = os.path.dirname(os.path.abspath(__file__))
     SCRIPTS_DIR = os.path.join(current_dir, 'manager-script')
     script_path = os.path.join(SCRIPTS_DIR, script_name)
-    pass
+    if script_name not in SCRIPT_REGISTRY:
+        return JsonResponse({'error': '不支持的脚本', 'script': script_name}, status=400, json_dumps_params={'ensure_ascii': False})
+    if not os.path.isfile(script_path):
+        return JsonResponse({'error': 'not found manager_script', 'script_path': script_path}, status=404)
+    try:
+        build_args = SCRIPT_REGISTRY[script_name]
+        args = build_args(script_path, request.data)
+        result = subprocess.run(args, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=30)
+        return_code = result.returncode
+        stdout = (result.stdout or '').strip()
+        stderr = (result.stderr or '').strip()
+        response_data = {'script': script_name, 'return_code': return_code, 'success_flag': return_code == 0}
+        if stdout:
+            response_data['output'] = stdout
+        if return_code == 0:
+            response_data['message'] = f'操作成功'
+            return JsonResponse(response_data, status=200, json_dumps_params={'ensure_ascii': False})
+        elif return_code != 0 or stderr:
+            response_data['message'] = f'操作失败'
+            response_data['error'] = stderr if stderr else '未知错误'
+            return JsonResponse(response_data, status=500, json_dumps_params={'ensure_ascii': False})
+    except ValueError as ve:
+        return JsonResponse({'error': '参数错误', 'message': str(ve)}, status=400, json_dumps_params={'ensure_ascii': False})
+    except Exception as e:
+        return JsonResponse({'error': '操作异常', 'message': f'配置管理发生异常: {str(e)}'}, status=500, json_dumps_params={'ensure_ascii': False})
 
 @login_required_api
 @swagger_auto_schema(method='post', operation_description='文件修改', manual_parameters=[openapi.Parameter(name='file_path', in_=openapi.IN_QUERY, description='文件名', required=True, type=openapi.TYPE_STRING, example='stdin_data.txt'), openapi.Parameter(name='dir_path', in_=openapi.IN_QUERY, description='目录路径', required=False, type=openapi.TYPE_STRING, example='configs/nginx')], request_body=openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_BINARY), responses={200: openapi.Response(description='写入成功', examples={'application/json': {'success': True, 'message': '字节数据写入成功', 'file_path': '/tmp/uploads/test.txt', 'file_size': '11 bytes'}}), 400: openapi.Response(description='参数错误'), 403: openapi.Response(description='权限不足'), 500: openapi.Response(description='写入失败')})
