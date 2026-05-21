@@ -152,11 +152,24 @@ class SystemLogViewsTest(TestCase):
 
     def test_logs_view_timeout(self):
         """测试日志脚本执行超时的情况"""
-        pass
+        import subprocess
+        with patch('os.path.exists', return_value=True), patch('subprocess.run') as mock_subprocess:
+            mock_subprocess.side_effect = subprocess.TimeoutExpired('python3', 60)
+            response = self.client.get('/api/logs/logs/')
+            self.assertEqual(response.status_code, 504)
+            data = response.json()
+            self.assertIn('error', data)
+            self.assertIn('调用 log.py 超时', data['error'])
 
     def test_logs_view_file_not_found(self):
         """测试日志脚本文件未找到的情况"""
-        pass
+        with patch('os.path.exists', return_value=True), patch('subprocess.run') as mock_subprocess:
+            mock_subprocess.side_effect = FileNotFoundError('File not found')
+            response = self.client.get('/api/logs/logs/')
+            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+            data = response.json()
+            self.assertIn('error', data)
+            self.assertIn('执行失败', data['error'])
 
     def test_logs_view_empty_output(self):
         """测试日志脚本返回空输出的情况"""
