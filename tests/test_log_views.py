@@ -54,7 +54,12 @@ class SystemLogViewsTest(TestCase):
 
     def test_boots_view_script_not_found(self):
         """测试引导脚本不存在的情况"""
-        pass
+        with patch('os.path.exists', return_value=False):
+            response = self.client.get('/api/logs/boot/')
+            self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+            data = response.json()
+            self.assertIn('error', data)
+            self.assertIn('boot_offset.py不存在', data['error'])
 
     def test_boots_view_script_execution_failure(self):
         """测试引导脚本执行失败的情况"""
