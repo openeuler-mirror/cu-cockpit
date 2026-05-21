@@ -56,7 +56,19 @@ def boots_view(request):
         return JsonResponse({'error': f'未知错误: {str(e)}'}, status=500, json_dumps_params={'ensure_ascii': False})
     if proc.returncode != 0:
         return JsonResponse({'error': 'boot.py返回非0状态码', 'stderr': (proc.stderr or '').strip(), 'cmd': cmd}, status=500, json_dumps_params={'ensure_ascii': False})
-    pass
+    out = (proc.stdout or '').strip()
+    boots = []
+    try:
+        boots = json.loads(out)
+        if not isinstance(boots, list):
+            boots = []
+    except json.JSONDecodeError:
+        if out.startswith('[') and out.endswith(']'):
+            try:
+                boots = [int(x.strip()) for x in out[1:-1].split(',') if x.strip()]
+            except Exception:
+                boots = []
+    return JsonResponse({'boots': boots, 'count': len(boots)}, status=200, json_dumps_params={'ensure_ascii': False})
 
 @swagger_auto_schema(method='get', operation_summary='查询系统日志', operation_description='根据指定条件查询系统日志，支持按时间、优先级、服务名等条件过滤', manual_parameters=[openapi.Parameter('output_format', openapi.IN_QUERY, description='日志输出形式', type=openapi.TYPE_STRING, enum=['summary', 'all_json'], example='summary'), openapi.Parameter('cursor', openapi.IN_QUERY, description='指定cursor获取元数据信息', type=openapi.TYPE_STRING, example='s=;i=;b=;m=;t=;x='), openapi.Parameter('since', openapi.IN_QUERY, description='开始时间，支持多种格式如 "2025-09-01 10:00:00" 或 "1h ago"', type=openapi.TYPE_STRING, example='2025-08-18 00:00:00'), openapi.Parameter('until', openapi.IN_QUERY, description='结束时间，如 "2025-09-01 12:00:00" 或 "now"', type=openapi.TYPE_STRING, example='2025-08-19 23:59:59'), openapi.Parameter('priority', openapi.IN_QUERY, description='日志优先级，如 "err", "info", "0..7"', type=openapi.TYPE_STRING, enum=['err', 'info', 'warning', 'debug', 'emerg', 'crit', 'notice', 'alert', '0', '1', '2', '3', '4', '5', '6', '7'], example='err'), openapi.Parameter('service', openapi.IN_QUERY, description='服务名/Unit，如 "nginx" 或 "nginx.service"', type=openapi.TYPE_STRING, example='sshd'), openapi.Parameter('identifier', openapi.IN_QUERY, description='按SYSLOG_IDENTIFIER过滤，如 sshd', type=openapi.TYPE_STRING, example='sshd'), openapi.Parameter('keyword', openapi.IN_QUERY, description='关键字/正则表达式搜索', type=openapi.TYPE_STRING, example='failed'), openapi.Parameter('limit', openapi.IN_QUERY, description='显示行数限制', type=openapi.TYPE_INTEGER, example=100), openapi.Parameter('boot', openapi.IN_QUERY, description='引导选择，"-1" 表示上一引导，"0" 表示当前引导，或指定boot ID', type=openapi.TYPE_STRING, example='0')], responses={200: openapi.Response(description='成功返回日志数据', schema=openapi.Schema(type=openapi.TYPE_OBJECT, properties={'logs': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={'date': openapi.Schema(type=openapi.TYPE_STRING, example='Sep 09'), 'time': openapi.Schema(type=openapi.TYPE_STRING, example='10:23:09'), 'hostname': openapi.Schema(type=openapi.TYPE_STRING, example='bigdata1'), 'service': openapi.Schema(type=openapi.TYPE_STRING, example='PackageKit'), 'pid': openapi.Schema(type=openapi.TYPE_INTEGER, example=2177658), 'message': openapi.Schema(type=openapi.TYPE_STRING, example='message content'), 'raw': openapi.Schema(type=openapi.TYPE_STRING, example='raw log line')})), 'count': openapi.Schema(type=openapi.TYPE_INTEGER, example=10)})), 500: openapi.Response(description='服务器错误', schema=openapi.Schema(type=openapi.TYPE_OBJECT, properties={'error': openapi.Schema(type=openapi.TYPE_STRING, example='服务内部异常'), 'returncode': openapi.Schema(type=openapi.TYPE_INTEGER, example=1), 'stderr': openapi.Schema(type=openapi.TYPE_STRING, example='error message'), 'cmd': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_STRING))})), 504: openapi.Response(description='请求超时', schema=openapi.Schema(type=openapi.TYPE_OBJECT, properties={'error': openapi.Schema(type=openapi.TYPE_STRING, example='调用log.py超时(60s)')}))}, tags=['systemd logs'])
 @login_required_api
