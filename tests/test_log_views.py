@@ -63,11 +63,28 @@ class SystemLogViewsTest(TestCase):
 
     def test_boots_view_script_execution_failure(self):
         """测试引导脚本执行失败的情况"""
-        pass
+        with patch('os.path.exists', return_value=True), patch('subprocess.run') as mock_subprocess:
+            mock_result = MagicMock()
+            mock_result.returncode = 1
+            mock_result.stdout = ''
+            mock_result.stderr = 'Permission denied'
+            mock_subprocess.return_value = mock_result
+            response = self.client.get('/api/logs/boot/')
+            self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+            data = response.json()
+            self.assertIn('error', data)
+            self.assertIn('boot.py返回非0状态码', data['error'])
 
     def test_boots_view_timeout(self):
         """测试引导脚本执行超时的情况"""
-        pass
+        import subprocess
+        with patch('os.path.exists', return_value=True), patch('subprocess.run') as mock_subprocess:
+            mock_subprocess.side_effect = subprocess.TimeoutExpired('python3', 20)
+            response = self.client.get('/api/logs/boot/')
+            self.assertEqual(response.status_code, 504)
+            data = response.json()
+            self.assertIn('error', data)
+            self.assertIn('调用boot.py超时', data['error'])
 
     def test_boots_view_file_not_found(self):
         """测试引导脚本文件未找到的情况"""
