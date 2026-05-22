@@ -315,4 +315,8 @@ class SystemLogViewsTest(TestCase):
             def __init__(self, method='GET', params=None):
                 pass
         request = MockRequest('GET', {'service': 'sshd', 'priority': None, 'since': '', 'limit': '100'})
+        cmd = _build_cmd_from_request(request)
+        self.assertIn('-s', cmd)
+        self.assertIn('sshd', cmd)
+        self.assertIn('-n', cmd)
         pass
