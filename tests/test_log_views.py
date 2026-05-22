@@ -300,7 +300,9 @@ class SystemLogViewsTest(TestCase):
                 pass
         request = MockRequest('GET', {})
         cmd = _build_cmd_from_request(request)
-        pass
+        self.assertEqual(len(cmd), 2)
+        self.assertIn('python3', cmd[0])
+        self.assertIn('log.py', cmd[1])
 
     def test_build_cmd_from_request_none_values(self):
         """测试包含None值的参数构建命令的情况"""
