@@ -278,7 +278,9 @@ class SystemLogViewsTest(TestCase):
         class MockRequest:
 
             def __init__(self, method='POST', params=None):
-                pass
+                self.method = method
+                self.GET = {}
+                self.POST = params or {}
         request = MockRequest('POST', {'service': 'nginx', 'priority': 'info'})
         cmd = _build_cmd_from_request(request)
         self.assertIn('python3', cmd[0])
@@ -290,6 +292,14 @@ class SystemLogViewsTest(TestCase):
 
     def test_build_cmd_from_request_empty_params(self):
         """测试空参数构建命令的情况"""
+        from osmanager.system_log.views import _build_cmd_from_request
+
+        class MockRequest:
+
+            def __init__(self, method='GET', params=None):
+                pass
+        request = MockRequest('GET', {})
+        cmd = _build_cmd_from_request(request)
         pass
 
     def test_build_cmd_from_request_none_values(self):
