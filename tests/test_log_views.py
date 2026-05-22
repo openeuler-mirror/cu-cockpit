@@ -297,7 +297,9 @@ class SystemLogViewsTest(TestCase):
         class MockRequest:
 
             def __init__(self, method='GET', params=None):
-                pass
+                self.method = method
+                self.GET = params or {}
+                self.POST = {}
         request = MockRequest('GET', {})
         cmd = _build_cmd_from_request(request)
         self.assertEqual(len(cmd), 2)
@@ -306,4 +308,11 @@ class SystemLogViewsTest(TestCase):
 
     def test_build_cmd_from_request_none_values(self):
         """测试包含None值的参数构建命令的情况"""
+        from osmanager.system_log.views import _build_cmd_from_request
+
+        class MockRequest:
+
+            def __init__(self, method='GET', params=None):
+                pass
+        request = MockRequest('GET', {'service': 'sshd', 'priority': None, 'since': '', 'limit': '100'})
         pass
