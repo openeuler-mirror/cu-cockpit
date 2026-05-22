@@ -280,7 +280,13 @@ class SystemLogViewsTest(TestCase):
             def __init__(self, method='POST', params=None):
                 pass
         request = MockRequest('POST', {'service': 'nginx', 'priority': 'info'})
-        pass
+        cmd = _build_cmd_from_request(request)
+        self.assertIn('python3', cmd[0])
+        self.assertIn('log.py', cmd[1])
+        self.assertIn('-s', cmd)
+        self.assertIn('nginx', cmd)
+        self.assertIn('-p', cmd)
+        self.assertIn('info', cmd)
 
     def test_build_cmd_from_request_empty_params(self):
         """测试空参数构建命令的情况"""
