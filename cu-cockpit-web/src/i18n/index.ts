@@ -14,3 +14,19 @@ import { useThemeConfig } from '/@/stores/themeConfig';
  */
 
 // element plus 自带国际化
+import enLocale from 'element-plus/es/locale/lang/en';
+import zhcnLocale from 'element-plus/es/locale/lang/zh-cn';
+import zhtwLocale from 'element-plus/es/locale/lang/zh-tw';
+
+// 定义变量内容
+const messages = {};
+const element = { en: enLocale, 'zh-cn': zhcnLocale, 'zh-tw': zhtwLocale };
+const itemize = { en: [], 'zh-cn': [], 'zh-tw': [] };
+const modules: Record<string, any> = import.meta.glob('./**/*.ts', { eager: true });
+
+// 对自动引入的 modules 进行分类 en、zh-cn、zh-tw
+for (const path in modules) {
+	const key = path.match(/(\S+)\/(\S+).ts/);
+	if (itemize[key![2]]) itemize[key![2]].push(modules[path].default);
+	else itemize[key![2]] = modules[path];
+}
