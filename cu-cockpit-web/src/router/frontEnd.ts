@@ -32,3 +32,28 @@ export async function initFrontEndControlRoutes() {
 	// 设置递归过滤有权限的路由到 pinia routesList 中（已处理成多级嵌套路由）及缓存多级嵌套数组处理后的一维数组
 	await setFilterMenuAndCacheTagsViewRoutes();
 }
+
+/**
+ * 添加动态路由
+ * @method router.addRoute
+ * @description 此处循环为 dynamicRoutes（/@/router/route）第一个顶级 children 的路由一维数组，非多级嵌套
+ * @link 参考
+ */
+export async function setAddRoute() {
+	await setFilterRouteEnd().forEach((route: RouteRecordRaw) => {
+		router.addRoute(route);
+	});
+}
+
+/**
+ * 删除/重置路由
+ * @method router.removeRoute
+ * @description 此处循环为 dynamicRoutes（/@/router/route）第一个顶级 children 的路由一维数组，非多级嵌套
+ * @link 参考
+ */
+export async function frontEndsResetRoute() {
+	await setFilterRouteEnd().forEach((route: RouteRecordRaw) => {
+		const routeName: any = route.name;
+		router.hasRoute(routeName) && router.removeRoute(routeName);
+	});
+}
