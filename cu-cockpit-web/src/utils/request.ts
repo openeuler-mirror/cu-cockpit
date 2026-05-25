@@ -16,3 +16,18 @@ const service: AxiosInstance = axios.create({
 });
 
 // 添加请求拦截器
+service.interceptors.request.use(
+	(config: InternalAxiosRequestConfig) => {
+		// 在发送请求之前做些什么 token
+		// if (Session.get('token')) {
+		// 	config.headers!['Authorization'] = `${Session.get('token')}`;
+		// }
+		return config;
+	},
+	(error) => {
+		// 对请求错误做些什么
+		return Promise.reject(error);
+	}
+);
+
+// 添加响应拦截器
