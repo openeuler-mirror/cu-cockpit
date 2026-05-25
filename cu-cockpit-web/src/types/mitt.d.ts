@@ -12,3 +12,28 @@
  * @method onTagsViewRefreshRouterView tagsview 刷新界面
  * @method onCurrentContextmenuClick tagsview 右键菜单每项点击时
  */
+declare type MittType<T = any> = {
+	openSetingsDrawer?: string;
+	restoreDefault?: string;
+	setSendColumnsChildren: T;
+	setSendClassicChildren: T;
+	getBreadcrumbIndexSetFilterRoutes?: string;
+	layoutMobileResize: T;
+	openOrCloseSortable?: string;
+	openShareTagsView?: string;
+	onTagsViewRefreshRouterView?: T;
+	onCurrentContextmenuClick?: T;
+	// 2025-0903
+	openPermissions?:string
+};
+// mitt 参数类型定义
+declare type LayoutMobileResize = {
+	layout: string;
+	clientWidth: number;
+};
+
+// mitt 参数菜单类型
+declare type MittMenu = {
+	children: RouteRecordRaw[];
+	item?: RouteItem;
+};
