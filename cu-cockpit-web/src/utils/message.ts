@@ -9,3 +9,16 @@ export function successMessage(message: string, option?: MessageOptions) {
 export function warningMessage(message: string, option?: MessageOptions) {
 	ElMessage({ message, ...option, type: 'warning' });
 }
+export function errorMessage(message: string, option?: MessageOptions) {
+	ElMessage({ message, ...option, type: 'error' });
+}
+export function infoMessage(message: string, option?: MessageOptions) {
+	ElMessage({ message, ...option, type: 'info' });
+}
+
+export function notification(message: string) {
+	ElNotification({ message });
+}
+export function successNotification(message: string) {
+	ElNotification({ message, type: 'success' });
+}
