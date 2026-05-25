@@ -30,3 +30,21 @@ for (const path in modules) {
 	if (itemize[key![2]]) itemize[key![2]].push(modules[path].default);
 	else itemize[key![2]] = modules[path];
 }
+
+// 合并数组对象（非标准数组对象，数组中对象的每项 key、value 都不同）
+function mergeArrObj<T>(list: T, key: string) {
+	let obj = {};
+	list[key].forEach((i: EmptyObjectType) => {
+		obj = Object.assign({}, obj, i);
+	});
+	return obj;
+}
+
+// 处理最终格式
+for (const key in itemize) {
+	messages[key] = {
+		name: key,
+		el: element[key].el,
+		message: mergeArrObj(itemize, key),
+	};
+}
