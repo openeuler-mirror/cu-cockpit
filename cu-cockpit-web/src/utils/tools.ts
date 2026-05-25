@@ -14,3 +14,22 @@ export function parse(jsonString = '{}', defaultValue = {}) {
 	}
 	return result;
 }
+
+/**
+ * @description 接口请求返回
+ * @param {Any} data 返回值
+ * @param {String} msg 状态信息
+ * @param {Number} code 状态码
+ */
+export function response(data = {}, msg = '', code = 0) {
+	return [200, { code, msg, data }];
+}
+
+/**
+ * @description 接口请求返回 正确返回
+ * @param {Any} data 返回值
+ * @param {String} msg 状态信息
+ */
+export function responseSuccess(data = {}, msg = '成功') {
+	return response(data, msg);
+}
