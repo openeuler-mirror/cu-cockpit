@@ -57,3 +57,21 @@ export async function initBackEndControlRoutes() {
 	// 设置路由到 vuex routesList 中（已处理成多级嵌套路由）及缓存多级嵌套数组处理后的一维数组
 	await setFilterMenuAndCacheTagsViewRoutes();
 }
+
+export async function setRouters(){
+	const {frameInRoutes,frameOutRoutes} = await useFrontendMenuStore().getRouter()
+	const frameInRouter = toRaw(frameInRoutes)
+	const frameOutRouter = toRaw(frameOutRoutes)
+	dynamicRoutes[0].children = frameInRouter
+	dynamicRoutes.forEach((item:any)=>{
+		router.addRoute(item)
+	})
+	frameOutRouter.forEach((item:any)=>{
+		router.addRoute(item)
+	})
+	const storesRoutesList = useRoutesList(pinia);
+	storesRoutesList.setRoutesList([...dynamicRoutes[0].children,...frameOutRouter]);
+	const storesTagsView = useTagsViewRoutes(pinia);
+	storesTagsView.setTagsViewRoutes([...dynamicRoutes[0].children,...frameOutRouter])
+
+}
