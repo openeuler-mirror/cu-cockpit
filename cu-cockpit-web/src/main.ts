@@ -21,3 +21,25 @@ import 'e-icon-picker/icon/default-icon/symbol.js'; //基本彩色图标库
 import 'e-icon-picker/index.css'; // 基本样式，包含基本图标
 import 'font-awesome/css/font-awesome.min.css';
 import elementPlus from 'e-icon-picker/icon/ele/element-plus.js'; //element-plus的图标
+import fontAwesome470 from 'e-icon-picker/icon/fontawesome/font-awesome.v4.7.0.js'; //fontAwesome470的图标
+import eIconList from 'e-icon-picker/icon/default-icon/eIconList.js';
+import iconfont from '/@/assets/iconfont/iconfont.json'; //引入json文件
+import '/@/assets/iconfont/iconfont.css'; //引入css
+import '/@/assets/iconfont/iconfont-01/iconfont.css'; //引入css
+import '/@/assets/iconfont/iconfont-02/iconfont.css'; //引入css
+import '/@/assets/iconfont/iconfont-03/iconfont.css'; //引入css
+
+// 自动注册插件
+import { scanAndInstallPlugins } from '/@/views/plugins/index';
+import VXETable from 'vxe-table'
+import 'vxe-table/lib/style.css'
+
+import '/@/assets/style/reset.scss';
+import 'element-tree-line/dist/style.css'
+
+let forIconfont = analyzingIconForIconfont(iconfont); //解析class
+iconList.addIcon(forIconfont.list); // 添加iconfont 
+iconList.addIcon(elementPlus); // 添加element plus的图标
+iconList.addIcon(fontAwesome470); // 添加fontAwesome 470版本的图标
+
+let app = createApp(App);
