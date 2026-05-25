@@ -43,3 +43,27 @@ iconList.addIcon(elementPlus); // 添加element plus的图标
 iconList.addIcon(fontAwesome470); // 添加fontAwesome 470版本的图标
 
 let app = createApp(App);
+
+scanAndInstallPlugins(app);
+
+app.use(eIconPicker, {
+	addIconList: eIconList, //全局添加图标
+	removeIconList: [], //全局删除图标
+	zIndex: 3100, //选择器弹层的最低层,全局配置
+});
+
+pinia.use(piniaPersist);
+directive(app);
+other.elSvg(app);
+
+
+app.use(VXETable)
+app.use(pinia)
+	.use(router)
+	.use(ElementPlus, { i18n: i18n.global.t })
+	.use(i18n)
+	.use(VueGridLayout)
+	.use(fastCrud)
+	.mount('#app');
+
+app.config.globalProperties.mittBus = mitt();
