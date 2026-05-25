@@ -24,3 +24,14 @@ export interface UserInfosState {
 export interface UserInfosStates {
 	userInfos: UserInfosState;
 }
+
+// 路由缓存列表
+export interface KeepAliveNamesState {
+	keepAliveNames: string[];
+	cachedViews: string[];
+}
+
+// 后端返回原始路由(未处理时)
+export interface RequestOldRoutesState {
+	requestOldRoutes: string[];
+}
