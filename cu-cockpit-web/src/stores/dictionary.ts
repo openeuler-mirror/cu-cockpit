@@ -14,3 +14,16 @@ export const BUTTON_VALUE_TO_COLOR_MAPPING: any = {
 	Retrieve: 'info', // 单例
 	Delete: 'danger', // 删除
 };
+
+export function getButtonSettings(objectSettings: any) {
+	return objectSettings.map((item: any) => ({
+		label: item.label,
+		value: item.value,
+		color: item.color || BUTTON_VALUE_TO_COLOR_MAPPING[item.value],
+	}));
+}
+
+/**
+ * 字典管理数据
+ * @methods getSystemDictionarys 获取系统字典数据
+ */
