@@ -9,3 +9,13 @@ export interface CrudFieldOption {
 	search?: boolean;
 	width?: number;
 }
+
+/** 2. 总配置接口 */
+export interface CrudOptions {
+	create_datetime?: CrudFieldOption;
+	update_datetime?: CrudFieldOption;
+	creator_name?: CrudFieldOption;
+	modifier_name?: CrudFieldOption;
+	dept_belong_id?: CrudFieldOption;
+	description?: CrudFieldOption;
+}
