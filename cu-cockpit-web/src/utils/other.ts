@@ -25,3 +25,23 @@ export function elSvg(app: App) {
 	}
 	app.component('SvgIcon', SvgIcon);
 }
+
+/**
+ * 设置浏览器标题国际化
+ * @method const title = useTitle(); ==> title()
+ */
+export function useTitle() {
+	const stores = SystemConfigStore(pinia);
+	const { systemConfig }: { systemConfig: any} = storeToRefs(stores);
+	nextTick(() => {
+		let webTitle = '';
+		let globalTitle: string = systemConfig['base.web_title'];
+		const { path, meta } = router.currentRoute.value;
+		if (path === '/login') {
+			webTitle = <string>meta.title;
+		} else {
+			webTitle = setTagsViewNameI18n(router.currentRoute.value);
+		}
+		document.title = `${webTitle}`;
+	});
+}
