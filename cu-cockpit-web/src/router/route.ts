@@ -21,3 +21,158 @@ import { RouteRecordRaw } from 'vue-router';
  * @description 各字段请查看 `/@/views/system/menu/component/addMenu.vue 下的 ruleForm`
  * @returns 返回路由菜单数据
  */
+export const dynamicRoutes: Array<RouteRecordRaw> = [
+	{
+		path: '/',
+		name: '/',
+		component: () => import('/@/layout/index.vue'),
+		redirect: '/overview',
+		meta: {
+			isKeepAlive: false,
+		},
+		children: [
+      {
+        path: '/overview',
+        component: () => import('/@/views/overview/indexPage.vue'),
+        name: 'overview',
+        meta: {
+          title: 'message.router.overview',
+          isLink: '',
+          isHide: false,
+          isKeepAlive: false,
+          isAffix: true,
+          isIframe: false,
+          icon: 'iconfont icon-caidan',
+        }
+      },
+      {
+        path: '/storage',
+        component: () => import('/@/views/storage/indexPage.vue'),
+        name: 'storage',
+        meta: {
+          title: 'message.router.storage',
+          isLink: '',
+          isHide: false,
+          isKeepAlive: false,
+          isAffix: false,
+          isIframe: false,
+          icon: 'iconfont icon-cunchu',
+        }
+      },
+      {
+        path: '/storage/detail/:name',
+        component: () => import('/@/views/storage/detailPage.vue'),
+        name: 'storageDetail',
+        meta: {
+          title: 'message.router.storageDetail',
+          isLink: '',
+          isHide: true,
+          isKeepAlive: false,
+          isAffix: false,
+          isIframe: false,
+          icon: 'iconfont icon-cunchu',
+        },
+        props: true
+      },
+      {
+        path: '/services',
+        component: () => import('/@/views/services/indexPage.vue'),
+        name: 'services',
+        meta: {
+          title: 'message.router.services',
+          isLink: '',
+          isHide: false,
+          isKeepAlive: false,
+          isAffix: false,
+          isIframe: false,
+          icon: 'iconfont icon-fuwuqi',
+        }
+      },
+      {
+        path: '/hardware',
+        component: () => import('/@/views/hardware/indexPage.vue'),
+        name: 'hardware',
+        meta: {
+          title: 'message.router.hardware',
+          isLink: '',
+          isHide: false,
+          isKeepAlive: false,
+          isAffix: false,
+          isIframe: false,
+          icon: 'iconfont icon-yingjianxinxi',
+        }
+      },
+      {
+        path: '/indicator',
+        component: () => import('/@/views/indicator/indexPage.vue'),
+        name: 'indicator',
+        meta: {
+          title: 'message.router.indicator',
+          isLink: '',
+          isHide: false,
+          isKeepAlive: false,
+          isAffix: false,
+          isIframe: false,
+          icon: 'iconfont icon-ico_shuju',
+        }
+      },
+      {
+        path: '/config',
+        component: () => import('/@/views/config/indexPage.vue'),
+        name: 'config',
+        meta: {
+          title: 'message.router.configHost',
+          isLink: '',
+          isHide: false,
+          isKeepAlive: false,
+          isAffix: false,
+          isIframe: false,
+          icon: 'iconfont icon-xitongshezhi',
+        }
+      },
+      {
+        path: '/log',
+        component: () => import('/@/views/log/indexPage.vue'),
+        name: 'logs',
+        meta: {
+          title: 'message.router.logs',
+          isLink: '',
+          isHide: false,
+          isKeepAlive: true,
+          isAffix: false,
+          isIframe: false,
+          icon: 'fa fa-file-text-o',
+        }
+      },
+      {
+        path: '/log/detail/',
+        component: () => import('/@/views/log/detailPage.vue'),
+        name: 'logsDetail',
+        meta: {
+          title: 'message.router.logsDetail',
+          isLink: '',
+          isHide: true,
+          isKeepAlive: false,
+          isAffix: false,
+          isIframe: false,
+          icon: 'fa fa-file-text-o',
+        },
+        props: true
+      },
+      {
+        path: '/terminal',
+        component: () => import('/@/views/terminal/indexPage.vue'),
+        name: 'terminal',
+        meta: {
+          title: 'message.router.terminal',
+          isLink: '',
+          isHide: false,
+          isKeepAlive: true,
+          isAffix: false,
+          isIframe: false,
+          icon: 'iconfont icon-diannao2',
+        }
+      },
+    ],
+	}
+];
