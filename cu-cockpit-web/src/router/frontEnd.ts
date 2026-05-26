@@ -57,3 +57,16 @@ export async function frontEndsResetRoute() {
 		router.hasRoute(routeName) && router.removeRoute(routeName);
 	});
 }
+
+/**
+ * 获取有当前用户权限标识的路由数组，进行对原路由的替换
+ * @description 替换 dynamicRoutes（/@/router/route）第一个顶级 children 的路由
+ * @returns 返回替换后的路由数组
+ */
+export function setFilterRouteEnd() {
+	let filterRouteEnd: any = formatTwoStageRoutes(formatFlatteningRoutes(dynamicRoutes));
+	// notFoundAndNoPower 防止 404、401 不在 layout 布局中，不设置的话，404、401 界面将全屏显示
+	// 关联问题 No match found for location with path 'xxx'
+	filterRouteEnd[0].children = [...setFilterRoute(filterRouteEnd[0].children), ...notFoundAndNoPower];
+	return filterRouteEnd;
+}
