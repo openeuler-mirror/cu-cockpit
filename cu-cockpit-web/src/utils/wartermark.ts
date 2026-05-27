@@ -24,3 +24,24 @@ const setWatermark = (str: string) => {
 	document.body.appendChild(div);
 	return id;
 };
+
+/**
+ * 页面添加水印效果
+ * @method set 设置水印
+ * @method del 删除水印
+ */
+const watermark = {
+	// 设置水印
+	set: (str: string) => {
+		let id = setWatermark(str);
+		if (document.getElementById(id) === null) id = setWatermark(str);
+	},
+	// 删除水印
+	del: () => {
+		let id = '1.23452384164.123412416';
+		if (document.getElementById(id) !== null) document.body.removeChild(<HTMLElement>document.getElementById(id));
+	},
+};
+
+// 导出方法
+export default watermark;
