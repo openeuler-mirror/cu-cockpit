@@ -33,3 +33,13 @@ export function response(data = {}, msg = '', code = 0) {
 export function responseSuccess(data = {}, msg = '成功') {
 	return response(data, msg);
 }
+
+/**
+ * @description 接口请求返回 错误返回
+ * @param {Any} data 返回值
+ * @param {String} msg 状态信息
+ * @param {Number} code 状态码
+ */
+export function responseError(data = {}, msg = '请求失败', code = 500) {
+	return response(data, msg, code);
+}
