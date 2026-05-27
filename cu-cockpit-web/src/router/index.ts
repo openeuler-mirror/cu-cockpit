@@ -69,3 +69,43 @@ export function formatFlatteningRoutes(arr: any) {
  * @param arr 处理后的一维路由菜单数组
  * @returns 返回将一维数组重新处理成 `定义动态路由（dynamicRoutes）` 的格式
  */
+export function formatTwoStageRoutes(arr: any) {
+    if (arr.length <= 0) return false;
+    const newArr: any = [];
+    const cacheList: Array<string> = [];
+    arr.forEach((v: any) => {
+        if (v.path === '/') {
+            newArr.push({component: v.component,name: v.name,path: v.path,redirect: v.redirect,meta: v.meta,children: []});
+        } else {
+            // 判断是否是动态路由（xx/:id/:name），用于 tagsView 等中使用
+            if (v.path.indexOf('/:') > -1) {
+                v.meta['isDynamic'] = true;
+                v.meta['isDynamicPath'] = v.path;
+            }
+            newArr[0].children.push({...v});
+            // 存 name 值，keep-alive 中 include 使用，实现路由的缓存
+            // 路径：/@/layout/routerView/parent.vue
+            if (newArr[0].meta.isKeepAlive && v.meta.isKeepAlive && v.component_name != "") {
+                cacheList.push(v.name);
+                const stores = useKeepALiveNames(pinia);
+                stores.setCacheKeepAlive(cacheList);
+            }
+        }
+    });
+    return newArr;
+}
+
+const frameOutRoutes = staticRoutes.map(item => item.path)
+
+const checkToken = ()=>{
+    const urlParams = new URLSearchParams(window.location.search);
+    const _oauth2_token = urlParams.get('_oauth2_token');
+    if (_oauth2_token) {
+        Session.set('token', _oauth2_token);
+        const cleanUrl = window.location.href.split('?')[0];
+        window.history.replaceState({}, '', cleanUrl);
+        useUserInfo(pinia).setUserInfos();
+
+    }
+}
+// 路由加载前
