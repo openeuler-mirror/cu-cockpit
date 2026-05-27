@@ -17,3 +17,20 @@ export interface Task {
 	createTime: Date;
 	custom?: any;
 }
+
+export interface Core {
+	bus: Emitter<BusEvents>;
+	// eslint-disable-next-line no-unused-vars
+	showNotification(body: string, title?: string): Notification | undefined;
+	taskList: Map<String, Task>;
+}
+
+const bus = mitt<BusEvents>();
+export function getSystemNotification(body: string, title?: string) {
+	if (!title) {
+		title = '通知';
+	}
+	return new Notification(title ?? '通知', {
+		body: body,
+	});
+}
