@@ -70,3 +70,26 @@ export function setFilterRouteEnd() {
 	filterRouteEnd[0].children = [...setFilterRoute(filterRouteEnd[0].children), ...notFoundAndNoPower];
 	return filterRouteEnd;
 }
+
+/**
+ * 获取当前用户权限标识去比对路由表（未处理成多级嵌套路由）
+ * @description 这里主要用于动态路由的添加，router.addRoute
+ * @link 参考
+ * @param chil dynamicRoutes（/@/router/route）第一个顶级 children 的下路由集合
+ * @returns 返回有当前用户权限标识的路由数组
+ */
+export function setFilterRoute(chil: any) {
+	const stores = useUserInfo(pinia);
+	const { userInfos } = storeToRefs(stores);
+	let filterRoute: any = [];
+	chil.forEach((route: any) => {
+		if (route.meta.roles) {
+			route.meta.roles.forEach((metaRoles: any) => {
+				userInfos.value.roles.forEach((roles: any) => {
+					if (metaRoles === roles) filterRoute.push({ ...route });
+				});
+			});
+		}
+	});
+	return filterRoute;
+}
