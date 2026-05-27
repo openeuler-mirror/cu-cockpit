@@ -121,3 +121,4 @@ const websocket: socket = {
         websocket.init(null)
     },
 }
+export default websocket;
