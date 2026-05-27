@@ -48,3 +48,11 @@ export async function checkVersion() {
 		}
 	});
 }
+
+export function generateVersionFile() {
+	// 生成版本文件到public目录下version文件中
+	const package_version = META_ENV?.npm_package_version ?? process.env?.npm_package_version;
+
+	const version = `${package_version}.${new Date().getTime()}`;
+	fs.writeFileSync(`public/${VERSION_FILE_NAME}`, version);
+}
