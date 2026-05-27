@@ -55,3 +55,37 @@ declare type Demo2State<T = any> = {
 /**
  * views params
  */
+declare type ParamsState = {
+	value: string;
+	tagsViewName: string;
+	tagsViewNameIsI18n: boolean;
+};
+
+/**
+ * views system
+ */
+// role
+declare interface RowRoleType {
+	roleName: string;
+	roleSign: string;
+	describe: string;
+	sort: number;
+	status: boolean;
+	createTime: string;
+}
+
+interface SysRoleTableType extends TableType {
+	data: RowRoleType[];
+}
+
+declare interface SysRoleState {
+	tableData: SysRoleTableType;
+}
+
+declare type TreeType = {
+	id: number;
+	label: string;
+	children?: TreeType[];
+};
+
+// user
