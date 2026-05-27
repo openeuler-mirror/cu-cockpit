@@ -28,3 +28,22 @@ export function setJsCdn() {
 		document.body.appendChild(link);
 	});
 }
+
+/**
+ * 批量设置字体图标、动态js
+ * @method cssCdn 动态批量设置字体图标
+ * @method jsCdn 动态批量设置第三方js
+ */
+const setIntroduction = {
+	// 设置css
+	cssCdn: () => {
+		setCssCdn();
+	},
+	// 设置js
+	jsCdn: () => {
+		setJsCdn();
+	},
+};
+
+// 导出函数方法
+export default setIntroduction;
