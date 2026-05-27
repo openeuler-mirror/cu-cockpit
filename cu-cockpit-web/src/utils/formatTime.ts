@@ -50,3 +50,9 @@ export function formatDate(date: Date, format: string): string {
 	}
 	return format;
 }
+
+/**
+ * 获取当前日期是第几周
+ * @param dateTime 当前传入的日期值
+ * @returns 返回第几周数字值
+ */
