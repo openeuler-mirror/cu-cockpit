@@ -52,3 +52,20 @@ export const router = createRouter({
  * @param arr 传入路由菜单数据数组
  * @returns 返回处理后的一维路由菜单数组
  */
+export function formatFlatteningRoutes(arr: any) {
+    if (arr.length <= 0) return false;
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i].children) {
+            arr = arr.slice(0, i + 1).concat(arr[i].children, arr.slice(i + 1));
+        }
+    }
+    return arr;
+}
+
+/**
+ * 一维数组处理成多级嵌套数组（只保留二级：也就是二级以上全部处理成只有二级，keep-alive 支持二级缓存）
+ * @description isKeepAlive 处理 `name` 值，进行缓存。顶级关闭，全部不缓存
+ * @link 参考
+ * @param arr 处理后的一维路由菜单数组
+ * @returns 返回将一维数组重新处理成 `定义动态路由（dynamicRoutes）` 的格式
+ */
