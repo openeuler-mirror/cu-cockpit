@@ -45,3 +45,28 @@ export function useTitle() {
 		document.title = `${webTitle}`;
 	});
 }
+
+/***
+ * 设置网站favicon图标
+ */
+export function useFavicon() {
+	const stores = SystemConfigStore(pinia);
+	const { systemConfig } = storeToRefs(stores);
+	nextTick(() => {
+		const iconUrl = systemConfig.value['base.web_favicon']
+		if(iconUrl){
+			// 动态设置 favicon，这里假设 favicon 的 URL 是动态获取的或从变量中来
+			const faviconUrl = `${iconUrl}?t=${new Date().getTime()}`;
+			const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+			if (!link) {
+				const newLink = document.createElement('link') as HTMLLinkElement;
+				newLink.rel = 'shortcut icon';
+				newLink.href = faviconUrl;
+				document.head.appendChild(newLink);
+			} else {
+				link.href = faviconUrl;
+			}
+		}
+
+	});
+}
