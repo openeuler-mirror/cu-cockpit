@@ -56,3 +56,30 @@ export function formatDate(date: Date, format: string): string {
  * @param dateTime 当前传入的日期值
  * @returns 返回第几周数字值
  */
+export function getWeek(dateTime: Date): number {
+	let temptTime = new Date(dateTime.getTime());
+	// 周几
+	let weekday = temptTime.getDay() || 7;
+	// 周1+5天=周六
+	temptTime.setDate(temptTime.getDate() - weekday + 1 + 5);
+	let firstDay = new Date(temptTime.getFullYear(), 0, 1);
+	let dayOfWeek = firstDay.getDay();
+	let spendDay = 1;
+	if (dayOfWeek != 0) spendDay = 7 - dayOfWeek + 1;
+	firstDay = new Date(temptTime.getFullYear(), 0, 1 + spendDay);
+	let d = Math.ceil((temptTime.valueOf() - firstDay.valueOf()) / 86400000);
+	let result = Math.ceil(d / 7);
+	return result;
+}
+
+/**
+ * 将时间转换为 `几秒前`、`几分钟前`、`几小时前`、`几天前`
+ * @param param 当前时间，new Date() 格式或者字符串时间格式
+ * @param format 需要转换的时间格式字符串
+ * @description param 10秒：  10 * 1000
+ * @description param 1分：   60 * 1000
+ * @description param 1小时： 60 * 60 * 1000
+ * @description param 24小时：60 * 60 * 24 * 1000
+ * @description param 3天：   60 * 60* 24 * 1000 * 3
+ * @returns 返回拼接后的时间字符串
+ */
