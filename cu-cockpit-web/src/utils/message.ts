@@ -22,3 +22,12 @@ export function notification(message: string) {
 export function successNotification(message: string) {
 	ElNotification({ message, type: 'success' });
 }
+export function warningNotification(message: string) {
+	ElNotification({ message, type: 'warning' });
+}
+export function errorNotification(message: string) {
+	ElNotification({ message, type: 'error' });
+}
+export function infoNotification(message: string) {
+	ElNotification({ message, type: 'info' });
+}
