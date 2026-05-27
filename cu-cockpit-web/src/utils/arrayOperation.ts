@@ -41,3 +41,25 @@ export function isObjectValueEqual<T>(a: T, b: T): boolean {
 	}
 	return true;
 }
+
+/**
+ * 数组、数组对象去重
+ * @param arr 数组内容
+ * @param attr 需要去重的键值（数组对象）
+ * @returns
+ */
+export function removeDuplicate(arr: EmptyArrayType, attr?: string) {
+	if (!Object.keys(arr).length) {
+		return arr;
+	} else {
+		if (attr) {
+			const obj: EmptyObjectType = {};
+			return arr.reduce((cur: EmptyArrayType[], item: EmptyArrayType) => {
+				obj[item[attr]] ? '' : (obj[item[attr]] = true && item[attr] && cur.push(item));
+				return cur;
+			}, []);
+		} else {
+			return [...new Set(arr)];
+		}
+	}
+}
