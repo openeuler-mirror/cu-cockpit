@@ -70,3 +70,27 @@ export function useFavicon() {
 
 	});
 }
+
+/**
+ * 设置 自定义 tagsView 名称、 自定义 tagsView 名称国际化
+ * @param params 路由 query、params 中的 tagsViewName
+ * @returns 返回当前 tagsViewName 名称
+ */
+export function setTagsViewNameI18n(item: any) {
+	let tagsViewName: string = '';
+	const { query, params, meta } = item;
+	if (query?.tagsViewName || params?.tagsViewName) {
+		if (/\/zh-cn|en|zh-tw\//.test(query?.tagsViewName) || /\/zh-cn|en|zh-tw\//.test(params?.tagsViewName)) {
+			// 国际化
+			const urlTagsParams = (query?.tagsViewName && JSON.parse(query?.tagsViewName)) || (params?.tagsViewName && JSON.parse(params?.tagsViewName));
+			tagsViewName = urlTagsParams[i18n.global.locale.value];
+		} else {
+			// 非国际化
+			tagsViewName = query?.tagsViewName || params?.tagsViewName;
+		}
+	} else {
+		// 非自定义 tagsView 名称
+		tagsViewName = i18n.global.t(meta.title);
+	}
+	return tagsViewName;
+}
