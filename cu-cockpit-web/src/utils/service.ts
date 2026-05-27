@@ -165,3 +165,8 @@ function createService() {
 	);
 	return service;
 }
+
+/**
+ * @description 创建请求方法
+ * @param {Object} service axios 实例
+ */
