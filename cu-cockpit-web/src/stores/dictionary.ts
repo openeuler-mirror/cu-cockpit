@@ -27,3 +27,38 @@ export function getButtonSettings(objectSettings: any) {
  * 字典管理数据
  * @methods getSystemDictionarys 获取系统字典数据
  */
+export const DictionaryStore = defineStore('Dictionary', {
+	state: (): DictionaryStates => ({
+		data: {},
+	}),
+	actions: {
+		async getSystemDictionarys() {
+			request({
+				url: '/api/init/dictionary/?dictionary_key=all',
+				method: 'get',
+			}).then((ret: { data: [] }) => {
+				// 转换数据格式并保存到pinia
+				let dataList = ret.data;
+				dataList.forEach((item: any) => {
+					let childrens = item.children;
+					// console.log(item);
+					// this.data[item.value] = childrens;
+					childrens.forEach((children:any, index:any) => {
+						switch (children.type) {
+							case 1:
+								children.value = Number(children.value)
+								break
+							case 6:
+								children.value = children.value === 'true'
+								break
+						}
+					})
+				this.data[item.value]=childrens
+				});
+			});
+		},
+	},
+	persist: {
+		enabled: true,
+	},
+});
