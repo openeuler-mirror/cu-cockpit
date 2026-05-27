@@ -48,3 +48,19 @@ for (const key in itemize) {
 		message: mergeArrObj(itemize, key),
 	};
 }
+
+// 读取 pinia 默认语言
+const stores = useThemeConfig(pinia);
+const { themeConfig } = storeToRefs(stores);
+
+// 导出语言国际化
+export const i18n = createI18n({
+	legacy: false,
+	silentTranslationWarn: true,
+	missingWarn: false,
+	silentFallbackWarn: true,
+	fallbackWarn: false,
+	locale: themeConfig.value.globalI18n,
+	fallbackLocale: zhcnLocale.name,
+	messages,
+});
