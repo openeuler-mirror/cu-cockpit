@@ -95,3 +95,16 @@ export function setCacheTagsViewRoutes() {
 	const storesTagsView = useTagsViewRoutes(pinia);
 	storesTagsView.setTagsViewRoutes(formatTwoStageRoutes(formatFlatteningRoutes(dynamicRoutes))[0].children);
 }
+
+/**
+ * 处理路由格式及添加捕获所有路由或 404 Not found 路由
+ * @description 替换 dynamicRoutes（/@/router/route）第一个顶级 children 的路由
+ * @returns 返回替换后的路由数组
+ */
+export function setFilterRouteEnd() {
+	let filterRouteEnd: any = formatTwoStageRoutes(formatFlatteningRoutes(dynamicRoutes));
+	// notFoundAndNoPower 防止 404、401 不在 layout 布局中，不设置的话，404、401 界面将全屏显示
+	// 关联问题 No match found for location with path 'xxx'
+	filterRouteEnd[0].children = [...filterRouteEnd[0].children, ...notFoundAndNoPower];
+	return filterRouteEnd;
+}
