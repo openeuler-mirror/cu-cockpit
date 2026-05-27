@@ -45,3 +45,89 @@ export function dynamicImport(dynamicViewsModules: Record<string, Function>, com
  * @param {Array} menuData
  * @return {*}
  */
+export const handleMenu = (menuData: Array<any>) => {
+    // 框架内路由
+    const frameInRoutes:Array<any> = []
+    // 框架外路由
+    const frameOutRoutes:Array<any> = []
+    // 需要缓存的路由
+    const cacheList:Array<any> = []
+    // 先处理menu meta数据转换
+    const handleMeta = (item: any) => {
+        item.path = item.web_path
+        item.meta = {
+            title: item.title,
+            isLink: item.link_url,
+            isHide: !item.visible,
+            isKeepAlive: item.cache,
+            isAffix: item.is_affix,
+            isIframe: item.is_iframe,
+            roles: ['admin'],
+            icon: item.icon
+        }
+        item.component =  dynamicImport(dynamicViewsModules, item.component as string)
+        if(item.is_catalog){
+            // 对目录的处理
+            item.component = dynamicImport(dynamicViewsModules, 'layout/routerView/parent')
+        }
+        if(item.is_link){
+            // 对外链接的处理
+            item.meta.isIframe = !item.is_iframe
+            if(item.is_iframe){
+                item.component = dynamicImport(dynamicViewsModules, 'layout/routerView/link')
+            }else {
+                item.component = dynamicImport(dynamicViewsModules, 'layout/routerView/iframes')
+            }
+        }else{
+            if(item.is_iframe){
+                const route = JSON.parse(JSON.stringify(item))
+                route.meta.isLink = ''
+                route.path = `${item.web_path}`
+                route.name =  `${item.name}`
+                route.meta.isIframe = true
+                route.meta.isKeepAlive = false
+                route.meta.isIframeOpen = true
+                route.component = item.component
+                frameOutRoutes.push(route)
+                item.path = `${item.web_path}FrameOut`
+                item.name =  `${item.name}FrameOut`
+                item.meta.isLink = item.web_path
+                item.meta.isIframe = !item.is_iframe
+                //item.meta.isIframeOpen = true
+                item.component = dynamicImport(dynamicViewsModules, 'layout/routerView/link.vue')
+            }
+        }
+        item.children && handleMeta(item.children);
+        if (item.meta.isKeepAlive && item.meta.isKeepAlive && item.component_name != "") {
+            cacheList.push(item.name);
+        }
+        return item
+    }
+    menuData.forEach((val) => {
+        frameInRoutes.push(handleMeta(val))
+    })
+    const stores = useKeepALiveNames(pinia);
+    stores.setCacheKeepAlive(cacheList);
+    const data = XEUtils.toArrayTree(frameInRoutes, {
+        parentKey: 'parent',
+        strict: true,
+    })
+    const dynamicRoutes = [
+        {
+            path: '/home', name: 'home',
+            component: dynamicImport(dynamicViewsModules, '/system/home/index'),
+            meta: {
+                title: 'message.router.home',
+                isLink: '',
+                isHide: false,
+                isKeepAlive: true,
+                isAffix: true,
+                isIframe: false,
+                roles: ['admin'],
+                icon: 'iconfont icon-shouye'
+            }
+        },
+        ...data
+    ]
+    return {frameIn:dynamicRoutes,frameOut:frameOutRoutes}
+}
