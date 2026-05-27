@@ -42,3 +42,5 @@ const getElementPlusIconfont = () => {
 		});
 	});
 };
+
+// 初始化获取 css 样式，这里使用 fontawesome 的图标
