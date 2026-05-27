@@ -34,3 +34,24 @@ export function getSystemNotification(body: string, title?: string) {
 		body: body,
 	});
 }
+export function showSystemNotification(body: string, title?: string): Notification | undefined {
+	if (Notification.permission === 'granted') {
+		return getSystemNotification(body, title);
+	} else if (Notification.permission !== 'denied') {
+		Notification.requestPermission().then((permission) => {
+			if (permission === 'granted') {
+				return getSystemNotification(body, title);
+			}
+		});
+	}
+	return void 0;
+}
+const taskList = new Map<String, Task>();
+
+export function useCore(): Core {
+	return {
+		bus,
+		showNotification: showSystemNotification,
+		taskList,
+	};
+}
