@@ -19,3 +19,28 @@ export interface CrudOptions {
 	dept_belong_id?: CrudFieldOption;
 	description?: CrudFieldOption;
 }
+
+/** 3. 默认完整配置 */
+const defaultOptions: Required<CrudOptions> = {
+	create_datetime: { form: false, table: false, search: false, width: 160 },
+	update_datetime: { form: false, table: false, search: false, width: 160 },
+	creator_name: { form: false, table: false, search: false, width: 100 },
+	modifier_name: { form: false, table: false, search: false, width: 100 },
+	dept_belong_id: { form: false, table: false, search: false, width: 300 },
+	description: { form: false, table: false, search: false, width: 100 },
+};
+
+/** 4. mergeOptions 函数 */
+function mergeOptions(baseOptions: Required<CrudOptions>, userOptions: CrudOptions = {}): Required<CrudOptions> {
+	const result = { ...baseOptions };
+	for (const key in userOptions) {
+		if (Object.prototype.hasOwnProperty.call(userOptions, key)) {
+			const baseField = result[key as keyof CrudOptions];
+			const userField = userOptions[key as keyof CrudOptions];
+			if (baseField && userField) {
+				result[key as keyof CrudOptions] = { ...baseField, ...userField };
+			}
+		}
+	}
+	return result;
+}
