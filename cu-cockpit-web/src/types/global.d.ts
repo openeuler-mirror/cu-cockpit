@@ -81,3 +81,31 @@ declare type ChilType<T = any> = {
 };
 
 // 申明 数组
+declare type EmptyArrayType<T = any> = T[];
+
+// 申明 对象
+declare type EmptyObjectType<T = any> = {
+	[key: string]: T;
+};
+
+// 申明 select option
+declare type SelectOptionType = {
+	value: string | number;
+	label: string | number;
+};
+
+// 鼠标滚轮滚动类型
+declare interface WheelEventType extends WheelEvent {
+	wheelDelta: number;
+}
+
+// table 数据格式公共类型
+declare interface TableType<T = any> {
+	total: number;
+	loading: boolean;
+	param: {
+		pageNum: number;
+		pageSize: number;
+		[key: string]: T;
+	};
+}
