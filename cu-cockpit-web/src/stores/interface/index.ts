@@ -35,3 +35,16 @@ export interface KeepAliveNamesState {
 export interface RequestOldRoutesState {
 	requestOldRoutes: string[];
 }
+
+// TagsView 路由列表
+export interface TagsViewRoutesState {
+	tagsViewRoutes: string[];
+	isTagsViewCurrenFull: Boolean;
+}
+
+// 路由列表
+export interface RoutesListState {
+	routesList: string[];
+	isColumnsMenuHover: Boolean;
+	isColumnsNavHover: Boolean;
+}
