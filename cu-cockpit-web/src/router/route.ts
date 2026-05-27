@@ -176,3 +176,8 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
     ],
 	}
 ];
+
+/**
+ * 定义404、401界面
+ * @link 参考
+ */
