@@ -82,3 +82,6 @@ service.interceptors.response.use(
 		return Promise.reject(error);
 	}
 );
+
+// 导出 axios 实例
+export default service;
