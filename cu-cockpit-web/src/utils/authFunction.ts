@@ -25,3 +25,13 @@ export function auths(value: Array<string>): boolean {
 	});
 	return flag;
 }
+
+/**
+ * 多个权限验证，全部满足则为 true
+ * @param value 权限值
+ * @returns 有权限，返回 `true`，反之则反
+ */
+export function authAll(value: Array<string>): boolean {
+	const stores = BtnPermissionStore();
+	return judementSameArr(value, stores.data);
+}
