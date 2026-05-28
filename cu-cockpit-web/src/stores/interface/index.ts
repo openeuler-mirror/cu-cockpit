@@ -95,3 +95,10 @@ export interface ThemeConfigState {
 	globalI18n: string;
 	globalComponentSize: string;
 }
+export interface ThemeConfigStates {
+	themeConfig: ThemeConfigState;
+}
+
+export interface DictionaryStates {
+	data: any;
+}
