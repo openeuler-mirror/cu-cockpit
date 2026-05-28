@@ -108,3 +108,15 @@ export function setFilterRouteEnd() {
 	filterRouteEnd[0].children = [...filterRouteEnd[0].children, ...notFoundAndNoPower];
 	return filterRouteEnd;
 }
+
+/**
+ * 添加动态路由
+ * @method router.addRoute
+ * @description 此处循环为 dynamicRoutes（/@/router/route）第一个顶级 children 的路由一维数组，非多级嵌套
+ * @link 参考
+ */
+export async function setAddRoute() {
+	await setFilterRouteEnd().forEach((route: RouteRecordRaw) => {
+		router.addRoute(route);
+	});
+}
