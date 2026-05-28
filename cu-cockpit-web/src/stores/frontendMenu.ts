@@ -131,3 +131,39 @@ export const handleMenu = (menuData: Array<any>) => {
     ]
     return {frameIn:dynamicRoutes,frameOut:frameOutRoutes}
 }
+
+export const useFrontendMenuStore = defineStore('frontendMenu',{
+    state: (): FrontendMenu => ({
+        arrayRouter: [],
+        treeRouter: [],
+        frameInRoutes:[],
+        frameOutRoutes:[]
+    }),
+    actions:{
+        async requestMenu(){
+           return  request({
+                url: '/api/system/menu/web_router/',
+                method: 'get',
+                params:{},
+            }).then((res:any)=>{
+                return res.data
+           });
+        },
+        async handleRouter(){
+            const menuData = await this.requestMenu();
+            this.arrayRouter = menuData
+            const {frameIn,frameOut} = handleMenu(menuData);
+            this.treeRouter = [...frameIn,...frameOut]
+            this.frameInRoutes=frameIn
+            this.frameOutRoutes=frameOut
+        },
+        async getRouter(){
+            await this.handleRouter()
+            return {
+                frameInRoutes:this.frameInRoutes,
+                frameOutRoutes:this.frameOutRoutes,
+                treeRouter:this.treeRouter
+            }
+        }
+    }
+})
