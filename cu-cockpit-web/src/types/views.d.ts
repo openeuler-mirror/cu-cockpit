@@ -111,3 +111,36 @@ interface SysUserTableType extends TableType {
 declare interface SysUserState {
 	tableData: SysUserTableType;
 }
+
+declare type DeptTreeType = {
+	deptName: string;
+	createTime: string;
+	status: boolean;
+	sort: number;
+	describe: string;
+	id: number | string;
+	children?: DeptTreeType[];
+};
+
+// dept
+declare interface RowDeptType extends DeptTreeType {
+	deptLevel: string[];
+	person: string;
+	phone: string;
+	email: string;
+}
+
+interface SysDeptTableType extends TableType {
+	data: DeptTreeType[];
+}
+
+declare interface SysDeptState {
+	tableData: SysDeptTableType;
+}
+
+// dic
+type ListType = {
+	id: number;
+	label: string;
+	value: string;
+};
