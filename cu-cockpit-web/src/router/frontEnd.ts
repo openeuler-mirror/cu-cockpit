@@ -93,3 +93,17 @@ export function setFilterRoute(chil: any) {
 	});
 	return filterRoute;
 }
+
+/**
+ * 缓存多级嵌套数组处理后的一维数组
+ * @description 用于 tagsView、菜单搜索中：未过滤隐藏的(isHide)
+ */
+export function setCacheTagsViewRoutes() {
+	// 获取有权限的路由，否则 tagsView、菜单搜索中无权限的路由也将显示
+	const stores = useUserInfo(pinia);
+	const storesTagsView = useTagsViewRoutes(pinia);
+	const { userInfos } = storeToRefs(stores);
+	let rolesRoutes = setFilterHasRolesMenu(dynamicRoutes, userInfos.value.roles);
+	// 添加到 pinia setTagsViewRoutes 中
+	storesTagsView.setTagsViewRoutes(formatTwoStageRoutes(formatFlatteningRoutes(rolesRoutes))[0].children);
+}
