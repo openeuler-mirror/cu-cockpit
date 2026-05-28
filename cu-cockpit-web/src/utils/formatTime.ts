@@ -83,3 +83,37 @@ export function getWeek(dateTime: Date): number {
  * @description param 3天：   60 * 60* 24 * 1000 * 3
  * @returns 返回拼接后的时间字符串
  */
+export function formatPast(param: string | Date, format: string = 'YYYY-mm-dd'): string {
+	// 传入格式处理、存储转换值
+	let t: any, s: number;
+	// 获取js 时间戳
+	let time: number = new Date().getTime();
+	// 是否是对象
+	typeof param === 'string' || 'object' ? (t = new Date(param).getTime()) : (t = param);
+	// 当前时间戳 - 传入时间戳
+	time = Number.parseInt(`${time - t}`);
+	if (time < 10000) {
+		// 10秒内
+		return '刚刚';
+	} else if (time < 60000 && time >= 10000) {
+		// 超过10秒少于1分钟内
+		s = Math.floor(time / 1000);
+		return `${s}秒前`;
+	} else if (time < 3600000 && time >= 60000) {
+		// 超过1分钟少于1小时
+		s = Math.floor(time / 60000);
+		return `${s}分钟前`;
+	} else if (time < 86400000 && time >= 3600000) {
+		// 超过1小时少于24小时
+		s = Math.floor(time / 3600000);
+		return `${s}小时前`;
+	} else if (time < 259200000 && time >= 86400000) {
+		// 超过1天少于3天内
+		s = Math.floor(time / 86400000);
+		return `${s}天前`;
+	} else {
+		// 超过3天
+		let date = typeof param === 'string' || 'object' ? new Date(param) : param;
+		return formatDate(date, format);
+	}
+}
