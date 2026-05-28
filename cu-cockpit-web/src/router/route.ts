@@ -181,3 +181,23 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
  * 定义404、401界面
  * @link 参考
  */
+export const notFoundAndNoPower = [
+	{
+		path: '/:path(.*)*',
+		name: 'notFound',
+		component: () => import('/@/views/system/error/404.vue'),
+		meta: {
+			title: 'message.staticRoutes.notFound',
+			isHide: true,
+		},
+	},
+	{
+		path: '/401',
+		name: 'noPower',
+		component: () => import('/@/views/system/error/401.vue'),
+		meta: {
+			title: 'message.staticRoutes.noPower',
+			isHide: true,
+		},
+	},
+];
