@@ -92,3 +92,17 @@ export function verifyCnAndSpace(val: string) {
 	// 返回结果
 	return v;
 }
+
+/**
+ * 去掉英文及空格
+ * @param val 当前值字符串
+ * @returns 返回处理后的字符串
+ */
+export function verifyEnAndSpace(val: string) {
+	// 匹配英文与空格
+	let v = val.replace(/[a-zA-Z]+/g, '');
+	// 匹配空格
+	v = v.replace(/(^\s*)|(\s*$)/g, '');
+	// 返回结果
+	return v;
+}
