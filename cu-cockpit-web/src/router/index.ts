@@ -159,3 +159,11 @@ router.beforeEach(async (to, from, next) => {
         }
     }
 });
+
+// 路由加载后
+router.afterEach(() => {
+    NProgress.done();
+});
+
+// 导出路由
+export default router;
