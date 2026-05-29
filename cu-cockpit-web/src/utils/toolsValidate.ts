@@ -106,3 +106,33 @@ export function verifyEnAndSpace(val: string) {
 	// 返回结果
 	return v;
 }
+
+/**
+ * 禁止输入空格
+ * @param val 当前值字符串
+ * @returns 返回处理后的字符串
+ */
+export function verifyAndSpace(val: string) {
+	// 匹配空格
+	let v = val.replace(/(^\s*)|(\s*$)/g, '');
+	// 返回结果
+	return v;
+}
+
+/**
+ * 金额用 `,` 区分开
+ * @param val 当前值字符串
+ * @returns 返回处理后的字符串
+ */
+export function verifyNumberComma(val: string) {
+	// 调用小数或整数(不可以负数)方法
+	let v: any = verifyNumberIntegerAndFloat(val);
+	// 字符串转成数组
+	v = v.toString().split('.');
+	// \B 匹配非单词边界，两边都是单词字符或者两边都是非单词字符
+	v[0] = v[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+	// 数组转字符串
+	v = v.join('.');
+	// 返回结果
+	return v;
+}
