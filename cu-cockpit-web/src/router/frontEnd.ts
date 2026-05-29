@@ -107,3 +107,27 @@ export function setCacheTagsViewRoutes() {
 	// 添加到 pinia setTagsViewRoutes 中
 	storesTagsView.setTagsViewRoutes(formatTwoStageRoutes(formatFlatteningRoutes(rolesRoutes))[0].children);
 }
+
+/**
+ * 设置递归过滤有权限的路由到 pinia routesList 中（已处理成多级嵌套路由）及缓存多级嵌套数组处理后的一维数组
+ * @description 用于左侧菜单、横向菜单的显示
+ * @description 用于 tagsView、菜单搜索中：未过滤隐藏的(isHide)
+ */
+export function setFilterMenuAndCacheTagsViewRoutes() {
+	const stores = useUserInfo(pinia);
+	const storesRoutesList = useRoutesList(pinia);
+	const { userInfos } = storeToRefs(stores);
+	storesRoutesList.setRoutesList(setFilterHasRolesMenu(dynamicRoutes[0].children, userInfos.value.roles));
+	setCacheTagsViewRoutes();
+}
+
+/**
+ * 判断路由 `meta.roles` 中是否包含当前登录用户权限字段
+ * @param roles 用户权限标识，在 userInfos（用户信息）的 roles（登录页登录时缓存到浏览器）数组
+ * @param route 当前循环时的路由项
+ * @returns 返回对比后有权限的路由项
+ */
+export function hasRoles(roles: any, route: any) {
+	if (route.meta && route.meta.roles) return roles.some((role: any) => route.meta.roles.includes(role));
+	else return true;
+}
