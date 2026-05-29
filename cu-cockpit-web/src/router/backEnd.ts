@@ -120,3 +120,29 @@ export async function setAddRoute() {
 		router.addRoute(route);
 	});
 }
+
+/**
+ * 请求后端路由菜单接口
+ * @description isRequestRoutes 为 true，则开启后端控制路由
+ * @returns 返回后端路由菜单数据
+ */
+export function getBackEndControlRoutes() {
+	//获取所有的按钮权限
+	BtnPermissionStore().getBtnPermissionStore();
+	// 获取系统配置
+	SystemConfigStore().getSystemConfigs()
+	// 获取所有部门信息
+	useDeptInfoStore().requestDeptInfo()
+	// 获取字典信息
+	DictionaryStore().getSystemDictionarys()
+	return menuApi.getSystemMenu();
+}
+
+/**
+ * 重新请求后端路由菜单接口
+ * @description 用于菜单管理界面刷新菜单（未进行测试）
+ * @description 路径：/src/views/system/menu/component/addMenu.vue
+ */
+export function setBackEndControlRefreshRoutes() {
+	getBackEndControlRoutes();
+}
