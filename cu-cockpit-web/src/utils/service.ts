@@ -170,3 +170,23 @@ function createService() {
  * @description 创建请求方法
  * @param {Object} service axios 实例
  */
+function createRequestFunction(service: any) {
+	return function (config: any) {
+		const configDefault = {
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			timeout: 5000,
+			baseURL: getBaseURL(),
+			data: {},
+		};
+		Object.assign(configDefault, config);
+		// const token = userStore.getToken;
+		const token = Session.get('token');
+		if (token != null) {
+			// @ts-ignore
+			configDefault.headers.Authorization = 'JWT ' + token;
+		}
+		return service(configDefault);
+	};
+}
