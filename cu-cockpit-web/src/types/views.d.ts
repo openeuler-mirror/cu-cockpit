@@ -144,3 +144,30 @@ type ListType = {
 	label: string;
 	value: string;
 };
+
+declare interface RowDicType {
+	dicName: string;
+	fieldName: string;
+	describe: string;
+	status: boolean;
+	createTime: string;
+	list: ListType[];
+}
+
+interface SysDicTableType extends TableType {
+	data: RowDicType[];
+}
+
+declare interface SysDicState {
+	tableData: SysDicTableType;
+}
+
+/**
+ * views pages
+ */
+//  filtering
+declare type FilteringChilType = {
+	id: number | string;
+	label: string;
+	active: boolean;
+};
