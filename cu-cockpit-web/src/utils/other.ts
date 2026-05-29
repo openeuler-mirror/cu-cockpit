@@ -128,3 +128,25 @@ export const globalComponentSize = (): string => {
 	const { themeConfig } = storeToRefs(stores);
 	return Local.get('themeConfig')?.globalComponentSize || themeConfig.value?.globalComponentSize;
 };
+
+/**
+ * 对象深克隆
+ * @param obj 源对象
+ * @returns 克隆后的对象
+ */
+export function deepClone(obj: EmptyObjectType) {
+	let newObj: EmptyObjectType;
+	try {
+		newObj = obj.push ? [] : {};
+	} catch (error) {
+		newObj = {};
+	}
+	for (let attr in obj) {
+		if (obj[attr] && typeof obj[attr] === 'object') {
+			newObj[attr] = deepClone(obj[attr]);
+		} else {
+			newObj[attr] = obj[attr];
+		}
+	}
+	return newObj;
+}
