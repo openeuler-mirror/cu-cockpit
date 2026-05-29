@@ -102,3 +102,15 @@ export interface ThemeConfigStates {
 export interface DictionaryStates {
 	data: any;
 }
+export interface ConfigStates {
+	systemConfig: any;
+}
+
+export interface FrontendMenu {
+	arrayRouter: Array<any>;
+	treeRouter: Array<any>;
+
+	frameOutRoutes: Array<any>;
+
+	frameInRoutes: Array<any>;
+}
