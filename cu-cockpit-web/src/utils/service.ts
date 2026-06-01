@@ -198,3 +198,39 @@ export const request = createRequestFunction(service);
 // 用于模拟网络请求的实例和请求方法
 export const serviceForMock = createService();
 export const requestForMock = createRequestFunction(serviceForMock);
+
+/**
+ * 下载文件
+ * @param url
+ * @param params
+ * @param method
+ * @param filename
+ */
+export const downloadFile = function ({ url, params, method, filename = '文件导出' }: any) {
+	// return request({ url: url, method: method, params: params })
+	// 	.then((res: any) => successMessage(res.msg));
+	request({
+		url: url,
+		method: method,
+		params: params,
+		responseType: 'blob'
+		// headers: {Accept: 'application/vnd.openxmlformats-officedocument'}
+	}).then((res: any) => {
+		// console.log(res.headers['content-type']); // 根据content-type不同来判断是否异步下载
+		// if (res.headers && res.headers['Content-type'] === 'application/json') return successMessage('导入任务已创建，请前往‘下载中心’等待下载');
+		if (res.headers['content-type'] === 'application/json') return successMessage('导入任务已创建，请前往‘下载中心’等待下载');
+		const xlsxName = window.decodeURI(res.headers['content-disposition'].split('=')[1])
+		const fileName = xlsxName || `${filename}.xlsx`
+		if (res) {
+			const blob = new Blob([res.data], { type: 'charset=utf-8' })
+			const elink = document.createElement('a')
+			elink.download = fileName
+			elink.style.display = 'none'
+			elink.href = URL.createObjectURL(blob)
+			document.body.appendChild(elink)
+			elink.click()
+			URL.revokeObjectURL(elink.href) // 释放URL 对象0
+			document.body.removeChild(elink)
+		}
+	})
+}
