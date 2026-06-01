@@ -186,3 +186,62 @@ export function handleEmpty(list: EmptyArrayType) {
 	}
 	return arr;
 }
+
+/**
+ * 打开外部链接
+ * @param val 当前点击项菜单
+ */
+export function handleOpenLink(val: RouteItem) {
+	const { origin, pathname } = window.location;
+	router.push(val.path);
+	if (verifyUrl(<string>val.meta?.isLink)) window.open(val.meta?.isLink);
+	else window.open(`${origin}${pathname}#${val.meta?.isLink}`);
+}
+
+/**
+ * 统一批量导出
+ * @method elSvg 导出全局注册 element plus svg 图标
+ * @method useTitle 设置浏览器标题国际化
+ * @method setTagsViewNameI18n 设置 自定义 tagsView 名称、 自定义 tagsView 名称国际化
+ * @method lazyImg 图片懒加载
+ * @method globalComponentSize() element plus 全局组件大小
+ * @method deepClone 对象深克隆
+ * @method isMobile 判断是否是移动端
+ * @method handleEmpty 判断数组对象中所有属性是否为空，为空则删除当前行对象
+ * @method handleOpenLink 打开外部链接
+ */
+const other = {
+	elSvg: (app: App) => {
+		elSvg(app);
+	},
+	useTitle: () => {
+		useTitle();
+	},
+	useFavicon:()=>{
+		useFavicon()
+	},
+	setTagsViewNameI18n(route: RouteToFrom) {
+		return setTagsViewNameI18n(route);
+	},
+	lazyImg: (el: string, arr: EmptyArrayType) => {
+		lazyImg(el, arr);
+	},
+	globalComponentSize: () => {
+		return globalComponentSize();
+	},
+	deepClone: (obj: EmptyObjectType) => {
+		return deepClone(obj);
+	},
+	isMobile: () => {
+		return isMobile();
+	},
+	handleEmpty: (list: EmptyArrayType) => {
+		return handleEmpty(list);
+	},
+	handleOpenLink: (val: RouteItem) => {
+		handleOpenLink(val);
+	},
+};
+
+// 统一批量导出
+export default other;
