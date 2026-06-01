@@ -131,3 +131,21 @@ export function hasRoles(roles: any, route: any) {
 	if (route.meta && route.meta.roles) return roles.some((role: any) => route.meta.roles.includes(role));
 	else return true;
 }
+
+/**
+ * 获取当前用户权限标识去比对路由表，设置递归过滤有权限的路由
+ * @param routes 当前路由 children
+ * @param roles 用户权限标识，在 userInfos（用户信息）的 roles（登录页登录时缓存到浏览器）数组
+ * @returns 返回有权限的路由数组 `meta.roles` 中控制
+ */
+export function setFilterHasRolesMenu(routes: any, roles: any) {
+	const menu: any = [];
+	routes.forEach((route: any) => {
+		const item = { ...route };
+		if (hasRoles(roles, item)) {
+			if (item.children) item.children = setFilterHasRolesMenu(item.children, roles);
+			menu.push(item);
+		}
+	});
+	return menu;
+}
