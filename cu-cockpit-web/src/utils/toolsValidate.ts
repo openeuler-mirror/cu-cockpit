@@ -206,3 +206,15 @@ export function verifyTelPhone(val: string) {
 	// true: 国内电话号码正确
 	else return true;
 }
+
+/**
+ * 登录账号 (字母开头，允许5-16字节，允许字母数字下划线)
+ * @param val 当前值字符串
+ * @returns 返回 true: 登录账号正确
+ */
+export function verifyAccount(val: string) {
+	// false: 登录账号不正确
+	if (!/^[a-zA-Z][a-zA-Z0-9_]{4,15}$/.test(val)) return false;
+	// true: 登录账号正确
+	else return true;
+}
