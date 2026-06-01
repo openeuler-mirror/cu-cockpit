@@ -266,3 +266,34 @@ declare type WorkflowState<T = any> = {
 };
 
 // workflow drawer
+declare type WorkflowDrawerNodeState<T = any> = {
+	node: { [key: string]: T };
+	nodeRules: T;
+	form: T;
+	tabsActive: string;
+	loading: {
+		extend: boolean;
+	};
+};
+
+declare type WorkflowDrawerLabelType = {
+	type: string;
+	label: string;
+};
+
+declare type WorkflowDrawerState<T = any> = {
+	isOpen: boolean;
+	nodeData: {
+		type: string;
+	};
+	jsplumbConn: T;
+};
+
+/**
+ * views make
+ */
+// tableDemo
+declare type TableDemoPageType = {
+	pageNum: number;
+	pageSize: number;
+};
