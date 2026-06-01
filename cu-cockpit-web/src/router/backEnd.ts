@@ -146,3 +146,43 @@ export function getBackEndControlRoutes() {
 export function setBackEndControlRefreshRoutes() {
 	getBackEndControlRoutes();
 }
+
+/**
+ * 后端路由 component 转换
+ * @param routes 后端返回的路由表数组
+ * @returns 返回处理成函数后的 component
+ */
+export function backEndComponent(routes: any) {
+	if (!routes) return;
+	return routes.map((item: any) => {
+		if (item.component) item.component = dynamicImport(dynamicViewsModules, item.component as string);
+		if(item.is_catalog){
+			// 对目录的处理
+			item.component = dynamicImport(dynamicViewsModules, 'layout/routerView/parent')
+		}
+		if(item.is_link){
+			// 对外链接的处理
+			if(item.is_iframe){
+				item.component = dynamicImport(dynamicViewsModules, 'layout/routerView/iframes')
+			}else {
+				item.component = dynamicImport(dynamicViewsModules, 'layout/routerView/link')
+			}
+		}else{
+			if(item.is_iframe){
+				// const iframeRoute:RouteRecordRaw = {
+				// 	...item
+				// }
+				// router.addRoute(iframeRoute)
+				item.meta.isLink = item.link_url
+				// item.path = `${item.path}Link`
+				// item.name = `${item.name}Link`
+				// item.meta.isIframe = item.is_iframe
+				// item.meta.isKeepAlive = false
+				// item.meta.isIframeOpen = true
+				item.component = dynamicImport(dynamicViewsModules, 'layout/routerView/link.vue')
+			}
+		}
+		item.children && backEndComponent(item.children);
+		return item;
+	});
+}
