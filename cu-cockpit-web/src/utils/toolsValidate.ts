@@ -243,3 +243,41 @@ export function verifyPasswordPowerful(val: string) {
 	// true: 强密码正确
 	else return true;
 }
+
+/**
+ * 密码强度
+ * @param val 当前值字符串
+ * @description 弱：纯数字，纯字母，纯特殊字符
+ * @description 中：字母+数字，字母+特殊字符，数字+特殊字符
+ * @description 强：字母+数字+特殊字符
+ * @returns 返回处理后的字符串：弱、中、强
+ */
+export function verifyPasswordStrength(val: string) {
+	let v = '';
+	// 弱：纯数字，纯字母，纯特殊字符
+	if (/^(?:\d+|[a-zA-Z]+|[!@#$%^&\.*]+){6,16}$/.test(val)) v = '弱';
+	// 中：字母+数字，字母+特殊字符，数字+特殊字符
+	if (/^(?![a-zA-z]+$)(?!\d+$)(?![!@#$%^&\.*]+$)[a-zA-Z\d!@#$%^&\.*]{6,16}$/.test(val)) v = '中';
+	// 强：字母+数字+特殊字符
+	if (/^(?![a-zA-z]+$)(?!\d+$)(?![!@#$%^&\.*]+$)(?![a-zA-z\d]+$)(?![a-zA-z!@#$%^&\.*]+$)(?![\d!@#$%^&\.*]+$)[a-zA-Z\d!@#$%^&\.*]{6,16}$/.test(val))
+		v = '强';
+	// 返回结果
+	return v;
+}
+
+/**
+ * IP地址
+ * @param val 当前值字符串
+ * @returns 返回 true: IP地址正确
+ */
+export function verifyIPAddress(val: string) {
+	// false: IP地址不正确
+	if (
+		!/^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/.test(
+			val
+		)
+	)
+		return false;
+	// true: IP地址正确
+	else return true;
+}
