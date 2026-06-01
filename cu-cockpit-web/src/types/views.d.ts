@@ -297,3 +297,40 @@ declare type TableDemoPageType = {
 	pageNum: number;
 	pageSize: number;
 };
+
+declare type TableHeaderType = {
+	key: string;
+	width: string;
+	title: string;
+	type: string | number;
+	colWidth: string;
+	width?: string | number;
+	height?: string | number;
+	isCheck: boolean;
+};
+
+declare type TableSearchType = {
+	label: string;
+	prop: string;
+	placeholder: string;
+	required: boolean;
+	type: string;
+	options?: SelectOptionType[];
+};
+
+declare type TableDemoState = {
+	tableData: {
+		data: EmptyObjectType[];
+		header: TableHeaderType[];
+		config: {
+			total: number;
+			loading: boolean;
+			isBorder: boolean;
+			isSelection: boolean;
+			isSerialNo: boolean;
+			isOperate: boolean;
+		};
+		search: TableSearchType[];
+		param: EmptyObjectType;
+	};
+};
