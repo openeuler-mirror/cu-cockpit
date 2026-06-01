@@ -230,3 +230,16 @@ export function verifyPassword(val: string) {
 	// true: 密码正确
 	else return true;
 }
+
+/**
+ * 强密码 (字母+数字+特殊字符，长度在6-16之间)
+ * @param val 当前值字符串
+ * @returns 返回 true: 强密码正确
+ */
+export function verifyPasswordPowerful(val: string) {
+	// false: 强密码不正确
+	if (!/^(?![a-zA-z]+$)(?!\d+$)(?![!@#$%^&\.*]+$)(?![a-zA-z\d]+$)(?![a-zA-z!@#$%^&\.*]+$)(?![\d!@#$%^&\.*]+$)[a-zA-Z\d!@#$%^&\.*]{6,16}$/.test(val))
+		return false;
+	// true: 强密码正确
+	else return true;
+}
