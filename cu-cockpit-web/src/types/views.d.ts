@@ -171,3 +171,40 @@ declare type FilteringChilType = {
 	label: string;
 	active: boolean;
 };
+
+declare type FilterListType = {
+	img: string;
+	title: string;
+	evaluate: string;
+	collection: string;
+	price: string;
+	monSales: string;
+	id: number | string;
+	loading?: boolean;
+};
+
+declare type FilteringRowType = {
+	title: string;
+	isMore: boolean;
+	isShowMore: boolean;
+	id: number | string;
+	children: FilteringChilType[];
+};
+
+// tableRules
+declare type TableRulesHeaderType = {
+	prop: string;
+	width: string | number;
+	label: string;
+	isRequired?: boolean;
+	isTooltip?: boolean;
+	type: string;
+};
+
+declare type TableRulesState = {
+	tableData: {
+		data: EmptyObjectType[];
+		header: TableRulesHeaderType[];
+		option: SelectOptionType[];
+	};
+};
