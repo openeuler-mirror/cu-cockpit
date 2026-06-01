@@ -281,3 +281,90 @@ export function verifyIPAddress(val: string) {
 	// true: IP地址正确
 	else return true;
 }
+
+/**
+ * 邮箱
+ * @param val 当前值字符串
+ * @returns 返回 true: 邮箱正确
+ */
+export function verifyEmail(val: string) {
+	// false: 邮箱不正确
+	if (
+		!/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
+			val
+		)
+	)
+		return false;
+	// true: 邮箱正确
+	else return true;
+}
+
+/**
+ * 身份证
+ * @param val 当前值字符串
+ * @returns 返回 true: 身份证正确
+ */
+export function verifyIdCard(val: string) {
+	// false: 身份证不正确
+	if (!/^[1-9]\d{5}(18|19|20)\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/.test(val)) return false;
+	// true: 身份证正确
+	else return true;
+}
+
+/**
+ * 姓名
+ * @param val 当前值字符串
+ * @returns 返回 true: 姓名正确
+ */
+export function verifyFullName(val: string) {
+	// false: 姓名不正确
+	if (!/^[\u4e00-\u9fa5]{1,6}(·[\u4e00-\u9fa5]{1,6}){0,2}$/.test(val)) return false;
+	// true: 姓名正确
+	else return true;
+}
+
+/**
+ * 邮政编码
+ * @param val 当前值字符串
+ * @returns 返回 true: 邮政编码正确
+ */
+export function verifyPostalCode(val: string) {
+	// false: 邮政编码不正确
+	if (!/^[1-9][0-9]{5}$/.test(val)) return false;
+	// true: 邮政编码正确
+	else return true;
+}
+
+/**
+ * url 处理
+ * @param val 当前值字符串
+ * @returns 返回 true: url 正确
+ */
+export function verifyUrl(val: string) {
+	// false: url不正确
+	if (
+		!/^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})).?)(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(
+			val
+		)
+	)
+		return false;
+	// true: url正确
+	else return true;
+}
+
+/**
+ * 车牌号
+ * @param val 当前值字符串
+ * @returns 返回 true：车牌号正确
+ */
+export function verifyCarNum(val: string) {
+	// false: 车牌号不正确
+	if (
+		!/^(([京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领][A-Z](([0-9]{5}[DF])|([DF]([A-HJ-NP-Z0-9])[0-9]{4})))|([京津沪渝冀豫云辽黑湘皖鲁新苏浙赣鄂桂甘晋蒙陕吉闽贵粤青藏川宁琼使领][A-Z][A-HJ-NP-Z0-9]{4}[A-HJ-NP-Z0-9挂学警港澳使领]))$/.test(
+			val
+		)
+	)
+		return false;
+	// true：车牌号正确
+	else return true;
+}
