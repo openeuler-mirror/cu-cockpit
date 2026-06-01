@@ -208,3 +208,37 @@ declare type TableRulesState = {
 		option: SelectOptionType[];
 	};
 };
+
+declare type TableRulesOneProps = {
+	name: string;
+	email: string;
+	autograph: string;
+	occupation: string;
+};
+
+// tree
+declare type RowTreeType = {
+	id: number;
+	label: string;
+	label1: string;
+	label2: string;
+	isShow: boolean;
+	children?: RowTreeType[];
+};
+
+// workflow index
+declare type NodeListState = {
+	id: string | number;
+	nodeId: string | undefined;
+	class: HTMLElement | string;
+	left: number | string;
+	top: number | string;
+	icon: string;
+	name: string;
+};
+
+declare type LineListState = {
+	sourceId: string;
+	targetId: string;
+	label: string;
+};
