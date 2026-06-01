@@ -242,3 +242,27 @@ declare type LineListState = {
 	targetId: string;
 	label: string;
 };
+
+declare type XyState = {
+	x: string | number;
+	y: string | number;
+};
+
+declare type WorkflowState<T = any> = {
+	leftNavList: T[];
+	dropdownNode: XyState;
+	dropdownLine: XyState;
+	isShow: boolean;
+	jsPlumb: T;
+	jsPlumbNodeIndex: null | number;
+	jsplumbDefaults: T;
+	jsplumbMakeSource: T;
+	jsplumbMakeTarget: T;
+	jsplumbConnect: T;
+	jsplumbData: {
+		nodeList: NodeListState[];
+		lineList: LineListState[];
+	};
+};
+
+// workflow drawer
