@@ -218,3 +218,15 @@ export function verifyAccount(val: string) {
 	// true: 登录账号正确
 	else return true;
 }
+
+/**
+ * 密码 (以字母开头，长度在6~16之间，只能包含字母、数字和下划线)
+ * @param val 当前值字符串
+ * @returns 返回 true: 密码正确
+ */
+export function verifyPassword(val: string) {
+	// false: 密码不正确
+	if (!/^[a-zA-Z]\w{5,15}$/.test(val)) return false;
+	// true: 密码正确
+	else return true;
+}
