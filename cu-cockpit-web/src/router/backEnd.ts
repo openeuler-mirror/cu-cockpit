@@ -186,3 +186,27 @@ export function backEndComponent(routes: any) {
 		return item;
 	});
 }
+
+/**
+ * 后端路由 component 转换函数
+ * @param dynamicViewsModules 获取目录下的 .vue、.tsx 全部文件
+ * @param component 当前要处理项 component
+ * @returns 返回处理成函数后的 component
+ */
+export function dynamicImport(dynamicViewsModules: Record<string, Function>, component: string) {
+	const keys = Object.keys(dynamicViewsModules);
+	const matchKeys = keys.filter((key) => {
+		const k = key.replace(/..\/views|../, '');
+		const k0 = k.replace("ode_modules/@great-dream/", '')
+		const k1 = k0.replace("/plugins", '')
+		const newComponent = component.replace("plugins/", "")
+		return k1.startsWith(`${newComponent}`) || k1.startsWith(`/${newComponent}`);
+	});
+	if (matchKeys?.length === 1) {
+		const matchKey = matchKeys[0];
+		return dynamicViewsModules[matchKey];
+	}
+	if (matchKeys?.length > 1) {
+		return false;
+	}
+}
