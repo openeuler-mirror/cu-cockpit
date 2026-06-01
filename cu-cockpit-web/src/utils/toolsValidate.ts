@@ -136,3 +136,17 @@ export function verifyNumberComma(val: string) {
 	// 返回结果
 	return v;
 }
+
+/**
+ * 匹配文字变色（搜索时）
+ * @param val 当前值字符串
+ * @param text 要处理的字符串值
+ * @param color 搜索到时字体高亮颜色
+ * @returns 返回处理后的字符串
+ */
+export function verifyTextColor(val: string, text = '', color = 'red') {
+	// 返回内容，添加颜色
+	let v = text.replace(new RegExp(val, 'gi'), `<span style='color: ${color}'>${val}</span>`);
+	// 返回结果
+	return v;
+}
