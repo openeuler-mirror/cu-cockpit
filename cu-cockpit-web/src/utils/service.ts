@@ -190,3 +190,11 @@ function createRequestFunction(service: any) {
 		return service(configDefault);
 	};
 }
+
+// 用于真实网络请求的实例和请求方法
+export const service = createService();
+export const request = createRequestFunction(service);
+
+// 用于模拟网络请求的实例和请求方法
+export const serviceForMock = createService();
+export const requestForMock = createRequestFunction(serviceForMock);
