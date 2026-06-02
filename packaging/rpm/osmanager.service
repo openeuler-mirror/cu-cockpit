@@ -1,0 +1,18 @@
+[Unit]
+Description=Django runserver for cu-cockpit (OSManager)
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/opt/chinaunicom/osmanager
+EnvironmentFile=/opt/chinaunicom/osmanager/os.env
+ExecStart=/opt/chinaunicom/osmanager/start_osmanager.sh
+Restart=always
+RestartSec=2
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+

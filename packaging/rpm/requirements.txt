@@ -1,0 +1,8 @@
+# Runtime Python dependencies for OSManager
+# Django is installed via yum/dnf (python3-django), not via pip
+webssh>=1.6.2
+# djangorestframework>=3.16.0
+channels>=4.3.0
+daphne>=4.2.0
+django==5.2.8
+black==25.11.0
