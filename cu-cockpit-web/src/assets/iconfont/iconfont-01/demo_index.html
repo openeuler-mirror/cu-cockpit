@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="iconfont.css">
+    <style>
+        .icon-preview {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 20px;
+            padding: 20px;
+        }
+        .icon-item {
+            text-align: center;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+        }
+        .icon-item i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .icon-name {
+            font-size: 12px;
+            color: #666;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="icon-preview" id="iconContainer"></div>
+
+    <script>
+        // 自动提取所有图标类
+        function extractIcons() {
+            const styleSheets = document.styleSheets;
+            let icons = [];
+            
+            for (let sheet of styleSheets) {
+                try {
+                    for (let rule of sheet.cssRules) {
+                        if (rule.selectorText && rule.selectorText.includes(':before') && 
+                            rule.style && rule.style.content) {
+                            const className = rule.selectorText.split(':')[0];
+                            const unicode = rule.style.content.replace(/["']/g, '');
+                            icons.push({ className, unicode });
+                        }
+                    }
+                } catch (e) {
+                    console.log('无法读取某些样式规则');
+                }
+            }
+            
+            return icons;
+        }
+
+        // 显示所有图标
+        function displayIcons() {
+            const icons = extractIcons();
+            const container = document.getElementById('iconContainer');
+            
+            icons.forEach(icon => {
+                const item = document.createElement('div');
+                item.className = 'icon-item';
+                item.innerHTML = `
+                    <i class="iconfont + ${icon.className.replace('.', '')}"></i>
+                    <div class="icon-name">${icon.className}</div>
+                    <div class="icon-code">${icon.unicode}</div>
+                `;
+                console.log('----', item);
+                container.appendChild(item);
+            });
+        }
+
+        displayIcons();
+    </script>
+</body>
+</html>
