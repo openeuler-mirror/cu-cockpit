@@ -1,0 +1,268 @@
+{
+  "id": "5007568",
+  "name": "culinux",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "15714215",
+      "name": "电脑",
+      "font_class": "diannao2",
+      "unicode": "e625",
+      "unicode_decimal": 58917
+    },
+    {
+      "icon_id": "26587125",
+      "name": "秘钥",
+      "font_class": "miyue",
+      "unicode": "e674",
+      "unicode_decimal": 58996
+    },
+    {
+      "icon_id": "650809",
+      "name": "用户",
+      "font_class": "yonghu",
+      "unicode": "e6666",
+      "unicode_decimal": 943718
+    },
+    {
+      "icon_id": "3036563",
+      "name": "联通",
+      "font_class": "liantong",
+      "unicode": "e65e",
+      "unicode_decimal": 58974
+    },
+    {
+      "icon_id": "9874501",
+      "name": "KHCFDC_历史版本",
+      "font_class": "lishibanben",
+      "unicode": "e6d2",
+      "unicode_decimal": 59090
+    },
+    {
+      "icon_id": "27585559",
+      "name": "时长统计",
+      "font_class": "shichangtongji",
+      "unicode": "e608",
+      "unicode_decimal": 58888
+    },
+    {
+      "icon_id": "12931036",
+      "name": "bianhao",
+      "font_class": "bianhao1",
+      "unicode": "e611",
+      "unicode_decimal": 58897
+    },
+    {
+      "icon_id": "39998631",
+      "name": "制造商",
+      "font_class": "zhizaoshang1",
+      "unicode": "e629",
+      "unicode_decimal": 58921
+    },
+    {
+      "icon_id": "4464993",
+      "name": "产品",
+      "font_class": "chanpin",
+      "unicode": "e601",
+      "unicode_decimal": 58881
+    },
+    {
+      "icon_id": "8554249",
+      "name": "标签",
+      "font_class": "tubiao_biaoqian",
+      "unicode": "e62a",
+      "unicode_decimal": 58922
+    },
+    {
+      "icon_id": "9857480",
+      "name": "duration",
+      "font_class": "yunhangshichang",
+      "unicode": "e631",
+      "unicode_decimal": 58929
+    },
+    {
+      "icon_id": "36366103",
+      "name": "制造商",
+      "font_class": "zhizaoshang",
+      "unicode": "e668",
+      "unicode_decimal": 58984
+    },
+    {
+      "icon_id": "41061008",
+      "name": "编号",
+      "font_class": "bianhao",
+      "unicode": "e64e",
+      "unicode_decimal": 58958
+    },
+    {
+      "icon_id": "42687589",
+      "name": "资产标签",
+      "font_class": "zichanbiaoqian",
+      "unicode": "e9ff",
+      "unicode_decimal": 59903
+    },
+    {
+      "icon_id": "4016491",
+      "name": "服务器",
+      "font_class": "fuwuqi",
+      "unicode": "e6a4",
+      "unicode_decimal": 59044
+    },
+    {
+      "icon_id": "4657668",
+      "name": "存储",
+      "font_class": "cunchu",
+      "unicode": "e602",
+      "unicode_decimal": 58882
+    },
+    {
+      "icon_id": "18931515",
+      "name": "硬件信息",
+      "font_class": "yingjianxinxi",
+      "unicode": "e6dc",
+      "unicode_decimal": 59100
+    },
+    {
+      "icon_id": "37507641",
+      "name": "文字-F",
+      "font_class": "wenzi-F",
+      "unicode": "e616",
+      "unicode_decimal": 58902
+    },
+    {
+      "icon_id": "975376",
+      "name": "名称",
+      "font_class": "name",
+      "unicode": "e6b4",
+      "unicode_decimal": 59060
+    },
+    {
+      "icon_id": "1236850",
+      "name": "文件夹",
+      "font_class": "04",
+      "unicode": "e610",
+      "unicode_decimal": 58896
+    },
+    {
+      "icon_id": "1361523",
+      "name": "内存",
+      "font_class": "neicun",
+      "unicode": "e68e",
+      "unicode_decimal": 59022
+    },
+    {
+      "icon_id": "4131191",
+      "name": "挂载点",
+      "font_class": "guazaidian",
+      "unicode": "e7df",
+      "unicode_decimal": 59359
+    },
+    {
+      "icon_id": "6204785",
+      "name": "项目类型",
+      "font_class": "xiangmuleixing",
+      "unicode": "e65b",
+      "unicode_decimal": 58971
+    },
+    {
+      "icon_id": "7288813",
+      "name": "分区",
+      "font_class": "fenqu",
+      "unicode": "e604",
+      "unicode_decimal": 58884
+    },
+    {
+      "icon_id": "8813499",
+      "name": "挂载",
+      "font_class": "guazai",
+      "unicode": "e689",
+      "unicode_decimal": 59017
+    },
+    {
+      "icon_id": "9495521",
+      "name": "设备类型",
+      "font_class": "shebeileixing",
+      "unicode": "e62e",
+      "unicode_decimal": 58926
+    },
+    {
+      "icon_id": "18823452",
+      "name": "菜单-DMA分区",
+      "font_class": "DMAfenqu",
+      "unicode": "e612",
+      "unicode_decimal": 58898
+    },
+    {
+      "icon_id": "24272076",
+      "name": "设备类型",
+      "font_class": "shebeileixing1",
+      "unicode": "e68b",
+      "unicode_decimal": 59019
+    },
+    {
+      "icon_id": "25825255",
+      "name": "app icon_16_database",
+      "font_class": "a-appicon_16_database",
+      "unicode": "e665",
+      "unicode_decimal": 58981
+    },
+    {
+      "icon_id": "33385473",
+      "name": "文件柜_file-cabinet",
+      "font_class": "wenjiangui_file-cabinet",
+      "unicode": "e61b",
+      "unicode_decimal": 58907
+    },
+    {
+      "icon_id": "34008097",
+      "name": "主机",
+      "font_class": "zhuji",
+      "unicode": "e6b7",
+      "unicode_decimal": 59063
+    },
+    {
+      "icon_id": "34349281",
+      "name": "分区",
+      "font_class": "fenqu1",
+      "unicode": "11ca1",
+      "unicode_decimal": 72865
+    },
+    {
+      "icon_id": "42128396",
+      "name": "存储大小",
+      "font_class": "cunchudaxiao",
+      "unicode": "e63b",
+      "unicode_decimal": 58939
+    },
+    {
+      "icon_id": "43220786",
+      "name": "挂载",
+      "font_class": "guazai1",
+      "unicode": "e605",
+      "unicode_decimal": 58885
+    },
+    {
+      "icon_id": "44589710",
+      "name": "文件系统访问",
+      "font_class": "wenjianxitongfangwen",
+      "unicode": "e828",
+      "unicode_decimal": 59432
+    },
+    {
+      "icon_id": "45306223",
+      "name": "存储大小",
+      "font_class": "cunchudaxiao1",
+      "unicode": "e726",
+      "unicode_decimal": 59174
+    },
+    {
+      "icon_id": "2541679",
+      "name": "名称",
+      "font_class": "mingcheng",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    }
+  ]
+}
