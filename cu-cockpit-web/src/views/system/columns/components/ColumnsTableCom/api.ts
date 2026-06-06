@@ -1,0 +1,18 @@
+import { request } from '/@/utils/service';
+import { CurrentInfoType, AddColumnsDataType } from '../../types'
+
+export function getColumnsData(query: any) {
+	return request({
+		url: '/api/system/column/',
+		method: 'get',
+		params: query,
+	});
+}
+
+export function automatchColumnsData(data: CurrentInfoType) {
+	return request({
+		url: '/api/system/column/auto_match_fields/',
+		method: 'post',
+		data,
+	});
+}
