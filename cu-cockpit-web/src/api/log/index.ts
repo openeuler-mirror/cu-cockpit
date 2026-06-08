@@ -18,3 +18,10 @@ export const logs = (params: logParams) => {
         params
     });
 }
+
+export const getBoot = () => {
+    return request({
+        url: '/logs/boot/',
+        method: 'get',
+    });
+}
