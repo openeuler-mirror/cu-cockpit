@@ -13,3 +13,7 @@ interface TimeResponse {
     zone: string;
     ntp: string;
 }
+
+// 函数重载
+export function configGet(mode: 'sshkey'): Promise<SshKeyItem[]>;
+export function configGet(mode: 'gethostname' | 'get'): Promise<string>;
