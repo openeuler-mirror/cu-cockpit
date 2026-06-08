@@ -1,12 +1,10 @@
 <template>
-
   <!--   你的自定义受控组件-->
   <div>
     <el-tag :type="randomType">{{ data }}</el-tag>
   </div>
 </template>
 <script lang="ts" setup>
-
 import {watch, ref} from "vue";
 
 const props = defineProps({
