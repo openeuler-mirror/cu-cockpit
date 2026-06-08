@@ -6,3 +6,28 @@ import { request } from "/@/utils/service";
  * @method getMenuAdmin 获取后端动态路由菜单(admin)
  * @method getMenuTest 获取后端动态路由菜单(test)
  */
+export function useMenuApi() {
+	return {
+		getSystemMenu: (params?: object) => {
+			return request({
+				url: '/api/system/menu/web_router/',
+				method: 'get',
+				params,
+			});
+		},
+		getMenuAdmin: (params?: object) => {
+			return request({
+				url: '/gitee/lyt-top/vue-next-admin-images/raw/master/menu/adminMenu.json',
+				method: 'get',
+				params,
+			});
+		},
+		getMenuTest: (params?: object) => {
+			return request({
+				url: '/gitee/lyt-top/vue-next-admin-images/raw/master/menu/testMenu.json',
+				method: 'get',
+				params,
+			});
+		},
+	};
+}
