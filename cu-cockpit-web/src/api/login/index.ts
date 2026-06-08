@@ -14,3 +14,20 @@ import request from '/@/utils/request';
 // 				data: params,
 // 			});
 // 		},
+// 		signOut: (params: object) => {
+// 			return request({
+// 				url: '/user/signOut',
+// 				method: 'post',
+// 				data: params,
+// 			});
+// 		},
+// 	};
+// }
+
+//2025-0904
+export const signOut = () => {
+	return request({
+		url: '/auth/logout/',
+		method: 'post',
+	});
+}
