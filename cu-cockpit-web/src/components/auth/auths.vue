@@ -1,9 +1,8 @@
 <template>
-
 	<slot v-if="getUserAuthBtnList" />
 </template>
-<script setup lang="ts" name="auths">
 
+<script setup lang="ts" name="auths">
 import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useUserInfo } from '/@/stores/userInfo';
