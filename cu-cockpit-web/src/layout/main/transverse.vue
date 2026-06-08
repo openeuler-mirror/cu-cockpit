@@ -1,12 +1,11 @@
 <template>
-
 	<el-container class="layout-container flex-center layout-backtop">
 		<LayoutHeader />
 		<LayoutMain ref="layoutMainRef" />
 	</el-container>
 </template>
-<script setup lang="ts" name="layoutTransverse">
 
+<script setup lang="ts" name="layoutTransverse">
 import { defineAsyncComponent, ref, watch, nextTick, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';

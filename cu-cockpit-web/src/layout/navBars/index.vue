@@ -1,12 +1,11 @@
 <template>
-
 	<div class="layout-navbars-container">
 		<BreadcrumbIndex />
 		<TagsView v-if="setShowTagsView" />
 	</div>
 </template>
-<script setup lang="ts" name="layoutNavBars">
 
+<script setup lang="ts" name="layoutNavBars">
 import { defineAsyncComponent, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useThemeConfig } from '/@/stores/themeConfig';
@@ -25,5 +24,12 @@ const setShowTagsView = computed(() => {
 	return layout !== 'classic' && isTagsview;
 });
 </script>
+
 <style scoped lang="scss">
+.layout-navbars-container {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	height: 100%;
+}
 </style>
