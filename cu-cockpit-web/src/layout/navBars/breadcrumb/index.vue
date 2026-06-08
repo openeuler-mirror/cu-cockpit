@@ -1,5 +1,4 @@
 <template>
-
 	<div class="layout-navbars-breadcrumb-index">
 		<Logo v-if="setIsShowLogo" />
 		<Breadcrumb />
@@ -7,8 +6,8 @@
 		<User />
 	</div>
 </template>
-<script setup lang="ts" name="layoutBreadcrumbIndex">
 
+<script setup lang="ts" name="layoutBreadcrumbIndex">
 import { defineAsyncComponent, computed, reactive, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
@@ -96,5 +95,12 @@ onUnmounted(() => {
 	mittBus.off('getBreadcrumbIndexSetFilterRoutes', () => {});
 });
 </script>
+
 <style scoped lang="scss">
+.layout-navbars-breadcrumb-index {
+	height: 50px;
+	display: flex;
+	align-items: center;
+	background: var(--next-bg-topBar);
+}
 </style>
