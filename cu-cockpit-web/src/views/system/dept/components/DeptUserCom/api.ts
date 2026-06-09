@@ -20,3 +20,17 @@ export function GetList(query: GetListType) {
 		params: query,
 	});
 }
+export function GetObj(id: InfoReq) {
+	return request({
+		url: apiPrefix + id,
+		method: 'get',
+	});
+}
+
+export function AddObj(obj: AddReq) {
+	return request({
+		url: apiPrefix,
+		method: 'post',
+		data: obj,
+	});
+}
