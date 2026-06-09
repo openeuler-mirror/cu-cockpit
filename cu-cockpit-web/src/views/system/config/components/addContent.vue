@@ -47,12 +47,116 @@
 	</div>
 </template>
 <script setup lang="ts">
+
 import * as api from '../api';
 import associationTable from './components/associationTable.vue';
 import {ref, reactive, onMounted, inject} from 'vue';
 import type { FormInstance, FormRules } from 'element-plus';
 import { successMessage } from '/@/utils/message';
 import { dictionary } from '/@/utils/dictionary';
+let form: any = reactive({
+	parent: null,
+	title: null,
+	key: null,
+	form_item_type: '',
+	rule: null,
+	placeholder: null,
+});
+const formRef = ref<FormInstance>();
+const associationTableRef: any = ref<FormInstance>();
+const rules = reactive<FormRules>({
+	parent: [
+		{
+			required: true,
+			message: '请选择',
+		},
+	],
+	title: [
+		{
+			required: true,
+			message: '请输入',
+		},
+	],
+	key: [
+		{
+			required: true,
+			message: '请输入',
+		},
+		{
+			pattern: /^[A-Za-z0-9_]+$/,
+			message: '请输入数字、字母或下划线',
+		},
+	],
+	form_item_type: [
+		{
+			required: true,
+			message: '请输入',
+		},
+	],
+});
+let parentOptions: any = ref([]);
+let ruleOptions = ref([
+	{
+		label: '必填项',
+		value: '{"required": true, "message": "必填项不能为空"}',
+	},
+	{
+		label: '邮箱',
+		value: '{ "type": "email", "message": "请输入正确的邮箱地址"}',
+	},
+	{
+		label: 'URL地址',
+		value: '{ "type": "url", "message": "请输入正确的URL地址"}',
+	},
+]);
+const getParent = () => {
+	api
+		.GetList({
+			parent__isnull: true,
+			limit: 999,
+		})
+		.then((res: any) => {
+			parentOptions.value = res.data;
+		});
+};
+
+const refreshView:any = inject('refreshView')
+const onSubmit = async (formEl: FormInstance | undefined) => {
+	if (!formEl) return;
+	await formEl.validate((valid, fields) => {
+		if (valid) {
+			api.AddObj(form).then((res: any) => {
+				if (res.code == 2000) {
+          successMessage('新增成功');
+          refreshView()
+        }
+			});
+		} else {
+			console.log('error submit!', fields);
+		}
+	});
+};
+
+// 关联表数据更新
+const associationTableUpdate = () => {
+	return new Promise(function (resolve, reject) {
+		if (associationTableRef) {
+			if (!associationTableRef.onSubmit()) {
+				// eslint-disable-next-line prefer-promise-reject-errors
+				return reject(false);
+			}
+			const { formObj } = associationTableRef;
+			form.setting = formObj;
+			return resolve(true);
+		} else {
+			return resolve(true);
+		}
+	});
+};
+
+onMounted(() => {
+	getParent();
+});
 </script>
 <style>
 </style>
