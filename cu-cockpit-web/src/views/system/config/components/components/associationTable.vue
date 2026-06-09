@@ -1,5 +1,4 @@
 <template>
-
 	<div>
 		<el-form :model="formObj" ref="associationRef">
 			<el-form-item label="关联表" prop="table" :rules="[{ required: true, message: '必填项', trigger: 'blur' }]">
@@ -37,8 +36,8 @@
 		</el-form>
 	</div>
 </template>
-<script setup lang="ts">
 
+<script setup lang="ts">
 import * as api from '../../api';
 import { ref, reactive, onMounted } from 'vue';
 import type { FormInstance, FormRules } from 'element-plus';
@@ -101,5 +100,5 @@ const onSubmit = () => {
 	return res;
 };
 </script>
-<style>
-</style>
+
+<style></style>
