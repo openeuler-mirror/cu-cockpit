@@ -22,6 +22,10 @@ export const createCrudOptions = function ({ crudExpose, context }: CreateCrudOp
 		// });
 		return res;
 	};
+	const editRequest = async ({ form, row }: EditReq) => {
+		form.id = row.id;
+		return await api.UpdateObj(form);
+	};
     return {
         crudOptions: {
         },
