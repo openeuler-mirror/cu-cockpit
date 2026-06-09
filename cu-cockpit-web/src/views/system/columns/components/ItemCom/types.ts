@@ -19,3 +19,11 @@ export interface RoleItemType {
   admin: boolean;
   creator: string;
 }
+
+export interface RoleInfoStateType {
+  current: string;
+  page: number;
+  limit: number;
+  data: any[],
+  total: number;
+}
