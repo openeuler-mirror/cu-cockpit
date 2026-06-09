@@ -10,6 +10,7 @@
 			
 </template>
 <script setup lang="ts" name="layoutBreadcrumbUser">
+
 import { defineAsyncComponent, ref, computed, reactive, onMounted, unref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessageBox, ElMessage } from 'element-plus';
@@ -25,8 +26,53 @@ import { Session, Local } from '/@/utils/storage';
 import headerImage from '/@/assets/img/headerImage.png';
 import { InfoFilled } from '@element-plus/icons-vue';
 import { signOut } from '/@/api/login/index'
-import { messageCenterStore } from '/@/stores/messageCenter';
-import { getBaseURL } from '/@/utils/baseUrl';
+// 引入组件
+const UserNews = defineAsyncComponent(() => import('/@/layout/navBars/breadcrumb/userNews.vue'));
+const Search = defineAsyncComponent(() => import('/@/layout/navBars/breadcrumb/search.vue'));
+
+// 定义变量内容
+const { locale, t } = useI18n();
+const router = useRouter();
+const stores = useUserInfo();
+const storesThemeConfig = useThemeConfig();
+const storesUserPermissiom=userPermissiom();
+const { userInfos } = storeToRefs(stores);
+const { u_Permission } =storeToRefs(storesUserPermissiom);
+const { themeConfig } = storeToRefs(storesThemeConfig);
+const searchRef = ref();
+const state = reactive({
+	isScreenfull: false,
+	disabledI18n: 'zh-cn',
+	disabledSize: 'large',
+});
+const permissionsRef = ref();
+// 设置分割样式
+const layoutUserFlexNum = computed(() => {
+	let num: string | number = '';
+	const { layout, isClassicSplitMenu } = themeConfig.value;
+	const layoutArr: string[] = ['defaults', 'columns'];
+	if (layoutArr.includes(layout) || (layout === 'classic' && !isClassicSplitMenu)) num = '1';
+	else num = '';
+	return num;
+});
+
+// 全屏点击时
+const onScreenfullClick = () => {
+	if (!screenfull.isEnabled) {
+		ElMessage.warning('暂不不支持全屏');
+		return false;
+	}
+	screenfull.toggle();
+	screenfull.on('change', () => {
+		if (screenfull.isFullscreen) state.isScreenfull = true;
+		else state.isScreenfull = false;
+	});
+};
+// 布局配置 icon 点击时
+const onLayoutSetingClick = () => {
+	mittBus.emit('openSetingsDrawer');
+};
+// 下拉菜单点击时
 </script>
 <style scoped lang="scss">
 </style>
