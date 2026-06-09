@@ -28,8 +28,71 @@
 	</div>
 </template>
 <script lang="ts" setup>
+
 import { reactive, onMounted } from 'vue';
 import { RoleInfoStateType } from './types';
+
+const props = defineProps({
+	type: {
+		type: String,
+		default: 'role',
+	},
+	title: {
+		type: String,
+		default: '标题',
+	},
+	label: {
+		type: String,
+		default: 'name',
+	},
+	value: {
+		type: String,
+		default: 'id',
+	},
+	showPagination: {
+		type: Boolean,
+		default: false,
+	},
+});
+const emit = defineEmits(['fetchData', 'itemClick']);
+
+const state = reactive<RoleInfoStateType>({
+	current: '',
+	page: 1,
+	limit: 20,
+	data: [],
+	total: 10,
+});
+
+const fetchData = () => {
+	emit(
+		'fetchData',
+		{
+			page: state.page,
+			limit: state.limit,
+		},
+		(res: { code: number; data: any[]; total: number }) => {
+			if (res?.code === 2000) {
+				state.data = res.data;
+				state.total = res?.total || 10;
+			}
+		}
+	);
+};
+
+const handleClick = (record: any) => {
+	state.current = record[props.value];
+	emit('itemClick', props.type, record);
+};
+
+const handleCurrentChange = (page: number) => {
+	state.page = page;
+	fetchData();
+};
+
+onMounted(() => {
+	fetchData();
+});
 </script>
 <style lang="scss" scoped>
 </style>
