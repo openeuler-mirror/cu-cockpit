@@ -14,9 +14,39 @@
     </el-card>
 </template>
 <script lang="ts" setup name="overviewHeader">
+
 import { onMounted, ref } from 'vue';
 import { hardInfo } from '/@/api/run/run';
 import { configGet } from '/@/api/config/config';
+
+const descriptions = [
+    { key: 'host_name', icon: 'icon-diannao2', color: '#0066FF' },
+    { key: 'os_name', icon: 'icon-liantong', color: '#F10033' },
+    { key: 'os_version', icon: 'icon-lishibanben', color: '#FF9900' },
+];
+interface System {
+    host_name: string;
+    os_name: string;
+    os_version: string;
+}
+const system = ref<System>({
+    host_name: '',
+    os_name: '',
+    os_version: '',
+});
+const getHardInfo = () => {
+    hardInfo('os_system').then((res) => {
+        system.value.os_name = res.os_system.os_name;
+        system.value.os_version = res.os_system.os_version;
+    });
+    configGet('gethostname').then((res) => {
+        system.value.host_name = res;
+    });
+};
+
+onMounted(() => {
+    getHardInfo();
+});
 </script>
 <style scoped lang="scss">
 </style>
