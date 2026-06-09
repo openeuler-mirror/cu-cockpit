@@ -16,6 +16,12 @@ export const createCrudOptions = function ({crudExpose, context}: CreateCrudOpti
             return undefined;
         }
     };
+    const editRequest = async ({form, row}: EditReq) => {
+        return await api.UpdateObj({...form, menu: row.menu});
+    };
+    const delRequest = async ({row}: DelReq) => {
+        return await api.DelObj(row.id);
+    };
     return {
         crudOptions: {
         },
