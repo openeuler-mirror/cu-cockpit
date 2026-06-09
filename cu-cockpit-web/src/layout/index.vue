@@ -1,9 +1,8 @@
 <template>
-
 	<component :is="layouts[themeConfig.layout]" />
 </template>
-<script setup lang="ts" name="layout">
 
+<script setup lang="ts" name="layout">
 import { onBeforeMount, onUnmounted, defineAsyncComponent } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useThemeConfig } from '/@/stores/themeConfig';
