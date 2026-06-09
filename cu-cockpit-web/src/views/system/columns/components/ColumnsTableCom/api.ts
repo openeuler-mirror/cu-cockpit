@@ -16,3 +16,11 @@ export function automatchColumnsData(data: CurrentInfoType) {
 		data,
 	});
 }
+
+export function addColumnsData(data: AddColumnsDataType) {
+	return request({
+		url: '/api/system/column/',
+		method: 'post',
+		data
+	});
+}
