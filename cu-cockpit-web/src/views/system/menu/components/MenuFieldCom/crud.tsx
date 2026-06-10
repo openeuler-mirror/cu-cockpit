@@ -22,6 +22,9 @@ export const createCrudOptions = function ({ crudExpose, props,modelDialog,selec
 		form.id = row.id;
 		return await api.UpdateObj(form);
 	};
+	const delRequest = async ({ row }: DelReq) => {
+		return await api.DelObj(row.id);
+	};
     return {
         crudOptions: {
         },
