@@ -29,10 +29,24 @@
 	</div>
 </template>
 <script setup lang="ts">
+
 import { ElMessage } from 'element-plus';
 import { RoleDrawerStores } from '../stores/RoleDrawerStores';
 import { RoleMenuFieldStores, RoleMenuFieldHeaderStores } from '../stores/RoleMenuFieldStores';
 import { setRoleMenuField } from './api';
+const RoleMenuField = RoleMenuFieldStores();
+const RoleMenuFieldHeader = RoleMenuFieldHeaderStores();
+const RoleDrawer = RoleDrawerStores(); // 角色-抽屉
+/** 全选 */
+const handleColumnChange = (val: boolean, btnType: string, disabledType: string) => {
+	for (const iterator of RoleMenuField.$state) {
+		iterator[btnType] = iterator[disabledType] ? iterator[btnType] : val;
+	}
+};
+const handleSaveField = async () => {
+	const res = await setRoleMenuField(RoleDrawer.$state.roleId, RoleMenuField.$state);
+	ElMessage({ message: res.msg, type: 'success' });
+};
 </script>
 <style lang="scss" scoped>
 </style>
