@@ -25,3 +25,26 @@ export function setRoleMenu(data: object) {
 		data,
 	});
 }
+/**
+ * 获取 角色-菜单-按钮-列字段
+ * @param query
+ */
+export function getRoleMenuBtnField(query: object) {
+	return request({
+		url: '/api/system/role_menu_button_permission/get_role_menu_btn_field/',
+		method: 'get',
+		params: query,
+	});
+}
+
+/**
+ * 设置 角色-菜单-按钮
+ * @param data
+ */
+export function setRoleMenuBtn(data: object) {
+	return request({
+		url: '/api/system/role_menu_button_permission/set_role_menu_btn/',
+		method: 'put',
+		data,
+	});
+}
