@@ -1,13 +1,36 @@
-<template #footer>
+<template>
+	<el-dialog v-model="dialog" title="添加授权用户" direction="rtl" destroy-on-close :before-close="handleDialogClose">
+		<div style="height: 500px;" >
+			<fs-crud ref="crudRef" v-bind="crudBinding">
+				<template #pagination-right>
+					<el-popover placement="top" :width="200" trigger="click">
+						<template #reference>
+							<el-button text :type="selectedRowsCount > 0 ? 'primary' : ''">已选中{{ selectedRowsCount }}条数据</el-button>
+						</template>
+						<el-table :data="selectedRows" size="small" :max-height="500">
+							<!-- <el-table-column width="100" property="id" label="id" /> -->
+							<el-table-column width="100" property="name" label="用户名" />
+							<el-table-column fixed="right" label="操作" min-width="50">
+								<template #default="scope">
+									<el-button text type="info" :icon="Close" @click="removeSelectedRows(scope.row)" circle />
+								</template>
+							</el-table-column>
+						</el-table>
+					</el-popover>
+				</template>
 
+			</fs-crud>
+		</div>
+		<template #footer>
 			<div>
 				<el-button type="primary" @click="handleDialogConfirm"> 确定</el-button>
 				<el-button @click="handleDialogClose"> 取消</el-button>
 			</div>
-		
+		</template>
+	</el-dialog>
 </template>
-<script lang="ts" setup>
 
+<script lang="ts" setup>
 import { ref, computed } from 'vue';
 import { useFs } from '@fast-crud/fast-crud';
 import { createCrudOptions } from './crud';
