@@ -22,6 +22,12 @@ export const createCrudOptions = function ({ crudExpose, context }: CreateCrudOp
   const editRequest = async ({ form, row }: EditReq) => {
     return undefined;
   };
+  const delRequest = async ({ row }: DelReq) => {
+    return undefined;
+  };
+  const addRequest = async ({ form }: AddReq) => {
+    return undefined;
+  };
     return {
         crudOptions: {
         },
