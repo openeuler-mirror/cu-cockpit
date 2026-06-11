@@ -1,5 +1,4 @@
 <template>
-
 	<el-transfer
 		v-model="RoleUsers.$state.right_users"
 		filterable
@@ -12,8 +11,8 @@
 		@change="handleChange"
 	/>
 </template>
-<script lang="ts" setup>
 
+<script lang="ts" setup>
 import { ElMessage } from 'element-plus';
 import { RoleDrawerStores } from '../stores/RoleDrawerStores';
 import { RoleUsersStores } from '../stores/RoleUsersStores';
