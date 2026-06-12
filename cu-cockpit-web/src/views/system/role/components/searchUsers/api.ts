@@ -27,3 +27,18 @@ export function removeRoleUser(role_id: number, user_id: Array<number>) {
 		data: {user_id: user_id},
 	});
 }
+
+
+/**
+ * 当前用户角色添加用户
+ * @param role_id 角色id
+ * @param data 用户id数组
+ * @returns
+ */
+export function addRoleUsers(role_id: number, data: Array<Number>) {
+	return request({ 
+		url: `/api/system/role/${role_id}/add_role_users/`,
+		method: 'post',
+		data: {users_id: data},
+	});
+}
