@@ -1,12 +1,10 @@
 <template>
-
   <!--   你的自定义受控组件-->
   <div>
     <el-tag class="many-to-many-tag" :type="randomType" v-for="(item,index) in data" :key="index">{{item}}</el-tag>
   </div>
 </template>
 <script lang="ts" setup>
-
 import {watch, ref} from "vue";
 
 const props = defineProps({
@@ -39,4 +37,10 @@ const randomType = (): string => {
 }
 </script>
 <style scoped>
+.many-to-many-tag{
+  margin-right: 5px;
+}
+.many-to-many-tag:last-child {
+  margin-right: 0;
+}
 </style>
