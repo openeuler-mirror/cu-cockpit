@@ -1,5 +1,4 @@
 <template>
-
 	<el-container class="layout-container flex-center">
 		<LayoutHeader />
 		<el-container class="layout-mian-height-50">
@@ -11,8 +10,8 @@
 		</el-container>
 	</el-container>
 </template>
-<script setup lang="ts" name="layoutClassic">
 
+<script setup lang="ts" name="layoutClassic">
 import { defineAsyncComponent, computed, ref, watch, nextTick, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';

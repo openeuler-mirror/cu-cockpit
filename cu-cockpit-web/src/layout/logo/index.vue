@@ -1,5 +1,4 @@
 <template>
-
 	<div class="layout-logo" v-if="setShowLogo" @click="onThemeConfigChange">
 		<img :src="siteLogo" class="layout-logo-medium-img" />
 		<span>{{ getSystemConfig['login.site_title'] || themeConfig.globalTitle }}</span>
@@ -8,8 +7,8 @@
 		<img :src="siteLogo" class="layout-logo-size-img" />
 	</div>
 </template>
-<script setup lang="ts" name="layoutLogo">
 
+<script setup lang="ts" name="layoutLogo">
 import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useThemeConfig } from '/@/stores/themeConfig';
@@ -45,8 +44,8 @@ const siteLogo = computed(() => {
 });
 
 </script>
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 .layout-logo {
 	width: 220px;
 	height: 50px;
