@@ -144,4 +144,49 @@ onMounted(() => {
 });
 </script>
 <style scoped lang="scss">
+
+.notice-bar {
+	padding: 0 15px;
+	width: 100%;
+	border-radius: 4px;
+	.notice-bar-warp {
+		display: flex;
+		align-items: center;
+		width: 100%;
+		height: inherit;
+		.notice-bar-warp-text-box {
+			flex: 1;
+			height: inherit;
+			display: flex;
+			align-items: center;
+			overflow: hidden;
+			position: relative;
+			.notice-bar-warp-text {
+				white-space: nowrap;
+				position: absolute;
+				left: 0;
+			}
+			.notice-bar-warp-slot {
+				width: 100%;
+				white-space: nowrap;
+				:deep(.el-carousel__item) {
+					display: flex;
+					align-items: center;
+				}
+			}
+		}
+		.notice-bar-warp-left-icon {
+			width: 24px;
+			font-size: inherit !important;
+		}
+		.notice-bar-warp-right-icon {
+			width: 24px;
+			text-align: right;
+			font-size: inherit !important;
+			&:hover {
+				cursor: pointer;
+			}
+		}
+	}
+}
 </style>
