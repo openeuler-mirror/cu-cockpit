@@ -1,5 +1,4 @@
 <template>
-
 	<i v-if="isShowIconSvg" class="el-icon" :style="setIconSvgStyle">
 		<component :is="getIconName" />
 	</i>
@@ -8,8 +7,8 @@
 	</div>
 	<i v-else :class="getIconName" :style="setIconSvgStyle" />
 </template>
-<script setup lang="ts" name="svgIcon">
 
+<script setup lang="ts" name="svgIcon">
 import { computed } from 'vue';
 
 // 定义父组件传过来的值

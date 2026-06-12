@@ -1,5 +1,4 @@
 <template>
-
 	<div class="layout-padding layout-padding-unset layout-iframe">
 		<div class="layout-padding-auto layout-padding-view">
 			<div class="w100" v-for="v in setIframeList" :key="v.path" v-loading="v.meta.loading" element-loading-background="white">
@@ -20,8 +19,8 @@
 		</div>
 	</div>
 </template>
-<script setup lang="ts" name="layoutIframeView">
 
+<script setup lang="ts" name="layoutIframeView">
 import { computed, watch, ref, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import {cookie} from "xe-utils";
