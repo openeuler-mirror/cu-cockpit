@@ -153,4 +153,29 @@ defineExpose({
 });
 </script>
 <style scoped lang="scss">
+
+.table-container {
+	display: flex;
+	flex-direction: column;
+	.el-table {
+		flex: 1;
+	}
+	.table-footer {
+		display: flex;
+		.table-footer-tool {
+			flex: 1;
+			display: flex;
+			align-items: center;
+			justify-content: flex-end;
+			i {
+				margin-right: 10px;
+				cursor: pointer;
+				color: var(--el-text-color-regular);
+				&:last-of-type {
+					margin-right: 0;
+				}
+			}
+		}
+	}
+}
 </style>
