@@ -1,8 +1,93 @@
 <template>
-
-</template>
-<script lang="ts" setup>
-
+    <div style="width: 100%; height: 100%;">
+      <div class="selected-show" v-if="props.modelValue && props.selectable">
+        <el-text>已选择:</el-text>
+        <el-tag v-if="props.multiple" v-for="item in data" closable @close="handleTagClose(item)">
+          {{ item.toLocaleDateString('en-CA') }}
+        </el-tag>
+        <el-tag v-else closable @close="handleTagClose(data)">{{ data?.toLocaleDateString('en-CA') }}</el-tag>
+        <el-button v-if="props.modelValue" size="small" type="text" @click="clear">清空</el-button>
+      </div>
+      <div class="controls">
+        <div>
+          今天：<el-text size="large">{{ today.toLocaleDateString('en-CA') }}</el-text>
+        </div>
+        <!-- <div class="current-month">
+          <el-tag size="large" type="primary">
+            {{ currentCalendarDate.getFullYear() }}年{{ currentCalendarDate.getMonth() + 1 }}月
+          </el-tag>
+        </div> -->
+        <div class="control-button" v-if="!(!!props.range && props.range[0] && props.range[1]) && props.showPageTurn">
+          <el-button-group size="small" type="default" v-if="props.pageTurn">
+            <el-popover trigger="click" width="160px">
+              <template #reference>
+                <el-button type="text" size="small">节假日设置</el-button>
+              </template>
+              <el-switch v-model="showHoliday" active-text="显示节日" inactive-text="关闭节日" inline-prompt />
+              <el-checkbox v-model="showLunarHoliday" label="农历节日" />
+              <el-checkbox v-model="showJieQi" label="节气" />
+              <el-checkbox v-model="showDetailedHoliday" label="更多节日" />
+            </el-popover>
+            <el-button icon="DArrowLeft" @click="turnToPreY">上年</el-button>
+            <el-button icon="ArrowLeft" @click="turnToPreM">上月</el-button>
+            <el-button @click="turnToToday">今天</el-button>
+            <el-button icon="ArrowRight" @click="turnToNextM">下月</el-button>
+            <el-button icon="DArrowRight" @click="turnToNextY">下年</el-button>
+          </el-button-group>
+        </div>
+      </div>
+      <el-divider style="margin: 4px;" />
+      <div class="calender">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th class="calender-header" v-for="item, ind in ['日', '一', '二', '三', '四', '五', '六']" :key="ind">
+                {{ item }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="week in calendarList">
+              <td class="calender-td" v-for="item in week">
+                <div class="calender-cell" :data-date="item.date.toLocaleDateString('en-CA')" :class="{
+                  'no-current-month': item.date.getMonth() !== currentCalendarDate.getMonth(),
+                  'today': item.date.toDateString() === today.toDateString(),
+                  'selected': item.selected,
+                  'disabled': item.disabled,
+                }" @mouseenter="onCalenderCellHover" @mouseleave="onCalenderCellUnhover"
+                  @click="(e: MouseEvent) => item.disabled ? null : onCalenderCellClick(e)">
+                  <div class="calender-cell-header calender-cell-line">
+                    <span>{{ item.date.getDate() }}</span>
+                    <span v-if="item.selected">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 1024 1024">
+                        <path fill="currentColor"
+                          d="M77.248 415.04a64 64 0 0 1 90.496 0l226.304 226.304L846.528 188.8a64 64 0 1 1 90.56 90.496l-543.04 543.04-316.8-316.8a64 64 0 0 1 0-90.496z">
+                        </path>
+                      </svg>
+                    </span>
+                  </div>
+                  <div class="calender-cell-body calender-cell-line">
+                    <slot name="cell-body" v-bind="item">
+                    </slot>
+                  </div>
+                  <div class="calender-cell-footer calender-cell-line">
+                    <span>{{ item.holiday || '&nbsp;' }}</span>
+                    <el-text v-if="item.date.toDateString() === today.toDateString()" type="danger">今天</el-text>
+                  </div>
+                  <!-- {{ item }} -->
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="watermark" v-if="props.watermark" :style="watermarkPositionMap[props.watermarkPosition]">
+          {{ (currentCalendarDate.toLocaleDateString('en-CA').split('-').slice(0, 2)).join('-') }}
+        </div>
+      </div>
+    </div>
+  </template>
+  
+  <script lang="ts" setup>
   import { useUi } from '@fast-crud/fast-crud';
   import { ref, defineProps, PropType, watch, computed, onMounted } from 'vue';
   import Holidays from 'date-holidays';
@@ -209,7 +294,110 @@
   });
   
   
+  </script>
   
-</script>
-<style lang="scss" scoped>
-</style>
+  <style lang="scss" scoped>
+  .selected-show {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .controls {
+    width: 100%;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .calender {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+  
+    .watermark {
+      position: absolute;
+      font-size: 16px;
+      transform: scale(10);
+      color: #aaa;
+      opacity: 0.1;
+      pointer-events: none;
+    }
+  
+    table {
+      position: relative;
+    }
+  
+    .calender-header {
+      padding: 16px 0;
+    }
+  
+    .calender-td {
+      border: 1px solid #eee;
+      width: calc(100% / 7);
+    }
+  
+    .calender-cell {
+      min-height: 96px;
+      min-width: 100px;
+      box-sizing: border-box;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+  
+      &.today {
+        color: var(--el-color-warning) !important;
+        background-color: var(--el-color-warning-light-9) !important;
+      }
+  
+      &.onhover {
+        color: var(--el-color-primary);
+        background-color: var(--el-color-primary-light-9);
+      }
+  
+      &.disabled {
+        cursor: not-allowed;
+        color: #bbb;
+        background: none;
+      }
+  
+      &.no-current-month {
+        color: #bbb;
+      }
+  
+      &.selected {
+        color: var(--el-color-primary);
+        background-color: var(--el-color-primary-light-9);
+      }
+  
+      .calender-cell-line {
+        min-height: 0px;
+  
+        &.calender-cell-header {
+          display: flex;
+          gap: 4px;
+          align-items: center;
+          pointer-events: none;
+        }
+  
+        &.calender-cell-body {
+          display: flex;
+          gap: 4px;
+          align-items: center;
+        }
+  
+        &.calender-cell-footer {
+          display: flex;
+          justify-content: space-between;
+          pointer-events: none;
+        }
+      }
+    }
+  }
+  </style>
+  
