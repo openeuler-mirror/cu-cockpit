@@ -35,3 +35,15 @@ export const check = () => {
     method: 'get',
   });
 }
+
+/**
+ * 获取终端token
+ * @returns 
+ */
+export const getToken = () => {
+  return request({
+    url: '/terminal/token',
+    method: 'get',
+  });
+}
+
