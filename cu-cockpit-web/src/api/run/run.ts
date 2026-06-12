@@ -37,3 +37,21 @@ interface MemoryItem {
   Rank: string;
   速度: string;
 }
+
+/**
+ * 获取内存插槽列表
+ * @returns 
+ */
+export const memorySlot = (): Promise<MemoryItem[]> => {
+    return request({
+        url: '/rescrouce/monitor/memory_slot.sh',
+        method: 'get',
+    });
+}
+
+interface PciItem {
+  等级: string;
+  型号: string;
+  厂商: string;
+  插槽: string;
+}
