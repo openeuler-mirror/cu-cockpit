@@ -17,3 +17,12 @@ interface TimeResponse {
 // 函数重载
 export function configGet(mode: 'sshkey'): Promise<SshKeyItem[]>;
 export function configGet(mode: 'gethostname' | 'get'): Promise<string>;
+export function configGet(mode: 'time'): Promise<TimeResponse>;
+export function configGet(mode: ModeType, key?: string): Promise<unknown>;
+export function configGet(mode: ModeType, key?: string): Promise<unknown> {
+    return request({
+        url: '/config/get/config.sh',
+        method: 'get',
+        params: { mode, key }
+    });
+}
