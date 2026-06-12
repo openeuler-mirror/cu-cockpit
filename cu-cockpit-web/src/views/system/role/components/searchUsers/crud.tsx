@@ -23,6 +23,12 @@ export const createCrudOptions = function ({ crudExpose, context }: CreateCrudOp
   const editRequest = async ({ form, row }: EditReq) => {
     return undefined;
   };
+  const delRequest = async ({ row }: DelReq) => {
+    return await removeRoleUser(crudExpose.crudRef.value.getSearchFormData().role_id, [row.id]);
+  };
+  const addRequest = async ({ form }: AddReq) => {
+    return undefined;
+  };
     return {
         crudOptions: {
         },
