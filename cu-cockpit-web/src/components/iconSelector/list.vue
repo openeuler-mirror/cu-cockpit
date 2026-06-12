@@ -43,4 +43,43 @@ const onColClick = (v: unknown | string) => {
 };
 </script>
 <style scoped lang="scss">
+
+.icon-selector-warp-row {
+	height: 230px;
+	overflow: hidden;
+	.el-row {
+		padding: 15px;
+	}
+	.el-scrollbar__bar.is-horizontal {
+		display: none;
+	}
+	.icon-selector-warp-item {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border: 1px solid var(--el-border-color);
+		border-radius: 5px;
+		margin-bottom: 10px;
+		height: 30px;
+		i {
+			font-size: 20px;
+			color: var(--el-text-color-regular);
+		}
+		&:hover {
+			cursor: pointer;
+			background-color: var(--el-color-primary-light-9);
+			border: 1px solid var(--el-color-primary-light-5);
+			i {
+				color: var(--el-color-primary);
+			}
+		}
+	}
+	.icon-selector-active {
+		background-color: var(--el-color-primary-light-9);
+		border: 1px solid var(--el-color-primary-light-5);
+		i {
+			color: var(--el-color-primary);
+		}
+	}
+}
 </style>
