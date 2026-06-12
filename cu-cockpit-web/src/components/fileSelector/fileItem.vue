@@ -42,4 +42,46 @@ defineExpose({});
 onMounted(() => { });
 </script>
 <style scoped>
+
+.file-item {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-items: center;
+}
+
+.file-item>* {
+  width: 100% !important;
+}
+
+.file-name {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 4px 12px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  word-break: break-all;
+  white-space: normal;
+  color: white;
+  background-color: rgba(0, 0, 0, .5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-del {
+  display: none;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  justify-content: flex-end;
+}
+
+.show {
+  display: flex !important;
+}
 </style>
