@@ -1,5 +1,4 @@
 <template>
-
 	<el-container class="layout-container">
 		<ColumnsAside />
 		<el-container class="layout-columns-warp layout-container-view h100">
@@ -11,8 +10,8 @@
 		</el-container>
 	</el-container>
 </template>
-<script setup lang="ts" name="layoutColumns">
 
+<script setup lang="ts" name="layoutColumns">
 import { defineAsyncComponent, watch, onMounted, nextTick, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';

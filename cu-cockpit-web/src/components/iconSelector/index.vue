@@ -109,4 +109,99 @@ const fontIconSheetsFilterList = computed(() => {
 	});
 });
 // 根据 tab name 类型设置图标
+const fontIconTabNameList = () => {
+	let iconList: any = [];
+	if (state.fontIconTabActive === 'ali') iconList = state.fontIconList.ali;
+	else if (state.fontIconTabActive === 'ele') iconList = state.fontIconList.ele;
+	else if (state.fontIconTabActive === 'awe') iconList = state.fontIconList.awe;
+	return iconList;
+};
+// 处理 icon 双向绑定数值回显
+const initModeValueEcho = () => {
+	if (props.modelValue === '') return ((<string | undefined>state.fontIconPlaceholder) = props.placeholder);
+	(<string | undefined>state.fontIconPlaceholder) = props.modelValue;
+	(<string | undefined>state.fontIconPrefix) = props.modelValue;
+};
+// 处理 icon 类型，用于回显时，tab 高亮与初始化数据
+const initFontIconName = () => {
+	let name = 'ali';
+	if (props.modelValue!.indexOf('iconfont') > -1) name = 'ali';
+	else if (props.modelValue!.indexOf('ele-') > -1) name = 'ele';
+	else if (props.modelValue!.indexOf('fa') > -1) name = 'awe';
+	// 初始化 tab 高亮回显
+	state.fontIconTabActive = name;
+	return name;
+};
+// 初始化数据
+const initFontIconData = async (name: string) => {
+	if (name === 'ali') {
+		// 阿里字体图标使用 `iconfont xxx`
+		if (state.fontIconList.ali.length > 0) return;
+		await initIconfont.ali().then((res: any) => {
+			state.fontIconList.ali = res.map((i: string) => `iconfont ${i}`);
+		});
+	} else if (name === 'ele') {
+		// element plus 图标
+		if (state.fontIconList.ele.length > 0) return;
+		await initIconfont.ele().then((res: any) => {
+			state.fontIconList.ele = res;
+		});
+	} else if (name === 'awe') {
+		// fontawesome字体图标使用 `fa xxx`
+		if (state.fontIconList.awe.length > 0) return;
+		await initIconfont.awe().then((res: any) => {
+			state.fontIconList.awe = res.map((i: string) => `fa ${i}`);
+		});
+	}
+	// 初始化 input 的 placeholder
+	// 参考（单项数据流）
+	state.fontIconPlaceholder = props.placeholder;
+	// 初始化双向绑定回显
+	initModeValueEcho();
+};
+// 图标点击切换
+const onIconClick = (pane: TabsPaneContext) => {
+	initFontIconData(pane.paneName as string);
+	inputWidthRef.value.focus();
+};
+// 获取当前点击的 icon 图标
+const onColClick = (v: string) => {
+	state.fontIconPlaceholder = v;
+	state.fontIconPrefix = v;
+	emit('get', state.fontIconPrefix);
+	emit('update:modelValue', state.fontIconPrefix);
+	inputWidthRef.value.focus();
+};
+// 清空当前点击的 icon 图标
+const onClearFontIcon = () => {
+	state.fontIconPrefix = '';
+	emit('clear', state.fontIconPrefix);
+	emit('update:modelValue', state.fontIconPrefix);
+};
+// 获取 input 的宽度
+const getInputWidth = () => {
+	nextTick(() => {
+		state.fontIconWidth = inputWidthRef.value.$el.offsetWidth;
+	});
+};
+// 监听页面宽度改变
+const initResize = () => {
+	window.addEventListener('resize', () => {
+		getInputWidth();
+	});
+};
+// 页面加载时
+onMounted(() => {
+	initFontIconData(initFontIconName());
+	initResize();
+	getInputWidth();
+});
+// 监听双向绑定 modelValue 的变化
+watch(
+	() => props.modelValue,
+	() => {
+		initModeValueEcho();
+		initFontIconName();
+	}
+);
 </script>
