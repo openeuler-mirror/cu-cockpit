@@ -78,4 +78,27 @@ defineExpose({
 });
 </script>
 <style scoped lang="scss">
+
+.layout-search-dialog {
+	position: relative;
+	:deep(.el-dialog) {
+		.el-dialog__header,
+		.el-dialog__body {
+			display: none;
+		}
+		.el-dialog__footer {
+			position: absolute;
+			left: 50%;
+			transform: translateX(-50%);
+			top: -53vh;
+		}
+	}
+	:deep(.el-autocomplete) {
+		width: 560px;
+		position: absolute;
+		top: 150px;
+		left: 50%;
+		transform: translateX(-50%);
+	}
+}
 </style>
