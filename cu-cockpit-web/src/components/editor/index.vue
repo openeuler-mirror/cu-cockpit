@@ -52,4 +52,48 @@ const emit = defineEmits(['update:getHtml', 'update:getText']);
 
 // 定义变量内容
 const editorRef = shallowRef();
+const state = reactive({
+	editorConfig: {
+		placeholder: props.placeholder,
+	},
+	editorVal: props.getHtml,
+});
+
+// 编辑器回调函数
+const handleCreated = (editor: IDomEditor) => {
+	editorRef.value = editor;
+};
+// 编辑器内容改变时
+const handleChange = (editor: IDomEditor) => {
+	emit('update:getHtml', editor.getHtml());
+	emit('update:getText', editor.getText());
+};
+// 页面销毁时
+onBeforeUnmount(() => {
+	const editor = editorRef.value;
+	if (editor == null) return;
+	editor.destroy();
+});
+// 监听是否禁用改变
+watch(
+	() => props.disable,
+	(bool) => {
+		const editor = editorRef.value;
+		if (editor == null) return;
+		bool ? editor.disable() : editor.enable();
+	},
+	{
+		deep: true,
+	}
+);
+// 监听双向绑定值改变，用于回显
+watch(
+	() => props.getHtml,
+	(val) => {
+		state.editorVal = val;
+	},
+	{
+		deep: true,
+	}
+);
 </script>
