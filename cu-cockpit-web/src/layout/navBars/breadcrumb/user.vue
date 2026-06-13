@@ -73,6 +73,216 @@ const onLayoutSetingClick = () => {
 	mittBus.emit('openSetingsDrawer');
 };
 // 下拉菜单点击时
+const onHandleCommandClick = async (path: string) => {
+	if (path === 'logOut') {
+		ElMessageBox({
+			closeOnClickModal: false,
+			closeOnPressEscape: false,
+			title: t('message.user.logOutTitle'),
+			message: t('message.user.logOutMessage'),
+			showCancelButton: true,
+			confirmButtonText: t('message.user.logOutConfirm'),
+			cancelButtonText: t('message.user.logOutCancel'),
+			buttonSize: 'default',
+			beforeClose: async (action, instance, done) => {
+				if (action === 'confirm') {
+					instance.confirmButtonLoading = true;
+					instance.confirmButtonText = t('message.user.logOutExit');
+					signOut().then(res => {
+						console.log(res);
+						if (res.code == 200) {
+							instance.confirmButtonLoading = false;
+							Session.clear();
+							Local.remove('username');
+							Local.remove('u_Permission');
+							// window.location.reload();
+							window.location.href = '/';
+						}
+					})
+					// setTimeout(() => {
+					// 	done();
+					// 	setTimeout(() => {
+					// 		instance.confirmButtonLoading = false;
+					// 	}, 300);
+					// }, 700);
+
+				} else {
+					done();
+				}
+			},
+		})
+		// 	.then(async () => {
+		// 		// 清除缓存/token等
+		// 		Session.clear();
+		// 		// 使用 reload 时，不需要调用 resetRoute() 重置路由
+		// 		window.location.reload();
+		// 	})
+		// 	.catch(() => { });
+	} else if (path === 'wareHouse') {
+		 
+	} else {
+		router.push(path);
+	}
+};
+// 菜单搜索点击
+const onSearchClick = () => {
+	searchRef.value.openSearch();
+};
+// 组件大小改变
+const onComponentSizeChange = (size: string) => {
+	Local.remove('themeConfig');
+	themeConfig.value.globalComponentSize = size;
+	Local.set('themeConfig', themeConfig.value);
+	initI18nOrSize('globalComponentSize', 'disabledSize');
+	window.location.reload();
+};
+// 语言切换
+const onLanguageChange = (lang: string) => {
+	Local.remove('themeConfig');
+	themeConfig.value.globalI18n = lang;
+	Local.set('themeConfig', themeConfig.value);
+	locale.value = lang;
+	other.useTitle();
+	initI18nOrSize('globalI18n', 'disabledI18n');
+};
+// 初始化组件大小/i18n
+const initI18nOrSize = (value: string, attr: keyof typeof state) => {
+	const themeConfig = Local.get('themeConfig') as { [key: string]: any } | null;
+	const configValue = ((themeConfig && themeConfig[value]) as string) || '';
+	state[attr] = configValue as unknown as never;
+};
+// 页面加载时
+onMounted(() => {
+	if (Local.get('themeConfig')) {
+		initI18nOrSize('globalComponentSize', 'disabledSize');
+		initI18nOrSize('globalI18n', 'disabledI18n');
+	}
+	userPermissiom().getUserPermissionStore(Local.get('username'));
+	if (!userInfos.value.name) {
+		useUserInfo().setUserName(Local.get('username'));
+	}
+	// getMessageCenterCount();
+});
+
+//消息中心的未读数量
+import { messageCenterStore } from '/@/stores/messageCenter';
+import { getBaseURL } from '/@/utils/baseUrl';
+const messageCenter = messageCenterStore();
+let eventSource: EventSource | null = null; // 存储 EventSource 实例
+const token = Session.get('token');
+const isConnected = ref(false); // 标志变量，记录是否已连接过
+const getMessageCenterCount = () => {
+	// 创建 EventSource 实例并连接到后端 SSE 端点
+	eventSource = new EventSource(`${getBaseURL()}sse/?token=${token}`); // 替换为你的后端地址
+	// 首次连接成功时打印一次
+	eventSource.onopen = function () {
+		if (!isConnected.value) {
+			console.log('SSE 首次连接成功');
+			isConnected.value = true; // 设置标志为已连接
+		}
+	};
+	// 监听消息事件
+	eventSource.onmessage = function (event) {
+		console.log(event.data);
+
+		messageCenter.setUnread(+event.data); // 更新总记录数
+	};
+
+	// 错误处理
+	eventSource.onerror = function (err) {
+		console.error('SSE 错误:', err);
+		if (eventSource !== null && eventSource.readyState === EventSource.CLOSED) {
+			console.log('连接已关闭');
+		}
+	};
+};
+
+//打开访问权限更改按钮
+const onPermissionsClick = (val: boolean) => {
+	mittBus.emit('openPermissions');
+}
+
 </script>
 <style scoped lang="scss">
+
+.layout-navbars-breadcrumb-user {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+
+	&-link {
+		height: 100%;
+		display: flex;
+		align-items: center;
+		white-space: nowrap;
+
+		&-photo {
+			width: 25px;
+			height: 25px;
+			border-radius: 100%;
+		}
+	}
+
+	&-icon {
+		padding: 0 10px;
+		cursor: pointer;
+		color: var(--next-bg-topBarColor);
+		height: 50px;
+		line-height: 50px;
+		display: flex;
+		align-items: center;
+
+		&:hover {
+			background: var(--next-color-user-hover);
+
+			i {
+				display: inline-block;
+				animation: logoAnimation 0.3s ease-in-out;
+			}
+		}
+	}
+
+	:deep(.el-dropdown) {
+		color: var(--next-bg-topBarColor);
+	}
+
+	:deep(.el-badge) {
+		height: 40px;
+		line-height: 40px;
+		display: flex;
+		align-items: center;
+	}
+
+	:deep(.el-badge__content.is-fixed) {
+		top: 12px;
+	}
+
+	.online-status {
+		cursor: pointer;
+
+		:deep(.el-badge__content.is-fixed) {
+			top: 30px;
+			font-size: 14px;
+			left: 5px;
+			height: 12px;
+			width: 12px;
+			padding: 0;
+			background-color: #18bc9c;
+		}
+	}
+
+	.online-down {
+		cursor: pointer;
+
+		:deep(.el-badge__content.is-fixed) {
+			top: 30px;
+			font-size: 14px;
+			left: 5px;
+			height: 12px;
+			width: 12px;
+			padding: 0;
+			background-color: #979b9c;
+		}
+	}
+}
 </style>
