@@ -1,5 +1,4 @@
 <template>
-
     <el-card>
         <div class="box-container">
             <div class="box-item" v-for="item in descriptions" :key="item.key">
@@ -13,8 +12,8 @@
         </div>
     </el-card>
 </template>
-<script lang="ts" setup name="overviewHeader">
 
+<script lang="ts" setup name="overviewHeader">
 import { onMounted, ref } from 'vue';
 import { hardInfo } from '/@/api/run/run';
 import { configGet } from '/@/api/config/config';
@@ -48,5 +47,22 @@ onMounted(() => {
     getHardInfo();
 });
 </script>
+
 <style scoped lang="scss">
+.box-container {
+    display: flex;
+    align-items: center;
+
+    .box-item {
+        display: flex;
+        align-items: center;
+        font-size: 16px;
+        color: #333333;
+
+        .iconfont {
+            font-size: 18px;
+            margin-right: 10px;
+        }
+    }
+}
 </style>
