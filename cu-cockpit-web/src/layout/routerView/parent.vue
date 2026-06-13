@@ -64,4 +64,57 @@ const getKeepAliveNames = computed(() => {
 	return themeConfig.value.isTagsview ? cachedViews.value : state.keepAliveNameList;
 });
 // 设置 iframe 显示/隐藏
+const isIframePage = computed(() => {
+	return route.meta.isIframe;
+});
+// 获取 iframe 组件列表(未进行渲染)
+const getIframeListRoutes = async () => {
+	router.getRoutes().forEach((v) => {
+		if (v.meta.isIframe) {
+			v.meta.isIframeOpen = false;
+			v.meta.loading = true;
+			state.iframeList.push({ ...v });
+		}
+	});
+};
+// 页面加载前，处理缓存，页面刷新时路由缓存处理
+onBeforeMount(() => {
+	state.keepAliveNameList = keepAliveNames.value;
+	mittBus.on('onTagsViewRefreshRouterView', (fullPath: string) => {
+		state.keepAliveNameList = keepAliveNames.value.filter((name: string) => route.name !== name);
+		state.refreshRouterViewKey = '';
+		state.iframeRefreshKey = '';
+		nextTick(() => {
+			state.refreshRouterViewKey = fullPath;
+			state.iframeRefreshKey = fullPath;
+			state.keepAliveNameList = keepAliveNames.value;
+		});
+	});
+});
+// 页面加载时
+onMounted(() => {
+	getIframeListRoutes();
+	nextTick(() => {
+		setTimeout(() => {
+			if (themeConfig.value.isCacheTagsView) {
+				let tagsViewArr: RouteItem[] = Session.get('tagsViewList') || [];
+				cachedViews.value = tagsViewArr.filter((item) => item.meta?.isKeepAlive).map((item) => item.name as string);
+			}
+		}, 0);
+	});
+});
+// 页面卸载时
+onUnmounted(() => {
+	mittBus.off('onTagsViewRefreshRouterView', () => { });
+});
+// 监听路由变化，防止 tagsView 多标签时，切换动画消失
+watch(
+	() => route.fullPath,
+	() => {
+		state.refreshRouterViewKey = decodeURI(route.fullPath);
+	},
+	{
+		immediate: true,
+	}
+);
 </script>
