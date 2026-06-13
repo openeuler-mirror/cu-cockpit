@@ -66,6 +66,79 @@ const selectProps = ref({
   label: 'label',
   value: 'value'
 })
+watch(
+    () => {
+      return props.modelValue
+    }, // 监听modelValue的变化，
+    (value) => {
+      // data.value = value
+      request({
+        url: props.dict.url,
+        params: {
+          id: props.modelValue
+        }
+      }).then(res => {
+        const dataList = res.data
+        console.log(dataList)
+        if (dataList && dataList.length === 1) {
+          data.value = dataList[0][selectProps.value.label]
+        }else{
+          data.value = null
+        }
+      })
+    }, // 当modelValue值触发后，同步修改data.value的值
+    {immediate: true} // 立即触发一次，给data赋值初始值
+)
+//获取表单校验上下文
+const {ui} = useUi()
+const formValidator = ui.formItem.injectFormItemContext();
+// 当data需要变化时，上报给父组件
+// 父组件监听到update:modelValue事件后，会更新props.modelValue的值
+// 然后watch会被触发，修改data.value的值。
+function onDataChange(value) {
+  emit('update:modelValue', value)
+  data.value = value
+  //触发校验
+  formValidator.onChange()
+  formValidator.onBlur()
+}
+
+
+if (props.dict.url instanceof Function) {
+  request(props.dict.url).then((res) => {
+    options.value = res.data
+  })
+} else {
+  selectProps.value.label = props.dict.label
+  selectProps.value.value = props.dict.value
+  request({
+    url: props.dict.url
+  }).then((res) => {
+    options.value = res.data
+  })
+}
+
+
+// onMounted(() => {
+//   getData({id: props.modelValue})
+// })
+
 </script>
 <style scoped lang="scss">
+
+.el-select .el-input__wrapper .el-input__inner::placeholder {
+  //color: #a8abb2;
+  color: #0d84ff;
+}
+
+.el-select-v2 {
+  .el-select-v2__wrapper {
+    .el-select-v2__placeholder.is-transparent {
+      //color: #a8abb2;
+      color: #0d84ff;
+    }
+  }
+}
+
+
 </style>
