@@ -546,6 +546,143 @@ const onShareTagsViewChange = () => {
 	setLocalThemeConfig();
 };
 // 4、界面显示 --> 灰色模式/色弱模式
+const onAddFilterChange = (attr: string) => {
+	if (attr === 'grayscale') {
+		if (getThemeConfig.value.isGrayscale) getThemeConfig.value.isInvert = false;
+	} else {
+		if (getThemeConfig.value.isInvert) getThemeConfig.value.isGrayscale = false;
+	}
+	const cssAttr =
+		attr === 'grayscale' ? `grayscale(${getThemeConfig.value.isGrayscale ? 1 : 0})` : `invert(${getThemeConfig.value.isInvert ? '80%' : '0%'})`;
+	const appEle = document.body;
+	appEle.setAttribute('style', `filter: ${cssAttr}`);
+	setLocalThemeConfig();
+};
+// 4、界面显示 --> 深色模式
+const onAddDarkChange = () => {
+	const body = document.documentElement as HTMLElement;
+	if (getThemeConfig.value.isIsDark) body.setAttribute('data-theme', 'dark');
+	else body.setAttribute('data-theme', '');
+};
+// 4、界面显示 --> 开启水印
+const onWartermarkChange = () => {
+	getThemeConfig.value.isWartermark ? Watermark.set(getThemeConfig.value.wartermarkText) : Watermark.del();
+	setLocalThemeConfig();
+};
+// 4、界面显示 --> 水印文案
+const onWartermarkTextInput = (val: string) => {
+	getThemeConfig.value.wartermarkText = verifyAndSpace(val);
+	if (getThemeConfig.value.wartermarkText === '') return false;
+	if (getThemeConfig.value.isWartermark) Watermark.set(getThemeConfig.value.wartermarkText);
+	setLocalThemeConfig();
+};
+// 5、布局切换
+const onSetLayout = (layout: string) => {
+	Local.set('oldLayout', layout);
+	if (getThemeConfig.value.layout === layout) return false;
+	if (layout === 'transverse') getThemeConfig.value.isCollapse = false;
+	getThemeConfig.value.layout = layout;
+	getThemeConfig.value.isDrawer = false;
+	initLayoutChangeFun();
+};
+// 设置布局切换函数
+const initLayoutChangeFun = () => {
+	onBgColorPickerChange('menuBar');
+	onBgColorPickerChange('menuBarColor');
+	onBgColorPickerChange('menuBarActiveColor');
+	onBgColorPickerChange('topBar');
+	onBgColorPickerChange('topBarColor');
+	onBgColorPickerChange('columnsMenuBar');
+	onBgColorPickerChange('columnsMenuBarColor');
+};
+// 关闭弹窗时，初始化变量。变量用于处理 layoutScrollbarRef.value.update() 更新滚动条高度
+const onDrawerClose = () => {
+	getThemeConfig.value.isFixedHeaderChange = false;
+	getThemeConfig.value.isShowLogoChange = false;
+	getThemeConfig.value.isDrawer = false;
+	setLocalThemeConfig();
+};
+// 布局配置弹窗打开
+const openDrawer = () => {
+	getThemeConfig.value.isDrawer = true;
+};
+// 触发 store 布局配置更新
+const setDispatchThemeConfig = () => {
+	setLocalThemeConfig();
+	setLocalThemeConfigStyle();
+};
+// 存储布局配置
+const setLocalThemeConfig = () => {
+	Local.remove('themeConfig');
+	Local.set('themeConfig', getThemeConfig.value);
+};
+// 存储布局配置全局主题样式（html根标签）
+const setLocalThemeConfigStyle = () => {
+	Local.set('themeConfigStyle', document.documentElement.style.cssText);
+};
+// 一键复制配置
+const onCopyConfigClick = () => {
+	let copyThemeConfig = Local.get('themeConfig');
+	copyThemeConfig.isDrawer = false;
+	copyText(JSON.stringify(copyThemeConfig)).then(() => {
+		getThemeConfig.value.isDrawer = false;
+	});
+};
+// 一键恢复默认
+const onResetConfigClick = () => {
+	Local.clear();
+	window.location.reload();
+	// @ts-ignore
+	Local.set('version', __VERSION__);
+};
+// 初始化菜单样式等
+const initSetStyle = () => {
+	// 2、菜单 / 顶栏 --> 顶栏背景渐变
+	onTopBarGradualChange();
+	// 2、菜单 / 顶栏 --> 菜单背景渐变
+	onMenuBarGradualChange();
+	// 2、菜单 / 顶栏 --> 分栏菜单背景渐变
+	onColumnsMenuBarGradualChange();
+};
+onMounted(() => {
+	nextTick(() => {
+		// 判断当前布局是否不相同，不相同则初始化当前布局的样式，防止监听窗口大小改变时，布局配置logo、菜单背景等部分布局失效问题
+		if (!Local.get('frequency')) initLayoutChangeFun();
+		Local.set('frequency', 1);
+		// 监听窗口大小改变，非默认布局，设置成默认布局（适配移动端）
+		mittBus.on('layoutMobileResize', (res: LayoutMobileResize) => {
+			getThemeConfig.value.layout = res.layout;
+			getThemeConfig.value.isDrawer = false;
+			initLayoutChangeFun();
+			state.isMobile = other.isMobile();
+		});
+		setTimeout(() => {
+			// 默认样式
+			onColorPickerChange();
+			// 灰色模式
+			if (getThemeConfig.value.isGrayscale) onAddFilterChange('grayscale');
+			// 色弱模式
+			if (getThemeConfig.value.isInvert) onAddFilterChange('invert');
+			// 深色模式
+			if (getThemeConfig.value.isIsDark) onAddDarkChange();
+			// 开启水印
+			onWartermarkChange();
+			// 语言国际化
+			if (Local.get('themeConfig')) locale.value = Local.get('themeConfig').globalI18n;
+			// 初始化菜单样式等
+			initSetStyle();
+		}, 100);
+	});
+});
+onUnmounted(() => {
+	mittBus.off('layoutMobileResize', () => {});
+});
+
+// 暴露变量
+defineExpose({
+	openDrawer,
+});
 </script>
 <style scoped lang="scss">
+
 </style>
