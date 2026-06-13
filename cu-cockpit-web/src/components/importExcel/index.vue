@@ -54,6 +54,59 @@ const handleImport = function () {
 }
 
 /** 下载模板操作 */
+const importTemplate=function () {
+  downloadFile({
+    url: props.api + 'import_data/',
+    params: {},
+    method: 'get'
+  })
+}
+/***
+ * 批量更新模板
+ */
+const updateTemplate=function () {
+  downloadFile({
+    url: props.api + 'update_template/',
+    params: {},
+    method: 'get'
+  })
+}
+// 文件上传中处理
+const handleFileUploadProgress=function (event:any, file:any, fileList:any) {
+  isUploading.value = true
+}
+// 文件上传成功处理
+const handleFileSuccess=function (response:any, file:any, fileList:any) {
+  isUploading.value = false
+  loading.value = true
+  uploadRef.value.clearFiles()
+  // 是否更新已经存在的用户数据
+  return request({
+    url: props.api + 'import_data/',
+    method: 'post',
+    data: {
+      url: response.data.url
+    }
+  }).then((response:any) => {
+    loading.value = false
+    ElMessageBox.alert('导入成功', '导入完成', {
+      confirmButtonText: 'OK',
+      callback: (action: Action) => {
+        refreshView()
+      },
+    })
+  }).catch(()=>{
+    loading.value = false
+  })
+
+}
+// 提交上传文件
+const submitFileForm=function () {
+  uploadRef.value.submit()
+}
+
 </script>
 <style scoped>
+
+
 </style>
