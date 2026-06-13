@@ -107,6 +107,92 @@ function rotateRight() {
 	proxy.$refs.cropper.rotateRight();
 }
 /** 图片缩放 */
+function changeScale(num) {
+	num = num || 1;
+	proxy.$refs.cropper.changeScale(num);
+}
+/** 上传预处理 */
+function beforeUpload(file) {
+	if (file.type.indexOf('image/') == -1) {
+		proxy.$modal.msgError('文件格式错误，请上传图片类型,如：JPG，PNG后缀的文件。');
+	} else {
+		const reader = new FileReader();
+		reader.readAsDataURL(file);
+		reader.onload = () => {
+			options.img = reader.result;
+			options.fileName = file.name;
+		};
+	}
+}
+/** 上传图片 */
+function uploadImg() {
+	// 获取截图的 base64 数据
+	proxy.$refs.cropper.getCropData((data) => {
+		let img = new Image();
+		img.src = data;
+		img.onload = async () => {
+			let _data = compress(img);
+			const imgFile = base64ToFile(_data, options.fileName);
+			emit('uploadImg', imgFile);
+		};
+	});
+}
+// 压缩图片
+function compress(img) {
+	let canvas = document.createElement('canvas');
+	let ctx = canvas.getContext('2d');
+	// let initSize = img.src.length;
+	let width = img.width;
+	let height = img.height;
+	canvas.width = width;
+	canvas.height = height;
+	// 铺底色
+	ctx.fillStyle = '#fff';
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+	ctx.drawImage(img, 0, 0, width, height);
+	// 进行压缩
+	let ndata = canvas.toDataURL('image/jpeg', 0.8);
+	return ndata;
+}
+
+/** 关闭窗口 */
+function closeDialog() {
+	options.visible = false;
+	options.img = userStore.userInfos.avatar;
+}
+
+const updateAvatar = (img) => {
+	options.img = img;
+};
+
+defineExpose({
+	updateAvatar,
+	editCropper
+});
 </script>
 <style lang="scss" scoped>
+
+.user-info-head {
+	position: relative;
+	display: inline-block;
+}
+
+.user-info-head:hover:after {
+	content: '修改头像';
+	position: absolute;
+	text-align: center;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	color: #000000;
+	font-size: 20px;
+	font-style: normal;
+	cursor: pointer;
+	line-height: 110px;
+}
+.cropper {
+	height: 400px;
+	width: 400px;
+}
 </style>
