@@ -1,8 +1,63 @@
 <template>
-
+	<el-select
+		popper-class="popperClass"
+		class="tableSelector"
+		multiple
+    :collapseTags="props.tableConfig.collapseTags"
+		v-model="data"
+		placeholder="请选择"
+		@visible-change="visibleChange"
+	>
+		<template #empty>
+			<div class="option">
+				<el-input style="margin-bottom: 10px" v-model="search" clearable placeholder="请输入关键词" @change="getDict" @clear="getDict">
+					<template #append>
+						<el-button type="primary" icon="Search" />
+					</template>
+				</el-input>
+				<el-table
+					ref="tableRef"
+					:data="tableData"
+					:size="props.tableConfig.size"
+					border
+					row-key="id"
+					:lazy="props.tableConfig.lazy"
+					:load="props.tableConfig.load"
+					:tree-props="props.tableConfig.treeProps"
+					style="width: 600px"
+					max-height="200"
+					height="200"
+					:highlight-current-row="!props.tableConfig.isMultiple"
+					@selection-change="handleSelectionChange"
+					@select="handleSelectionChange"
+					@selectAll="handleSelectionChange"
+					@current-change="handleCurrentChange"
+				>
+					<el-table-column v-if="props.tableConfig.isMultiple" fixed type="selection" reserve-selection width="55" />
+					<el-table-column fixed type="index" label="#" width="50" />
+					<el-table-column
+						:prop="item.prop"
+						:label="item.label"
+						:width="item.width"
+						v-for="(item, index) in props.tableConfig.columns"
+						:key="index"
+					/>
+				</el-table>
+				<el-pagination
+					style="margin-top: 10px"
+					background
+					v-model:current-page="pageConfig.page"
+					v-model:page-size="pageConfig.limit"
+					layout="prev, pager, next"
+					:total="pageConfig.total"
+					@current-change="handlePageChange"
+				/>
+			</div>
+		</template>
+	</el-select>
 </template>
-<script setup lang="ts">
 
+<script setup lang="ts">
 import { computed, defineProps, onMounted, reactive, ref, watch } from 'vue';
 import XEUtils from 'xe-utils';
 import { request } from '/@/utils/service';
@@ -155,5 +210,28 @@ onMounted(() => {
 	// }, 1000);
 });
 </script>
+
+<style scoped>
+.option {
+	height: auto;
+	line-height: 1;
+	padding: 5px;
+	background-color: #fff;
+}
+</style>
 <style lang="scss">
+.popperClass {
+	height: 320px;
+}
+
+.el-select-dropdown__wrap {
+	max-height: 310px !important;
+}
+
+.tableSelector {
+	.el-icon,
+	.el-tag__close {
+		display: none;
+	}
+}
 </style>
