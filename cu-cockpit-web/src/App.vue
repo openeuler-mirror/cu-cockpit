@@ -55,4 +55,50 @@ const getGlobalComponentSize = computed(() => {
 	return other.globalComponentSize();
 });
 // 获取全局 i18n
+const getGlobalI18n = computed(() => {
+	return messages.value[locale.value];
+});
+// 设置初始化，防止刷新时恢复默认
+onBeforeMount(() => {
+	// 设置批量第三方 icon 图标
+	setIntroduction.cssCdn();
+	// 设置批量第三方 js
+	setIntroduction.jsCdn();
+});
+// 页面加载时
+onMounted(() => {
+	nextTick(() => {
+		// 监听布局配'置弹窗点击打开
+		mittBus.on('openSetingsDrawer', () => {
+			setingsRef.value.openDrawer();
+		});
+		//监听访问权限弹窗 2025-0903
+		mittBus.on('openPermissions', () => {
+			permissionsRef.value.openPermissions();
+		});
+    // 设置皮肤缓存版本，每次更新版本可以所有用户清空缓存
+    const themeConfigVersion = '1.0.0'
+		// 获取缓存中的布局配置
+    if (Local.get('themeConfigVersion') !== themeConfigVersion) {
+        Local.clear();
+        Local.set('themeConfigVersion', themeConfigVersion);
+	      window.location.reload();
+        return
+    }
+		if (Local.get('themeConfig')) {
+			storesThemeConfig.setThemeConfig({ themeConfig: Local.get('themeConfig') });
+			document.documentElement.style.cssText = Local.get('themeConfigStyle');
+		}
+		// 获取缓存中的全屏配置
+		if (Session.get('isTagsViewCurrenFull')) {
+			stores.setCurrenFullscreen(Session.get('isTagsViewCurrenFull'));
+		}
+	});
+});
+// 页面销毁时，关闭监听布局配置/i18n监听
+onUnmounted(() => {
+	mittBus.off('openSetingsDrawer', () => {});
+	mittBus.off('openPermissions', () => {});
+});
+
 </script>
