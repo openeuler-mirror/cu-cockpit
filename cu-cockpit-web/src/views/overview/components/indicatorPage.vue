@@ -234,6 +234,273 @@ const updateChartData = () => {
 };
 
 // 初始化图表
+const initChart = () => {
+  if (!diskIoRef.value) return;
+
+  diskIoDom = echarts.init(diskIoRef.value);
+
+  const option = {
+    title: [{
+      left: 'center',
+      text: ' ',
+      show: true,
+    }],
+    zlevel: 1,
+    z: 1,
+    tooltip: {
+      trigger: 'axis',
+      formatter: params => {
+        let res = params[0].name + '<br/>';
+        for (const item of params) {
+          res += item.marker + ' ' + item.seriesName + ' : ' + item.data + 'KB<br/>';
+        }
+        return res;
+      },
+    },
+    grid: { left: '6%', right: '6%', bottom: '20%', top: '18%' },
+    legend: {
+      top: '5%',
+      right: '4%',
+      itemWidth: 16,
+      textStyle: {
+        color: '#646A73',
+      },
+      icon: 'circle',
+    },
+    xAxis: {
+      name: '时间',
+      nameTextStyle: {
+        padding: [0, 0, 0, 0]
+      },
+      data: networkXAxis,
+      boundaryGap: false
+    },
+    yAxis: {
+      name: '速率(kB/S)',
+      splitLine: {
+        lineStyle: {
+          type: 'dashed',
+          opacity: 1,
+        },
+      },
+    },
+    series: [{
+      name: 'rx',
+      type: 'line',
+      itemStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: 'rgba(27, 143, 60)' },
+          { offset: 1, color: 'rgba(27, 143, 60)' },
+        ]),
+      },
+      areaStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: 'rgba(0, 94, 235, .1)' },
+          { offset: 1, color: 'rgba(0, 94, 235, .2)' },
+        ]),
+      },
+      data: diskData.get(optVal.value)?.rx || [],
+      // showSymbol: false,
+      symbolSize: 6,
+    }, {
+      name: 'tx',
+      type: 'line',
+      itemStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: 'rgba(249, 199, 79)' },
+          { offset: 1, color: 'rgba(249, 199, 79)' },
+        ]),
+      },
+      areaStyle: {
+        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: 'rgba(0, 94, 235, .1)' },
+          { offset: 1, color: 'rgba(0, 94, 235, .2)' },
+        ]),
+      },
+      data: diskData.get(optVal.value)?.tx || [],
+      // showSymbol: false,
+      symbolSize: 6,
+    }],
+    dataZoom: [{ startValue: 0, show: true }],
+  };
+
+  diskIoDom.setOption(option);
+};
+
+// 处理监控数据
+const processMonitorData = (res: MonitorData[]) => {
+  // CPU数据处理
+  const cpu = res[0].cpu;
+  cpuUsage.value = Number(cpu.total_utilization_percent.split('%')[0]);
+
+  // 内存数据处理
+  const memory = res[1].memory;
+  memUsage.value = Math.round(memory.used_mb / memory.total_mb * 10000) / 100;
+  memTotal.value = Math.round(memory.total_mb / 1024 * 100) / 100;
+  memUsed.value = Math.round(memory.used_mb / 1024 * 100) / 100;
+
+  // 磁盘数据处理
+  const disk = res[3].total_disk;
+  diskUsage.value = Math.round(
+    Number(disk.used.split("G")[0]) / Number(disk.total.split("G")[0]) * 10000
+  ) / 100;
+  diskUsed.value = disk.free;
+
+  // 网络数据处理
+  const netTmp = res[4].network_interfaces;
+  const opsTmp = updateNetworkOptions(netTmp);
+
+  networkXAxis.push(currentTime());
+  if (networkXAxis.length > 20) {
+    networkXAxis.shift();
+  }
+
+  // 初始化或更新图表
+  if (!diskIoDom) {
+    Object.assign(options, opsTmp);
+    optVal.value = options[0]?.value || '';
+    initChart();
+  } else {
+    updateChartData();
+  }
+};
+
+// 获取所有监控数据
+const getAllData = async () => {
+  try {
+    const res = await monitorStatus('all');
+    processMonitorData(res);
+  } catch (error) {
+    console.error('获取监控数据失败:', error);
+  }
+};
+
+// 网络选项变更处理
+const netChange = () => {
+  getAllData();
+};
+
+// 定时任务处理
+const handleTimer = () => {
+  // const fetchData = async () => {
+  //   await getAllData();
+  //   lineTimer = window.setTimeout(fetchData, REFRESH_INTERVAL);
+  // };
+
+  // lineTimer = window.setTimeout(fetchData, REFRESH_INTERVAL);
+  lineTimer = setInterval(async() => {
+    await getAllData();
+  }, REFRESH_INTERVAL);
+};
+
+// 清理定时器
+const clearTimer = () => {
+  if (lineTimer) {
+    // window.clearTimeout(lineTimer);
+    clearInterval(lineTimer);
+    lineTimer = null;
+  }
+};
+
+// 清理图表实例
+const disposeChart = () => {
+  if (diskIoDom) {
+    diskIoDom.dispose();
+    diskIoDom = null;
+  }
+};
+
+onMounted(() => {
+  fetchHardwareInfo();
+  getAllData();
+  handleTimer();
+
+  window.addEventListener('resize', handleResize);
+});
+
+onUnmounted(() => {
+  clearTimer();
+  disposeChart();
+
+  // 移除事件监听器
+  window.removeEventListener('resize', handleResize);
+});
+
+const handleResize = debounce(() => {
+  if (diskIoDom) {
+    diskIoDom.resize();
+  }
+}, 300);
 </script>
 <style scoped lang="scss">
+
+.card {
+  width: 100%;
+}
+
+.card-header {
+  font-size: 18px;
+  font-weight: bolder;
+}
+
+.cpu,
+.memory,
+.directory {
+  border-radius: 4px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin: 0;
+  font-size: 12px;
+
+  h3 {
+    margin: 0 0 12px;
+    font-size: 14px;
+  }
+
+  .high-usage-text {
+    font-weight: bolder;
+    font-size: 30px;
+  }
+}
+
+.progress {
+  height: 18px;
+  background: #f3f3f3;
+  border-radius: 9px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #42b983;
+  border-radius: 9px;
+  transition: width 0.3s ease;
+}
+
+/* 使用率过高警示 */
+.high-usage {
+  background: #ff4d4f;
+}
+
+.echarts-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+
+  .echarts-text {
+    left: 0;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .echarts-sift {
+    right: 0;
+  }
+}
+
+.echarts-div {
+  height: 335px;
+}
 </style>
