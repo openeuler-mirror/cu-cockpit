@@ -1,5 +1,4 @@
 <template>
-
 	<div class="h100" v-show="!isTagsViewCurrenFull">
 		<el-aside class="layout-aside" :class="setCollapseStyle">
 			<Logo v-if="setShowLogo" />
@@ -9,8 +8,8 @@
 		</el-aside>
 	</div>
 </template>
-<script setup lang="ts" name="layoutAside">
 
+<script setup lang="ts" name="layoutAside">
 import { defineAsyncComponent, reactive, computed, watch, onBeforeMount, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import pinia from '/@/stores/index';
