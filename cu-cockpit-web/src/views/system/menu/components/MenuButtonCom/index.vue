@@ -1,10 +1,29 @@
-<template #default="scope">
-
+<template>
+	<fs-crud ref="crudRef"  v-bind="crudBinding"> 
+		<template #pagination-left>
+				<el-tooltip content="批量删除">
+					<el-button text type="danger" :disabled="selectedRowsCount === 0" :icon="Delete" circle @click="handleBatchDelete" />
+				</el-tooltip>
+			</template>
+			<template #pagination-right>
+				<el-popover placement="top" :width="400" trigger="click">
+					<template #reference>
+						<el-button text :type="selectedRowsCount > 0 ? 'primary' : ''">已选中{{ selectedRowsCount }}条数据</el-button>
+					</template>
+					<el-table :data="selectedRows" size="small">
+						<el-table-column width="150" property="id" label="id" />
+						<el-table-column fixed="right" label="操作" min-width="60">
+							<template #default="scope">
 								<el-button text type="info" :icon="Close" @click="removeSelectedRows(scope.row)" circle />
-							
+							</template>
+						</el-table-column>
+					</el-table>
+				</el-popover>
+			</template>
+	</fs-crud>
 </template>
-<script lang="ts" setup>
 
+<script lang="ts" setup>
 import { computed, ref } from 'vue';
 import { useFs } from '@fast-crud/fast-crud';
 import { createCrudOptions } from './crud';
