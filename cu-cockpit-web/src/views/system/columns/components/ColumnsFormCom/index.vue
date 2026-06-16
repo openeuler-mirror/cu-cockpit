@@ -107,4 +107,10 @@ onMounted(() => {
 });
 </script>
 <style lang="scss" scoped>
+
+.columns-form-com {
+	height: 100%;
+	padding: 20px;
+	box-sizing: border-box;
+}
 </style>
