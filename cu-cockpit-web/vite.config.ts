@@ -100,3 +100,5 @@ const viteConfig = defineConfig(async (mode: ConfigEnv) => {
         },
     };
 });
+
+export default viteConfig;
