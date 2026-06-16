@@ -95,4 +95,47 @@ onMounted(() => {
 });
 </script>
 <style lang="scss" scoped>
+
+.item-com {
+	width: 100%;
+	height: 100%;
+	position: relative;
+	overflow: hidden;
+
+	.item-com-title {
+		font-size: 16px;
+		font-weight: 900;
+		padding-bottom: 10px;
+		margin-bottom: 10px;
+		border-bottom: 1px solid #dcdfe6;
+	}
+	.item-com-list {
+		width: 100%;
+		white-space: nowrap;
+		overflow: auto;
+		.item-com-item {
+			width: fit-content;
+			min-width: 100%;
+			padding: 10px 16px;
+			border-radius: 8px;
+			cursor: pointer;
+			transition: all 500ms;
+		}
+		.active {
+			color: var(--el-color-primary);
+			background-color: var(--el-color-primary-light-8);
+			transition: all 500ms;
+		}
+		.item-com-item:hover {
+			color: var(--el-color-primary);
+			transition: all 500ms;
+		}
+	}
+	.item-com-pagination {
+		width: 100%;
+		height: 25px;
+		position: absolute;
+		bottom: 0;
+	}
+}
 </style>
