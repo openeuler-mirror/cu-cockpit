@@ -1,8 +1,43 @@
 <template>
+	<div class="columns-table-com">
+		<p class="ctc-title">字段权限</p>
 
+		<div class="ctc-head">
+			<el-button type="primary" @click="handleUpdateColumn('create')">新增</el-button>
+			<el-button type="primary" @click="handleAutomatch">自动匹配</el-button>
+		</div>
+
+		<el-table :data="state.data" border v-loading="state.loading" class="ctc-table">
+			<el-table-column prop="field_name" label="字段名" />
+			<el-table-column prop="title" label="列名" />
+			<el-table-column label="操作" width="180" align="center">
+				<template #default="scope">
+					<el-button type="primary" @click="handleUpdateColumn('update', scope.row)">编辑</el-button>
+					<el-button type="danger" @click="handleDelete(scope.row)">删除</el-button>
+				</template>
+			</el-table-column>
+		</el-table>
+
+		<div class="ctc-pagination">
+			<el-pagination
+				v-model:current-page="searchParams.page"
+				v-model:page-size="searchParams.limit"
+				:page-sizes="[5, 10, 20, 50]"
+				:total="state.total"
+				background
+				layout="total, sizes, prev, pager, next, jumper"
+				@size-change="handleSizeChange"
+				@current-change="handleCurrentChange"
+			/>
+		</div>
+
+		<el-drawer v-model="drawerVisible" title="字段权限" direction="rtl" size="500px" :close-on-click-modal="false" :before-close="handleDrawerClose">
+			<ColumnsFormCom v-if="drawerVisible" :currentInfo="props.currentInfo" :initFormData="drawerFormData" @drawerClose="handleDrawerClose" />
+		</el-drawer>
+	</div>
 </template>
-<script lang="ts" setup>
 
+<script lang="ts" setup>
 import { ref, reactive } from 'vue';
 import { ElMessageBox } from 'element-plus';
 import ColumnsFormCom from '../ColumnsFormCom/index.vue';
@@ -118,5 +153,27 @@ const handleCurrentChange = (page: number) => {
 
 defineExpose({ fetchData });
 </script>
+
 <style lang="scss" scoped>
+.columns-table-com {
+	height: 100%;
+	.ctc-title {
+		font-size: 16px;
+		font-weight: 900;
+		padding-bottom: 10px;
+		border-bottom: 1px solid #dcdfe6;
+	}
+	.ctc-head {
+		height: 35px;
+		margin-top: 10px;
+	}
+	.ctc-table {
+		width: 100%;
+		height: calc(100% - 135px);
+		margin: 10px 0;
+	}
+	.ctc-pagination {
+		height: 35px;
+	}
+}
 </style>
