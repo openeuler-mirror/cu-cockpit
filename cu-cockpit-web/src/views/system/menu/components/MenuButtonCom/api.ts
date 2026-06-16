@@ -39,3 +39,19 @@ export function DelObj(id: DelReq) {
 		data: { id },
 	});
 }
+
+export function BatchAdd(obj: AddReq) {
+	return request({
+		url: apiPrefix + 'batch_create/',
+		method: 'post',
+		data: obj,
+	});
+}
+
+export function BatchDelete(keys: any) {
+	return request({
+		url: apiPrefix + 'multiple_delete/',
+		method: 'delete',
+		data: { keys },
+	});
+}
