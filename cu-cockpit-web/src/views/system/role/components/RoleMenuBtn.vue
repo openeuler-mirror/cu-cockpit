@@ -1,5 +1,4 @@
 <template>
-
 	<div class="pccm-item" v-if="RoleMenuBtn.$state.length > 0">
 		<div class="menu-form-alert">
 			<div style="display:flex;  align-items: center; white-space: nowrap; margin-bottom: 10px;">
@@ -43,9 +42,34 @@
 			</div>
 		</el-checkbox>
 	</div>
+	<el-dialog v-model="dialogVisible" title="数据权限配置" width="400px" :close-on-click-modal="false" :before-close="handleDialogClose">
+		<div class="pc-dialog">
+			<el-select v-model="selectBtn.data_range" @change="handlePermissionRangeChange" placeholder="请选择">
+				<el-option v-for="item in dataPermissionRange" :key="item.value" :label="item.label" :value="item.value" />
+			</el-select>
+			<el-tree-select
+				v-show="selectBtn.data_range === 4"
+				node-key="id"
+				v-model="selectBtn.dept"
+				:props="defaultTreeProps"
+				:data="deptData"
+				multiple
+				check-strictly
+				:render-after-expand="false"
+				show-checkbox
+				class="dialog-tree"
+			/>
+		</div>
+		<template #footer>
+			<div>
+				<el-button type="primary" @click="handleDialogConfirm"> 确定</el-button>
+				<el-button @click="handleDialogClose"> 取消</el-button>
+			</div>
+		</template>
+	</el-dialog>
 </template>
-<script setup lang="ts">
 
+<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { RoleDrawerStores } from '../stores/RoleDrawerStores';
 import { RoleMenuBtnStores } from '../stores/RoleMenuBtnStores';
@@ -212,5 +236,33 @@ onMounted(async () => {
 	deptData.value = depts;
 });
 </script>
+
 <style lang="scss" scoped>
+.pccm-item {
+	margin-bottom: 10px;
+	.menu-form-alert {
+		color: #fff;
+		line-height: 24px;
+		padding: 8px 16px;
+		margin-bottom: 20px;
+		border-radius: 4px;
+		background-color: var(--el-color-primary);
+	}
+}
+
+.el-checkbox {
+	width: 20%;
+}
+.btn-item {
+	display: flex;
+	align-items: center;
+	justify-content: center; /* 水平居中 */
+	.el-icon {
+		margin-left: 5px;
+	}
+}
+.dialog-tree {
+	width: 100%;
+	margin-top: 20px;
+}
 </style>
