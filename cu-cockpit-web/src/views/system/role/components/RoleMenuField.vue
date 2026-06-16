@@ -49,4 +49,71 @@ const handleSaveField = async () => {
 };
 </script>
 <style lang="scss" scoped>
+
+.pccm-item {
+	margin-bottom: 10px;
+	.menu-form-alert {
+		color: #fff;
+		line-height: 24px;
+		padding: 8px 16px;
+		margin-bottom: 20px;
+		border-radius: 4px;
+		background-color: var(--el-color-primary);
+	}
+	.menu-form-btn {
+		margin-left: 10px;
+		height: 40px;
+		padding: 8px 16px;
+		margin-bottom: 20px;
+	}
+
+	.btn-item {
+		display: flex;
+		align-items: center;
+
+		span {
+			margin-left: 5px;
+		}
+	}
+
+	.columns-list {
+		.width-txt {
+			width: 200px;
+		}
+
+		.width-check {
+			width: 100px;
+		}
+
+		.width-icon {
+			cursor: pointer;
+		}
+
+		.columns-head {
+			display: flex;
+			align-items: center;
+			padding: 6px 0;
+			border-bottom: 1px solid #ebeef5;
+			box-sizing: border-box;
+
+			span {
+				font-weight: 900;
+			}
+		}
+		.columns-content {
+			max-height: calc(100vh - 240px); /* 视口高度 */
+			overflow-y: auto; /* 当内容超出高度时显示垂直滚动条 */
+			.columns-item {
+				display: flex;
+				align-items: center;
+				padding: 6px 0;
+				box-sizing: border-box;
+
+				.ci-checkout {
+					height: auto !important;
+				}
+			}
+		}
+	}
+}
 </style>
