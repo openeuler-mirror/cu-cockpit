@@ -88,6 +88,96 @@ const onSubmit = (formEl: FormInstance | undefined) => {
 
 
 // 图片预览
+const handlePictureCardPreview = (file: any) => {
+  dialogImageUrl = file.url;
+  dialogImgVisible.value = true;
+};
+
+// 判断是否为图片
+// 封装一个判断图片文件后缀名的方法
+const isImage = (fileName: any) => {
+  if (typeof fileName !== 'string') return;
+  const name = fileName.toLowerCase();
+  return name.endsWith('.png') || name.endsWith('.jpeg') || name.endsWith('.jpg') || name.endsWith('.png') || name.endsWith('.bmp');
+};
+
+// 上传成功
+const handleUploadSuccess = (response: any, file: any, fileList: any, imgKey: any) => {
+  const that = this;
+  const { code, msg } = response;
+  if (code === 2000) {
+    const { url } = response.data;
+    const { name } = file;
+    const type = isImage(name);
+    if (!type) {
+      errorMessage('只允许上传图片');
+    } else {
+      const uploadImgKey = formData[imgKey];
+      if (!uploadImgKey || uploadImgKey === '') {
+        formData[imgKey] = [];
+      }
+      // console.log(len)
+      const dict = {
+        name: name,
+        url: getBaseURL() + url,
+      };
+      formData[imgKey].push(dict);
+    }
+  } else {
+    errorMessage('上传失败,' + JSON.stringify(msg));
+  }
+};
+
+// 上传失败
+const handleError = () => {
+  errorMessage('上传失败');
+};
+
+// 上传超出限制
+const handleExceed = () => {
+  errorMessage('超过文件上传数量');
+};
+
+// 删除时的钩子
+const beforeRemove = (file: any, fileList: any, key: any) => {
+  var index = 0;
+  formData[key].map((value: any, inx: any) => {
+    if (value.uid === file.uid) index = inx;
+  });
+  formData[key].splice(index, 1);
+};
+
+// 配置的行删除
+const onDelRow = (obj: any) => {
+  api.DelObj(obj.id).then((res: any) => {
+    // this.refreshView();
+  });
+};
+
+// 行编辑
+const onEdit = (index: any) => {
+  formList.value[index].edit =true
+  formList.value[index].new_key =formList.value[index].key
+};
+// 行编辑保存
+const refreshView = inject<Function>('refreshView')
+const onEditSave = (obj: any) => {
+  obj.key = JSON.parse(JSON.stringify(obj.new_key));
+  api.UpdateObj(obj).then((res: any) => {
+    refreshView && refreshView()
+  });
+};
+
+watch(
+    props.options,
+    (nv) => {
+      if (nv && nv.id) {
+        getInit();
+      }
+    },
+    { immediate: true }
+);
 </script>
 <style scoped>
+
 </style>
