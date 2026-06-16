@@ -1,5 +1,4 @@
 <template>
-
 	<div style="padding: 20px">
 		<el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
 			<el-form-item label="所属分组" prop="parent">
@@ -46,8 +45,8 @@
 		</el-form>
 	</div>
 </template>
-<script setup lang="ts">
 
+<script setup lang="ts">
 import * as api from '../api';
 import associationTable from './components/associationTable.vue';
 import {ref, reactive, onMounted, inject} from 'vue';
@@ -158,5 +157,5 @@ onMounted(() => {
 	getParent();
 });
 </script>
-<style>
-</style>
+
+<style></style>
