@@ -1,5 +1,4 @@
 <template>
-
 	<el-tree
 		ref="treeRef"
 		:data="menuData"
@@ -16,8 +15,8 @@
 	>
 	</el-tree>
 </template>
-<script setup lang="ts">
 
+<script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { RoleDrawerStores } from '../stores/RoleDrawerStores';
 import { RoleMenuTreeStores } from '../stores/RoleMenuTreeStores';
