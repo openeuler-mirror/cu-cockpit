@@ -1,5 +1,4 @@
 <template>
-
 	<div style="padding: 20px">
 		<el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
 			<el-form-item label="标题" prop="title">
@@ -15,8 +14,8 @@
 		</el-form>
 	</div>
 </template>
-<script setup lang="ts">
 
+<script setup lang="ts">
 import * as api from '../api';
 import {ref, reactive, inject} from 'vue';
 import type { FormInstance, FormRules } from 'element-plus';
@@ -65,5 +64,5 @@ const onSubmit = async (formEl: FormInstance | undefined) => {
 	});
 };
 </script>
-<style>
-</style>
+
+<style></style>
