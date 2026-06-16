@@ -28,8 +28,16 @@ export const createCrudOptions = function ({ crudExpose, context }: CreateCrudOp
   const addRequest = async ({ form }: AddReq) => {
     return undefined;
   };
+	const selectedRows = ref<any>([]);
+
     return {
+        selectedRows,
         crudOptions: {
+            component: {
+              props: {
+                clearable: true,
+              },
+            },
         },
     };
 };
