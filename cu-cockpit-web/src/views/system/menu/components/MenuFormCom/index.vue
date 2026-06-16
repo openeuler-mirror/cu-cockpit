@@ -290,4 +290,23 @@ onMounted(async () => {
 });
 </script>
 <style lang="scss" scoped>
+
+.menu-form-com {
+	margin: 10px;
+	overflow-y: auto;
+
+	.menu-form-alert {
+		color: #fff;
+		line-height: 24px;
+		padding: 8px 16px;
+		margin-bottom: 20px;
+		border-radius: 4px;
+		background-color: var(--el-color-primary);
+	}
+
+	.menu-form-btns {
+		padding-bottom: 10px;
+		box-sizing: border-box;
+	}
+}
 </style>
