@@ -33,3 +33,19 @@ export function UpdateObj(obj: EditReq) {
 		data: obj,
 	});
 }
+
+export function DelObj(id: DelReq) {
+	return request({
+		url: apiPrefix + id + '/',
+		method: 'delete',
+		data: { id },
+	});
+}
+
+export function BatchDelete(keys: any) {
+	return request({
+		url: apiPrefix + 'multiple_delete/',
+		method: 'delete',
+		data: { keys },
+	});
+}
