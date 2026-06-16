@@ -26,6 +26,16 @@ export const createCrudOptions = function ({ crudExpose, context }: CreateCrudOp
 		form.id = row.id;
 		return await api.UpdateObj(form);
 	};
+	const delRequest = async ({ row }: DelReq) => {
+		const res = await api.DelObj(row.id);
+		context?.getDeptInfo();
+		return res;
+	};
+	const addRequest = async ({ form }: AddReq) => {
+		const res = await api.AddObj(form);
+		context?.getDeptInfo();
+		return res;
+	};
     return {
         crudOptions: {
         },
