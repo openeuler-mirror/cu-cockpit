@@ -137,4 +137,10 @@ onMounted(async () => {
 });
 </script>
 <style lang="scss" scoped>
+
+.dept-form-com {
+	height: 100%;
+	padding: 20px;
+	box-sizing: border-box;
+}
 </style>
