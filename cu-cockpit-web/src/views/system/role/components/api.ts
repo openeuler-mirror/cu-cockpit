@@ -48,3 +48,15 @@ export function setRoleMenuBtn(data: object) {
 		data,
 	});
 }
+
+/**
+ * 设置 角色-菜单-列字段
+ * @param data
+ */
+export function setRoleMenuField(roleId: string | number | undefined, data: object) {
+	return request({
+		url: `/api/system/role_menu_button_permission/${roleId}/set_role_menu_field/`,
+		method: 'put',
+		data,
+	});
+}
