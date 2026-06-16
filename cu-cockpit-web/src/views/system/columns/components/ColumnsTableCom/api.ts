@@ -24,3 +24,18 @@ export function addColumnsData(data: AddColumnsDataType) {
 		data
 	});
 }
+
+export function deleteColumnsData(id: number) {
+	return request({
+		url: `/api/system/column/${id}/`,
+		method: 'delete',
+	});
+}
+
+export function updateColumnsData(data: AddColumnsDataType) {
+	return request({
+		url: `/api/system/column/${data.id}/`,
+		method: 'put',
+		data
+	});
+}
