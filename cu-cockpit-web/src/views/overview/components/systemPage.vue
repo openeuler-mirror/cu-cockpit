@@ -1,8 +1,32 @@
 <template>
-
+    <el-card>
+        <template #header>
+            <div class="card-header">
+                <h3>系统信息</h3>
+                <el-tooltip content="详情" placement="bottom" effect="light" :show-arrow="false">
+                    <el-icon @click="toHardware">
+                        <Promotion />
+                    </el-icon>
+                </el-tooltip>
+            </div>
+        </template>
+        <div>
+            <el-card v-for="item in descriptions" :key="item.key" class="card-box">
+                <div class="card-item">
+                    <div class="left" :style="{ background: `var(${item.color2})` }">
+                        <i class="font32 iconfont" :class="item.icon" :style="{ color: `var(${item.color})` }"></i>
+                    </div>
+                    <div class="right">
+                        <div class="label">{{ item.label }}</div>
+                        <div class="content">{{ system[item.key as keyof System] || '' }}</div>
+                    </div>
+                </div>
+            </el-card>
+        </div>
+    </el-card>
 </template>
-<script lang="ts" setup name="overviewSystem">
 
+<script lang="ts" setup name="overviewSystem">
 import { onMounted, ref } from 'vue';
 import { hardInfo } from '/@/api/run/run';
 import { useRouter } from 'vue-router';
@@ -64,5 +88,64 @@ onMounted(() => {
     getHardInfo();
 });
 </script>
+
 <style scoped lang="scss">
+.el-card {
+    width: 100%;
+
+    &:hover {
+        box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.2);
+        transition: all ease 0.3s;
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        h3 {
+            color: #333333;
+        }
+
+        .el-icon {
+            font-size: 20px;
+            color: var(--el-color-primary);
+            cursor: pointer;
+        }
+    }
+
+    .card-box:not(:last-child) {
+        margin-bottom: 15px;
+    }
+
+    .card-item {
+        display: flex;
+
+        .left {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 50px;
+            background-color: #F0F2F5;
+            border-radius: 5px;
+        }
+
+        .right {
+            flex: 1;
+            margin-left: 20px;
+
+            .label {
+                font-size: 14px;
+                font-weight: 500;
+                color: #909399;
+            }
+
+            .content {
+                margin-top: 10px;
+                font-size: 16px;
+                color: #585858;
+            }
+        }
+    }
+}
 </style>
