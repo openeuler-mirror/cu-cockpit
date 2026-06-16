@@ -222,4 +222,50 @@ const { resetCrudOptions } = useCrud({
 });
 </script>
 <style lang="scss" scoped>
+
+.dept-user-com-box {
+	padding: 0 10px;
+	border-radius: 8px 0 0 8px;
+	box-sizing: border-box;
+	color: var(--next-bg-topBarColor);
+	background-color: var(--el-fill-color-blank);;
+}
+.dept-user-com-table {
+	height: calc(100% - 200px);
+}
+.dept-user-com-table-cover {
+	height: 100%;
+}
+.dept-info {
+	width: 100%;
+	height: 200px;
+	display: flex;
+	align-items: center;
+	justify-content: space-around;
+	margin-bottom: 10px;
+
+	.di-left {
+		h3 {
+			font-size: 18px;
+			font-weight: 900;
+		}
+		.di-cell {
+			margin-top: 6px;
+			display: flex;
+			align-items: center;
+
+			p:nth-child(1) {
+				display: block;
+				width: 85px;
+				text-align: left;
+			}
+			.content {
+				max-width: 120px;
+				overflow: hidden;
+				white-space: nowrap;
+				text-overflow: ellipsis;
+			}
+		}
+	}
+}
 </style>
