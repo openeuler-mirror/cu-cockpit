@@ -1,5 +1,4 @@
 <template>
-
 	<div class="item-com">
 		<p class="item-com-title">{{ props.title }}</p>
 		<ul class="item-com-list" :style="{ height: showPagination ? 'calc(100% - 75px)' : 'calc(100% - 45px)' }">
@@ -27,8 +26,8 @@
 		</div>
 	</div>
 </template>
-<script lang="ts" setup>
 
+<script lang="ts" setup>
 import { reactive, onMounted } from 'vue';
 import { RoleInfoStateType } from './types';
 
@@ -94,8 +93,8 @@ onMounted(() => {
 	fetchData();
 });
 </script>
-<style lang="scss" scoped>
 
+<style lang="scss" scoped>
 .item-com {
 	width: 100%;
 	height: 100%;

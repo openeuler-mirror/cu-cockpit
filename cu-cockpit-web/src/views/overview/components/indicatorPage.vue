@@ -1,5 +1,4 @@
 <template>
-
   <div class="card">
     <el-row :gutter="20" @click="toIndicator">
       <el-col :span="8">
@@ -54,8 +53,8 @@
     </el-card>
   </div>
 </template>
-<script lang="ts" setup name="indicator">
 
+<script lang="ts" setup name="indicator">
 import { reactive, onMounted, ref, onUnmounted } from 'vue';
 import * as echarts from 'echarts';
 import { monitorStatus, hardInfo } from '/@/api/run/run';
@@ -432,8 +431,8 @@ const handleResize = debounce(() => {
   }
 }, 300);
 </script>
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 .card {
   width: 100%;
 }
