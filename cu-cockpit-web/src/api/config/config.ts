@@ -26,3 +26,21 @@ export function configGet(mode: ModeType, key?: string): Promise<unknown> {
         params: { mode, key }
     });
 }
+
+
+type TimeType = {
+    type: string,
+    time: string
+}
+/**
+ * 修改系统时间
+ * @param data
+ * @returns 
+ */
+export const timeSet = (data: TimeType) => {
+    return request({
+        url: '/config/set/set_time.sh',
+        method: 'post',
+        data
+    });
+}
