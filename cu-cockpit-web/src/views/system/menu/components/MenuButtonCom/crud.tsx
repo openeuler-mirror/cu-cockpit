@@ -25,7 +25,10 @@ export const createCrudOptions = function ({crudExpose, context}: CreateCrudOpti
     const addRequest = async ({form}: AddReq) => {
         return await api.AddObj({...form, ...{menu: context!.selectOptions.value.id}});
     };
+	const selectedRows = ref<any>([]);
+
     return {
+        selectedRows,
         crudOptions: {
             pagination:{
                 show:false
@@ -39,6 +42,41 @@ export const createCrudOptions = function ({crudExpose, context}: CreateCrudOpti
                         },
                     },
                 },
+            },
+            actionbar: {
+                buttons: {
+                    add: {
+                        show: auth('menu:CreateButton')
+                    },
+                    batchAdd: {
+						show: true,
+						type: 'primary',
+						text: '批量生成',
+						click: async () => {
+							if (context!.selectOptions.value.id == undefined) {
+								ElMessage.error('请选择菜单');
+								return;
+							}
+							const result = await api.BatchAdd({ menu: context!.selectOptions.value.id });
+							if (result.code == 2000) {
+								successNotification(result.msg);
+								crudExpose.doRefresh();
+							}
+						},
+					},
+                },
+            },
+            columns: {
+                $checked: {
+					title: '选择',
+					form: { show: false },
+					column: {
+						type: 'selection',
+						align: 'center',
+						width: '70px',
+						columnSetDisabled: true, //禁止在列设置中选择
+					},
+				},
             },
         },
     };
