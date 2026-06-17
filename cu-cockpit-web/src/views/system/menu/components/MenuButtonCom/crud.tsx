@@ -27,6 +27,36 @@ export const createCrudOptions = function ({crudExpose, context}: CreateCrudOpti
     };
 	const selectedRows = ref<any>([]);
 
+	const onSelectionChange = (changed: any) => {
+		const tableData = crudExpose.getTableData();
+		const unChanged = tableData.filter((row: any) => !changed.includes(row));
+		// 添加已选择的行
+		XEUtils.arrayEach(changed, (item: any) => {
+			const ids = XEUtils.pluck(selectedRows.value, 'id');
+			if (!ids.includes(item.id)) {
+				selectedRows.value = XEUtils.union(selectedRows.value, [item]);
+			}
+		});
+		// 剔除未选择的行
+		XEUtils.arrayEach(unChanged, (unItem: any) => {
+			selectedRows.value = XEUtils.remove(selectedRows.value, (item: any) => item.id !== unItem.id);
+		});
+	};
+	const toggleRowSelection = () => {
+		// 多选后，回显默认勾选
+		const tableRef = crudExpose.getBaseTableRef();
+		const tableData = crudExpose.getTableData();
+		const selected = XEUtils.filter(tableData, (item: any) => {
+			const ids = XEUtils.pluck(selectedRows.value, 'id');
+			return ids.includes(item.id);
+		});
+
+		nextTick(() => {
+			XEUtils.arrayEach(selected, (item) => {
+				tableRef.toggleRowSelection(item, true);
+			});
+		});
+	};
     return {
         selectedRows,
         crudOptions: {
@@ -66,6 +96,24 @@ export const createCrudOptions = function ({crudExpose, context}: CreateCrudOpti
 					},
                 },
             },
+            rowHandle: {
+                //固定右侧
+                fixed: 'right',
+                width: 200,
+                buttons: {
+                    view: {
+                        show: false,
+                    },
+                    edit: {
+                        icon: '',
+                        type: 'primary',
+                        show: auth('menu:UpdateButton')
+                    },
+                    remove: {
+                        show: auth('menu:DeleteButton')
+                    },
+                },
+            },
             columns: {
                 $checked: {
 					title: '选择',
@@ -77,6 +125,28 @@ export const createCrudOptions = function ({crudExpose, context}: CreateCrudOpti
 						columnSetDisabled: true, //禁止在列设置中选择
 					},
 				},
+                _index: {
+                    title: '序号',
+                    form: {show: false},
+                    column: {
+                        type: 'index',
+                        align: 'center',
+                        width: '70px',
+                        columnSetDisabled: true, //禁止在列设置中选择
+                    },
+                },
+                search: {
+                    title: '关键词',
+                    column: {show: false},
+                    type: 'text',
+                    search: {show: true},
+                    form: {
+                        show: false,
+                        component: {
+                            placeholder: '输入关键词搜索',
+                        },
+                    },
+                },
             },
         },
     };
