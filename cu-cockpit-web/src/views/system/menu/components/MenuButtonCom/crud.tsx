@@ -120,6 +120,11 @@ export const createCrudOptions = function ({crudExpose, context}: CreateCrudOpti
                 editRequest,
                 delRequest,
             },
+            table: {
+				rowKey: 'id', //设置你的主键id， 默认rowKey=id
+				onSelectionChange,
+				onRefreshed: () => toggleRowSelection(),
+			},
             columns: {
                 $checked: {
 					title: '选择',
@@ -159,6 +164,51 @@ export const createCrudOptions = function ({crudExpose, context}: CreateCrudOpti
                     column: {show: false},
                     search: {show: false},
                     form: {show: false},
+                },
+                name: {
+                    title: '权限名称',
+                    type: 'text',
+                    search: {show: true},
+                    column: {
+                        minWidth: 120,
+                        sortable: true,
+                    },
+                    form: {
+                        rules: [{required: true, message: '权限名称必填'}],
+                        component: {
+                            placeholder: '输入权限名称搜索',
+                            props: {
+                                clearable: true,
+                                allowCreate: true,
+                                filterable: true,
+                            },
+                        },
+                        helper: {
+                            render() {
+                                return <el-alert title="手动输入" type="warning"
+                                                 description="页面中按钮的名称或者自定义一个名称"/>;
+                            },
+                        },
+                    },
+                },
+                value: {
+                    title: '权限值',
+                    type: 'text',
+                    search: {show: false},
+                    column: {
+                        width: 200,
+                        sortable: true,
+                    },
+                    form: {
+                        rules: [{required: true, message: '权限标识必填'}],
+                        placeholder: '输入权限标识',
+                        helper: {
+                            render() {
+                                return <el-alert title="唯一值" type="warning"
+                                                 description="用于判断前端按钮权限或接口权限"/>;
+                            },
+                        },
+                    },
                 },
             },
         },
