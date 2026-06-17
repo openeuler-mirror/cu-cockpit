@@ -1,5 +1,4 @@
 <template>
-
 	<div class="user-info-head" @click="editCropper()">
 		<el-avatar :size="100" :src="getBaseURL(options.img)" />
 		<el-dialog :title="title" v-model="dialogVisiable" width="600px" append-to-body @opened="modalOpened" @close="closeDialog">
@@ -44,8 +43,8 @@
 		</el-dialog>
 	</div>
 </template>
-<script setup>
 
+<script setup>
 import 'vue-cropper/dist/index.css';
 import { VueCropper } from 'vue-cropper';
 import { useUserInfo } from '/@/stores/userInfo';
@@ -170,8 +169,8 @@ defineExpose({
 	editCropper
 });
 </script>
-<style lang="scss" scoped>
 
+<style lang="scss" scoped>
 .user-info-head {
 	position: relative;
 	display: inline-block;
