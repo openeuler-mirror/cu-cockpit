@@ -60,3 +60,29 @@ export function setRoleMenuField(roleId: string | number | undefined, data: obje
 		data,
 	});
 }
+
+/**
+ * 设置 角色-菜单-按钮-数据权限
+ * @param query
+ * @returns
+ */
+export function setRoleMenuBtnDataRange(data: object) {
+	return request({
+		url: '/api/system/role_menu_button_permission/set_role_menu_btn_data_range/',
+		method: 'put',
+		data,
+	});
+}
+
+/**
+ * 获取当前用户角色下所能授权的部门
+ * @param query
+ * @returns
+ */
+export function getRoleToDeptAll(query: object) {
+	return request({
+		url: '/api/system/role_menu_button_permission/role_to_dept_all/',
+		method: 'get',
+		params: query,
+	});
+}
