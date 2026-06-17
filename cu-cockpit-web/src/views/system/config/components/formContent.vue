@@ -1,10 +1,204 @@
-<template #reference>
+<template>
+  <div>
+    <el-row :gutter="20">
+      <el-col :span="4">变量标题</el-col>
+      <el-col :span="4">变量名</el-col>
+      <el-col :span="10">变量值</el-col>
+      <el-col :span="2" :offset="1">是否前端配置</el-col>
+      <el-col :span="3" >操作</el-col>
+    </el-row>
+    <el-form ref="formRef" :model="formData" label-width="0px" label-position="left" style="margin-top: 20px">
+      <el-form-item
+          :prop="['array'].indexOf(item.form_item_type_label) > -1 ? '' : item.key"
+          :key="index"
+          :rules="item.rule || []"
+          v-for="(item, index) in formList"
+      >
+        <el-col :span="4">
+          <el-input v-if="item.edit" v-model="item.title" style="display: inline-block; width: 200px" placeholder="请输入标题"></el-input>
+          <span v-else>{{ item.title }}</span>
+        </el-col>
+        <el-col :span="4" >
+          <el-input v-if="item.edit" v-model="item.new_key" style="width: 200px" placeholder="请输入变量key">
+            <template slot="prepend">
+              <span style="padding: 0px 5px">{{ editableTabsItem.key }}</span>
+            </template>
+          </el-input>
+          <span v-else>{{ editableTabsItem.key }}.{{ item.key }}</span>
+        </el-col>
+        <el-col :span="10">
+          <!--    文本      -->
+          <el-input
+              :key="index"
+              v-if="['text', 'textarea'].indexOf(item.form_item_type_label) > -1"
+              :type="item.form_item_type_label"
+              v-model="formData[item.key]"
+              :placeholder="item.placeholder"
+              clearable
+          ></el-input>
 
+          <el-input-number :key="index + 1" v-else-if="item.form_item_type_label === 'number'" v-model="formData[item.key]" :min="0"></el-input-number>
+          <!--     datetime、date、time     -->
+          <el-date-picker
+              v-else-if="['datetime', 'date', 'time'].indexOf(item.form_item_type_label) > -1"
+              v-model="formData[item.key]"
+              :key="index + 2"
+              :type="item.form_item_type_label"
+              :placeholder="item.placeholder"
+          >
+          </el-date-picker>
+          <!--    select      -->
+          <el-select
+              :key="index + 3"
+              v-else-if="item.form_item_type_label === 'select'"
+              v-model="formData[item.key]"
+              :placeholder="item.placeholder"
+              clearable
+          >
+            <el-option v-for="item in dictionary(item.setting) || []" :key="item.value" :label="item.label" :value="item.value"> </el-option>
+          </el-select>
+          <!--    checkbox      -->
+          <el-checkbox-group
+              :key="index + 4"
+              v-else-if="item.form_item_type_label === 'checkbox'"
+              v-model="formData[item.key]"
+              :placeholder="item.placeholder"
+          >
+            <el-checkbox v-for="item in dictionary(item.setting) || []" :key="item.value" :label="item.value" :value="item.value">
+              {{ item.label }}
+            </el-checkbox>
+          </el-checkbox-group>
+          <!--    radio      -->
+          <el-radio-group
+              :key="index + 5"
+              v-else-if="item.form_item_type_label === 'radio'"
+              v-model="formData[item.key]"
+              :placeholder="item.placeholder"
+              clearable
+          >
+            <el-radio v-for="item in dictionary(item.setting) || []" :key="item.value" :label="item.value" :value="item.value">
+              {{ item.label }}
+            </el-radio>
+          </el-radio-group>
+          <!--    switch      -->
+          <el-switch
+              :key="index + 6"
+              v-else-if="item.form_item_type_label === 'switch'"
+              v-model="formData[item.key]"
+              :inactive-value="false"
+              active-color="#13ce66"
+              inactive-color="#ff4949"
+          >
+          </el-switch>
+          <!--     图片     -->
+          <div v-else-if="['img', 'imgs'].indexOf(item.form_item_type_label) > -1" :key="index + 7">
+            <el-upload
+                :action="uploadUrl"
+                :headers="uploadHeaders"
+                name="file"
+                :accept="'image/*'"
+                :on-preview="handlePictureCardPreview"
+                :on-success="
+								(response:any, file:any, fileList:any) => {
+									handleUploadSuccess(response, file, fileList, item.key);
+								}
+							"
+                :on-error="handleError"
+                :on-exceed="handleExceed"
+                :before-remove="
+								(file:any, fileList:any) => {
+									beforeRemove(file, fileList, item.key);
+								}
+							"
+                :multiple="item.form_item_type_label !== 'img'"
+                :limit="item.form_item_type_label === 'img' ? 1 : 5"
+                :ref="'imgUpload_' + item.key"
+                :data-keyname="item.key"
+                :file-list="item.value ? item.value : []"
+                list-type="picture-card"
+            >
+              <i class="el-icon-plus"></i>
+              <div slot="tip" class="el-upload__tip">请选取图片,并且只能上传jpg/png文件</div>
+            </el-upload>
+            <el-dialog :visible.sync="dialogImgVisible">
+              <img width="100%" :src="dialogImageUrl" alt="" />
+            </el-dialog>
+          </div>
+          <!--     文件     -->
+          <div v-else-if="['file'].indexOf(item.form_item_type_label) > -1" :key="index + 8">
+            <el-upload
+                :action="uploadUrl"
+                :headers="uploadHeaders"
+                name="file"
+                :on-preview="handlePictureCardPreview"
+                :on-success="
+								(response:any, file:any, fileList:any) => {
+									handleUploadSuccess(response, file, fileList, item.key);
+								}
+							"
+                :on-error="handleError"
+                :on-exceed="handleExceed"
+                :before-remove="
+								(file:any, fileList:any) => {
+									beforeRemove(file, fileList, item.key);
+								}
+							"
+                :limit="5"
+                :ref="'fileUpload_' + item.key"
+                :data-keyname="item.key"
+                :file-list="item.value"
+                list-type="picture-card"
+            >
+              <i class="el-icon-plus"></i>
+              <div slot="tip" class="el-upload__tip">请选取图片,并且只能上传jpg/png文件</div>
+            </el-upload>
+            <el-dialog :visible.sync="dialogImgVisible">
+              <img width="100%" :src="dialogImageUrl" alt="" />
+            </el-dialog>
+          </div>
+          <!--    关联表      -->
+          <div v-else-if="['foreignkey', 'manytomany'].indexOf(item.form_item_type_label) > -1" :key="index + 9">
+            <table-selector
+                v-model="formData[item.key]"
+                :el-props="{
+								pagination: true,
+								columns: item.setting.searchField,
+							}"
+                :dict="{
+								url: '/api/system/system_config/get_table_data/' + item.id + '/',
+								value: item.setting.primarykey,
+								label: item.setting.field,
+							}"
+                :pagination="true"
+                :multiple="item.form_item_type_label === 'manytomany'"
+            ></table-selector>
+          </div>
+          <!--   数组       -->
+          <div v-else-if="item.form_item_type_label === 'array'" :key="index + 10">
+            <crudTable  v-model="formData[item.key]"></crudTable>
+          </div>
+        </el-col>
+        <el-col :span="2" :offset="1">
+          <el-switch v-model="item.status" active-color="#13ce66" inactive-color="#ff4949"> </el-switch>
+        </el-col>
+        <el-col :span="3">
+          <el-button v-if="item.edit" size="mini" type="primary" :icon="Finished" @click="onEditSave(item)">保存</el-button>
+          <el-button v-else size="mini" type="primary" :icon="Edit" @click="onEdit(index)"></el-button>
+          <el-popconfirm title="确定删除该条数据吗？" @confirm="onDelRow(item)">
+            <template #reference>
               <el-button size="mini" type="danger" :icon="Delete" ></el-button>
-            
+            </template>
+          </el-popconfirm>
+        </el-col>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="onSubmit(formRef)">确定</el-button>
+      </el-form-item>
+    </el-form>
+  </div>
 </template>
-<script setup lang="ts">
 
+<script setup lang="ts">
 import * as api from '../api';
 import { dictionary } from '/@/utils/dictionary';
 import { getBaseURL } from '/@/utils/baseUrl';
@@ -178,8 +372,8 @@ watch(
     { immediate: true }
 );
 </script>
-<style scoped>
 
+<style scoped>
 :deep(.el-upload-list--picture-card){
   text-align: center;
 }
