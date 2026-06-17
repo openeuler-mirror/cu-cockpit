@@ -55,3 +55,19 @@ interface PciItem {
   厂商: string;
   插槽: string;
 }
+
+/**
+ * 获取PCI列表信息
+ * @returns 
+ */
+export const pciInfo = (): Promise<PciItem[]> => {
+    return request({
+        url: '/rescrouce/monitor/pci_info.sh',
+        method: 'get',
+    });
+}
+type operationType = 'start' | 'stop' | 'restart';
+type ServiceManageType = {
+    service_name: string,
+    operation: operationType
+}
