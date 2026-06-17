@@ -180,4 +180,7 @@ watch(
 </script>
 <style scoped>
 
+:deep(.el-upload-list--picture-card){
+  text-align: center;
+}
 </style>

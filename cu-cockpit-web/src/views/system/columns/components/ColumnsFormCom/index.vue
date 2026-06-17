@@ -1,5 +1,4 @@
 <template>
-
 	<div class="columns-form-com">
 		<el-form ref="formRef" :model="formData" :rules="formRules" label-width="80px">
 			<el-form-item label="字段名" prop="field_name">
@@ -29,8 +28,8 @@
 		</el-form>
 	</div>
 </template>
-<script lang="ts" setup>
 
+<script lang="ts" setup>
 import { reactive, ref, onMounted } from 'vue';
 import { addColumnsData, updateColumnsData } from '../ColumnsTableCom/api';
 import { successNotification } from '/@/utils/message';
@@ -106,8 +105,8 @@ onMounted(() => {
 	setMenuFormData();
 });
 </script>
-<style lang="scss" scoped>
 
+<style lang="scss" scoped>
 .columns-form-com {
 	height: 100%;
 	padding: 20px;
