@@ -46,6 +46,21 @@ const onSelectionChange = (changed: any) => {
 		selectedRows.value = XEUtils.remove(selectedRows.value, (item: any) => item.id !== unItem.id);
 	});
 };
+const toggleRowSelection = () => {
+	// 多选后，回显默认勾选
+	const tableRef = crudExpose.getBaseTableRef();
+	const tableData = crudExpose.getTableData();
+	const selected = XEUtils.filter(tableData, (item: any) => {
+		const ids = XEUtils.pluck(selectedRows.value, 'id');
+		return ids.includes(item.id);
+	});
+
+	nextTick(() => {
+		XEUtils.arrayEach(selected, (item) => {
+			tableRef.toggleRowSelection(item, true);
+		});
+	});
+};
     return {
         selectedRows,
         crudOptions: {
