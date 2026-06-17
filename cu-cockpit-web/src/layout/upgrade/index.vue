@@ -1,5 +1,4 @@
 <template>
-
 	<div class="upgrade-dialog">
 		<el-dialog
 			v-model="state.isUpgrade"
@@ -29,8 +28,8 @@
 		</el-dialog>
 	</div>
 </template>
-<script setup lang="ts" name="layoutUpgrade">
 
+<script setup lang="ts" name="layoutUpgrade">
 import { reactive, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
@@ -86,8 +85,8 @@ onMounted(() => {
 	}, 200);
 });
 </script>
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 .upgrade-dialog {
 	:deep(.el-dialog) {
 		.el-dialog__body {

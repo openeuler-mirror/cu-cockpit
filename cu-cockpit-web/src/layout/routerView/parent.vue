@@ -1,5 +1,4 @@
 <template>
-
 	<div class="layout-parent">
 		<router-view v-slot="{ Component }">
 			<transition :name="setTransitionName" mode="out-in">
@@ -14,8 +13,8 @@
 		</transition>
 	</div>
 </template>
-<script setup lang="ts" name="layoutParentView">
 
+<script setup lang="ts" name="layoutParentView">
 import { defineAsyncComponent, computed, reactive, onBeforeMount, onUnmounted, nextTick, watch, onMounted, ref, provide } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
