@@ -1,5 +1,4 @@
 <template>
-
 	<el-config-provider :size="getGlobalComponentSize" :locale="getGlobalI18n">
 		<!-- v-show="themeConfig.lockScreenTime > 1" -->
 		<router-view v-show="themeConfig.lockScreenTime > 1" />
@@ -10,8 +9,8 @@
 <!--		<Upgrade v-if="getVersion" />-->
 	</el-config-provider>
 </template>
-<script setup lang="ts" name="app">
 
+<script setup lang="ts" name="app">
 import { defineAsyncComponent, computed, ref, onBeforeMount, onMounted, onUnmounted, nextTick, watch, onBeforeUnmount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';

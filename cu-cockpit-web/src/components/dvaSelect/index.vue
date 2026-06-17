@@ -1,5 +1,4 @@
 <template>
-
   <!--   你的自定义受控组件-->
   <el-select-v2
       v-model="data"
@@ -12,7 +11,6 @@
   />
 </template>
 <script lang="ts" setup>
-
 import {ref, defineComponent, watch, computed, toRefs, toRaw, onMounted} from 'vue'
 import {useUi} from "@fast-crud/fast-crud";
 import {request} from "/@/utils/service";
@@ -125,7 +123,6 @@ if (props.dict.url instanceof Function) {
 
 </script>
 <style scoped lang="scss">
-
 .el-select .el-input__wrapper .el-input__inner::placeholder {
   //color: #a8abb2;
   color: #0d84ff;
