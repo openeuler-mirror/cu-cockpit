@@ -14,7 +14,6 @@ import {
 import { ref , nextTick} from 'vue';
 import XEUtils from 'xe-utils';
 
-
 export const createCrudOptions = function ({ crudExpose, context }: CreateCrudOptionsProps): CreateCrudOptionsRet {
   const pageRequest = async (query: UserPageQuery) => {
     return await getRoleUsersUnauthorized(query);
@@ -28,6 +27,8 @@ export const createCrudOptions = function ({ crudExpose, context }: CreateCrudOp
   const addRequest = async ({ form }: AddReq) => {
     return undefined;
   };
+
+  // 记录选中的行
 	const selectedRows = ref<any>([]);
 
 	const onSelectionChange = (changed: any) => {
@@ -60,14 +61,104 @@ export const createCrudOptions = function ({ crudExpose, context }: CreateCrudOp
 			});
 		});
 	};
-    return {
-        selectedRows,
-        crudOptions: {
+  
+  return {
+    selectedRows,
+    crudOptions: {
+      request: {
+        pageRequest,
+        addRequest,
+        editRequest,
+        delRequest,
+      },
+      actionbar: {
+        show: false,
+        buttons: {
+          add: {
+            show: false,
+          },
+        },
+      },
+      rowHandle: {
+        show: false,
+        //固定右侧
+        fixed: 'left',
+        width: 150,
+        buttons: {
+          view: {
+            show: false,
+          },
+          edit: {
+            show: false,
+          },
+          remove: {
+            show: false,
+          },
+        },
+      },
+      table: {
+				rowKey: "id",
+        onSelectionChange,
+				onRefreshed: () => toggleRowSelection(),
+			},
+      columns: {
+        $checked: {
+					title: "选择",
+					form: { show: false},
+					column: {
+						show: true,
+						type: "selection",
+						align: "center",
+						width: "55px",
+						columnSetDisabled: true, //禁止在列设置中选择
+					}
+				},
+        _index: {
+          title: '序号',
+          form: { show: false },
+          column: {
+            //type: 'index',
+            align: 'center',
+            width: '70px',
+            columnSetDisabled: true, //禁止在列设置中选择
+            formatter: (context) => {
+              //计算序号,你可以自定义计算规则，此处为翻页累加
+              let index = context.index ?? 1;
+              let pagination = crudExpose!.crudBinding.value.pagination;
+              // @ts-ignore
+              return ((pagination.currentPage ?? 1) - 1) * pagination.pageSize + index + 1;
+            },
+          },
+        },
+        name: {
+          title: '用户名',
+          search: {
+            show: true,
             component: {
               props: {
                 clearable: true,
               },
             },
+          },
+          type: 'text',
+          form: {
+            show: false,
+          },
+        },
+        dept: {
+          title: '部门',
+          show: true,
+          type: 'dict-tree',
+          column: {
+            name: 'text',
+            formatter({value,row,index}){
+                return row.dept__name
+            }
+          },
+          search: {
+            show: true,
+            disabled: true,
+            col:{span: 6},
             component: {
               multiple: false,
               props: {
@@ -76,6 +167,18 @@ export const createCrudOptions = function ({ crudExpose, context }: CreateCrudOp
                 filterable: true,
               },
             },
+          },
+          form: {
+            show: false
+          },
+          dict: dict({
+            isTree: true,
+            url: '/api/system/dept/all_dept/',
+            value: 'id',
+            label: 'name'
+          }),
         },
-    };
+      },
+    },
+  };
 };
