@@ -1,5 +1,35 @@
-<template #default>
-
+<template>
+	<div class="icon-selector w100 h100">
+		<el-input
+			v-model="state.fontIconSearch"
+			:placeholder="state.fontIconPlaceholder"
+			:clearable="clearable"
+			:disabled="disabled"
+			:size="size"
+			ref="inputWidthRef"
+			@clear="onClearFontIcon"
+			@focus="onIconFocus"
+			@blur="onIconBlur"
+		>
+			<template #prepend>
+				<SvgIcon
+					:name="state.fontIconPrefix === '' ? prepend : state.fontIconPrefix"
+					class="font14"
+					v-if="state.fontIconPrefix === '' ? prepend?.indexOf('ele-') > -1 : state.fontIconPrefix?.indexOf('ele-') > -1"
+				/>
+				<i v-else :class="state.fontIconPrefix === '' ? prepend : state.fontIconPrefix" class="font14"></i>
+			</template>
+		</el-input>
+		<el-popover
+			placement="bottom"
+			:width="state.fontIconWidth"
+			transition="el-zoom-in-top"
+			popper-class="icon-selector-popper"
+			trigger="click"
+			:virtual-ref="inputWidthRef"
+			virtual-triggering
+		>
+			<template #default>
 				<div class="icon-selector-warp">
 					<div class="icon-selector-warp-title">{{ title }}</div>
 					<el-tabs v-model="state.fontIconTabActive" @tab-click="onIconClick">
@@ -14,10 +44,12 @@
 						</el-tab-pane>
 					</el-tabs>
 				</div>
-			
+			</template>
+		</el-popover>
+	</div>
 </template>
-<script setup lang="ts" name="iconSelector">
 
+<script setup lang="ts" name="iconSelector">
 import { defineAsyncComponent, ref, reactive, onMounted, nextTick, computed, watch } from 'vue';
 import type { TabsPaneContext } from 'element-plus';
 import initIconfont from '/@/utils/getStyleSheets';
