@@ -1,5 +1,76 @@
-<template #dropdown>
-
+<template>
+	<!-- 2025-09-03 -->
+	<div class="layout-navbars-breadcrumb-user pr15" :style="{ flex: layoutUserFlexNum }">
+		<div class="mr10">
+			<el-button icon="Lock" type="warning" plain @click="onPermissionsClick(true)" class="user-permission" v-if="u_Permission == 'other'">被限制访问</el-button>
+			<el-button type="success" plain @click="onPermissionsClick(false)" v-else>管理员模式</el-button>
+		</div>
+		<!-- <el-dropdown :show-timeout="70" :hide-timeout="50" trigger="click" @command="onComponentSizeChange">
+			<div class="layout-navbars-breadcrumb-user-icon">
+				<i class="iconfont icon-ziti" :title="$t('message.user.title0')"></i>
+			</div>
+			<template #dropdown>
+				<el-dropdown-menu>
+					<el-dropdown-item command="large" :disabled="state.disabledSize === 'large'">{{
+						$t('message.user.dropdownLarge') }}</el-dropdown-item>
+					<el-dropdown-item command="default" :disabled="state.disabledSize === 'default'">{{
+						$t('message.user.dropdownDefault') }}</el-dropdown-item>
+					<el-dropdown-item command="small" :disabled="state.disabledSize === 'small'">{{
+						$t('message.user.dropdownSmall') }}</el-dropdown-item>
+				</el-dropdown-menu>
+			</template>
+</el-dropdown> -->
+		<!-- <el-dropdown :show-timeout="70" :hide-timeout="50" trigger="click" @command="onLanguageChange">
+			<div class="layout-navbars-breadcrumb-user-icon">
+				<i class="iconfont" :class="state.disabledI18n === 'en' ? 'icon-fuhao-yingwen' : 'icon-fuhao-zhongwen'"
+					:title="$t('message.user.title1')"></i>
+			</div>
+			<template #dropdown>
+				<el-dropdown-menu>
+					<el-dropdown-item command="zh-cn" :disabled="state.disabledI18n === 'zh-cn'">简体中文</el-dropdown-item>
+					<el-dropdown-item command="en" :disabled="state.disabledI18n === 'en'">English</el-dropdown-item>
+					<el-dropdown-item command="zh-tw" :disabled="state.disabledI18n === 'zh-tw'">繁體中文</el-dropdown-item>
+				</el-dropdown-menu>
+			</template>
+		</el-dropdown> -->
+		<div class="layout-navbars-breadcrumb-user-icon" @click="onSearchClick">
+			<el-icon :title="$t('message.user.title2')">
+				<ele-Search />
+			</el-icon>
+		</div>
+		<div class="layout-navbars-breadcrumb-user-icon" @click="onLayoutSetingClick">
+			<i class="icon-skin iconfont" :title="$t('message.user.title3')"></i>
+		</div>
+		<!-- <div class="layout-navbars-breadcrumb-user-icon">
+			<el-popover placement="bottom" trigger="hover" transition="el-zoom-in-top" :width="300" :persistent="false">
+				<template #reference>
+					<el-badge :value="messageCenter.unread" :hidden="messageCenter.unread === 0">
+						<el-icon :title="$t('message.user.title4')">
+							<ele-Bell />
+						</el-icon>
+					</el-badge>
+				</template>
+				<template #default>
+					<UserNews />
+				</template>
+			</el-popover>
+		</div> -->
+		<div class="layout-navbars-breadcrumb-user-icon mr10" @click="onScreenfullClick">
+			<i class="iconfont" :title="state.isScreenfull ? $t('message.user.title6') : $t('message.user.title5')"
+				:class="!state.isScreenfull ? 'icon-fullscreen' : 'icon-tuichuquanping'"></i>
+		</div>
+		<div></div>
+		<el-dropdown :show-timeout="70" :hide-timeout="50" @command="onHandleCommandClick">
+			<span class="layout-navbars-breadcrumb-user-link" style="font-size: 16px;">
+				<!-- <el-badge is-dot class="item online-status">
+					<img :src="userInfos.avatar || headerImage" class="layout-navbars-breadcrumb-user-link-photo mr5" />
+				</el-badge> -->
+				{{ userInfos.username === '' ? 'root' : userInfos.username }}
+				<el-icon class="el-icon--right">
+					<ele-ArrowDown />
+				</el-icon>
+			</span>
+			<template #dropdown>
 				<el-dropdown-menu>
 					<!-- <el-dropdown-item command="/home">{{ $t('message.user.dropdown1') }}</el-dropdown-item>
 					<el-dropdown-item command="/personal">{{ $t('message.user.dropdown2') }}</el-dropdown-item>
@@ -7,10 +78,14 @@
 					<el-dropdown-item divided command="logOut">{{ $t('message.user.dropdown5') }}</el-dropdown-item> -->
 					<el-dropdown-item command="logOut">{{ $t('message.user.dropdown5') }}</el-dropdown-item>
 				</el-dropdown-menu>
-			
-</template>
-<script setup lang="ts" name="layoutBreadcrumbUser">
+			</template>
+		</el-dropdown>
+		<Search ref="searchRef" />
 
+	</div>
+</template>
+
+<script setup lang="ts" name="layoutBreadcrumbUser">
 import { defineAsyncComponent, ref, computed, reactive, onMounted, unref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessageBox, ElMessage } from 'element-plus';
@@ -204,7 +279,6 @@ const onPermissionsClick = (val: boolean) => {
 
 </script>
 <style scoped lang="scss">
-
 .layout-navbars-breadcrumb-user {
 	display: flex;
 	align-items: center;
