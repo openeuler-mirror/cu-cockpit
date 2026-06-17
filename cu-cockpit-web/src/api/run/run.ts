@@ -71,3 +71,22 @@ type ServiceManageType = {
     service_name: string,
     operation: operationType
 }
+/**
+ * 用于服务启动、停止、重启等操作
+ * @param data
+ * @returns 
+ */
+export const runServiceManage = (data: ServiceManageType) => {
+    return request({
+        url: '/service/manage',
+        method: 'post',
+        data: JSON.stringify(data)
+    });
+}
+
+export const serviceStatus = () => {
+    return request({
+        url: '/service/status',
+        method: 'get',
+    });
+}
