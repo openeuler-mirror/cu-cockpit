@@ -1,13 +1,73 @@
-<template #footer>
+<template>
+	<div v-show="!showCount" class="dept-user-com-box dept-info">
+		<div class="di-left">
+			<h3>{{ deptInfo.dept_name || '' }}</h3>
+			<div class="di-cell">
+				<p>部门负责人：</p>
+				<p class="content">{{ deptInfo.owner || '无' }}</p>
+			</div>
+			<div class="di-cell">
+				<p>部门人数：</p>
+				<p class="content">{{ deptInfo.dept_user || 0 }}人</p>
+			</div>
+			<div class="di-cell">
+				<p>部门简介：</p>
+				<p class="content">{{ deptInfo.description || '无' }}</p>
+			</div>
+			<div class="di-cell">
+				<p>显示子级：</p>
+				<el-switch
+					v-model="isShowChildFlag"
+					inline-prompt
+					active-text="是"
+					inactive-text="否"
+					:disabled="!currentDeptId"
+					@change="handleSwitchChange"
+					style="--el-switch-on-color: var(--el-color-primary)"
+				/>
+			</div>
+		</div>
+		<div style="height: 180px; width: 380px" ref="deptCountBar"></div>
+		<div style="height: 180px; width: 200px" ref="deptSexPie"></div>
+	</div>
 
+	<fs-crud
+		ref="crudRef"
+		v-bind="crudBinding"
+		:customClass="!showCount ? 'dept-user-com-box dept-user-com-table' : 'dept-user-com-box dept-user-com-table-cover'"
+	>
+		<template #toolbar-left>
+			<el-button :icon="!showCount ? 'Hide' : 'View'" circle @click="showCount = !showCount"></el-button>
+		</template>
+		<template #actionbar-right>
+			<importExcel api="api/system/user/" v-auth="'user:Import'">导入 </importExcel>
+		</template>
+		<template #cell_avatar="scope">
+              <div v-if="scope.row.avatar" style="display: flex; justify-content: center; align-items: center;">
+                <el-image 
+                  style="width: 50px; height: 50px; border-radius: 50%; aspect-ratio: 1 /1 ; " 
+                  :src="getBaseURL(scope.row.avatar)"
+                  :preview-src-list="[getBaseURL(scope.row.avatar)]" 
+                  :preview-teleported="true" />
+              </div>
+            </template>
+	</fs-crud>
+
+	<el-dialog v-model="resetPwdVisible" title="重设密码" width="400px" draggable :before-close="handleResetPwdClose">
+		<div>
+			<el-input v-model="resetPwdFormState.newPassword" type="password" placeholder="请输入密码" show-password style="margin-bottom: 20px" />
+			<el-input v-model="resetPwdFormState.newPassword2" type="password" placeholder="请再次输入密码" show-password />
+		</div>
+		<template #footer>
 			<span class="dialog-footer">
 				<el-button @click="handleResetPwdClose">取消</el-button>
 				<el-button type="primary" @click="handleResetPwdSubmit"> 保存 </el-button>
 			</span>
-		
+		</template>
+	</el-dialog>
 </template>
-<script lang="ts" setup name="user">
 
+<script lang="ts" setup name="user">
 import { ref, reactive, onMounted } from 'vue';
 import { useExpose, useCrud } from '@fast-crud/fast-crud';
 import { Md5 } from 'ts-md5';
@@ -221,8 +281,8 @@ const { resetCrudOptions } = useCrud({
 	context: {},
 });
 </script>
-<style lang="scss" scoped>
 
+<style lang="scss" scoped>
 .dept-user-com-box {
 	padding: 0 10px;
 	border-radius: 8px 0 0 8px;
