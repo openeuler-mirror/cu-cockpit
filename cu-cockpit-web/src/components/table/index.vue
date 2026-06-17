@@ -1,5 +1,76 @@
-<template #default>
-
+<template>
+	<div class="table-container">
+		<el-table
+			:data="data"
+			:border="setBorder"
+			v-bind="$attrs"
+			row-key="id"
+			stripe
+			style="width: 100%"
+			v-loading="config.loading"
+			@selection-change="onSelectionChange"
+		>
+			<el-table-column type="selection" :reserve-selection="true" width="30" v-if="config.isSelection" />
+			<el-table-column type="index" label="序号" width="60" v-if="config.isSerialNo" />
+			<el-table-column
+				v-for="(item, index) in setHeader"
+				:key="index"
+				show-overflow-tooltip
+				:prop="item.key"
+				:width="item.colWidth"
+				:label="item.title"
+			>
+				<template v-slot="scope">
+					<template v-if="item.type === 'image'">
+						<img :src="scope.row[item.key]" :width="item.width" :height="item.height" />
+					</template>
+					<template v-else>
+						{{ scope.row[item.key] }}
+					</template>
+				</template>
+			</el-table-column>
+			<el-table-column label="操作" width="100" v-if="config.isOperate">
+				<template v-slot="scope">
+					<el-popconfirm title="确定删除吗？" @confirm="onDelRow(scope.row)">
+						<template #reference>
+							<el-button text type="primary">删除</el-button>
+						</template>
+					</el-popconfirm>
+				</template>
+			</el-table-column>
+			<template #empty>
+				<el-empty description="暂无数据" />
+			</template>
+		</el-table>
+		<div class="table-footer mt15">
+			<el-pagination
+				v-model:current-page="state.page.pageNum"
+				v-model:page-size="state.page.pageSize"
+				:pager-count="5"
+				:page-sizes="[10, 20, 30]"
+				:total="config.total"
+				layout="total, sizes, prev, pager, next, jumper"
+				background
+				@size-change="onHandleSizeChange"
+				@current-change="onHandleCurrentChange"
+			>
+			</el-pagination>
+			<div class="table-footer-tool">
+				<SvgIcon name="iconfont icon-yunxiazai_o" :size="22" title="导出" @click="onImportTable" />
+				<SvgIcon name="iconfont icon-shuaxin" :size="22" title="刷新" @click="onRefreshTable" />
+				<el-popover
+					placement="top-end"
+					trigger="click"
+					transition="el-zoom-in-top"
+					popper-class="table-tool-popper"
+					:width="300"
+					:persistent="false"
+					@show="onSetTable"
+				>
+					<template #reference>
+						<SvgIcon name="iconfont icon-quanjushezhi_o" :size="22" title="设置" />
+					</template>
+					<template #default>
 						<div class="tool-box">
 							<el-tooltip content="拖动进行排序" placement="top-start">
 								<SvgIcon name="fa fa-question-circle-o" :size="17" class="ml11" color="#909399" />
@@ -22,10 +93,14 @@
 								</div>
 							</div>
 						</el-scrollbar>
-					
+					</template>
+				</el-popover>
+			</div>
+		</div>
+	</div>
 </template>
-<script setup lang="ts" name="netxTable">
 
+<script setup lang="ts" name="netxTable">
 import { reactive, computed, nextTick, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import table2excel from 'js-table2excel';
@@ -152,8 +227,8 @@ defineExpose({
 	pageReset,
 });
 </script>
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 .table-container {
 	display: flex;
 	flex-direction: column;
