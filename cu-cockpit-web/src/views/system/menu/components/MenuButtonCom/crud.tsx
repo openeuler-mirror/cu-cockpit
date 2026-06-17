@@ -114,6 +114,12 @@ export const createCrudOptions = function ({crudExpose, context}: CreateCrudOpti
                     },
                 },
             },
+            request: {
+                pageRequest,
+                addRequest,
+                editRequest,
+                delRequest,
+            },
             columns: {
                 $checked: {
 					title: '选择',
@@ -146,6 +152,13 @@ export const createCrudOptions = function ({crudExpose, context}: CreateCrudOpti
                             placeholder: '输入关键词搜索',
                         },
                     },
+                },
+                id: {
+                    title: 'ID',
+                    type: 'text',
+                    column: {show: false},
+                    search: {show: false},
+                    form: {show: false},
                 },
             },
         },
