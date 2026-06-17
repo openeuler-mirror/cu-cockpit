@@ -44,3 +44,39 @@ export const timeSet = (data: TimeType) => {
         data
     });
 }
+
+type hostType = {
+    hostname: string,
+}
+/**
+ * 修改主机名
+ * @param data
+ * @returns 
+ */
+export const hostSet = (data: hostType) => {
+    return request({
+        url: '/config/set/config.sh',
+        method: 'post',
+        data
+    });
+}
+
+/**
+ * 修改文件
+ * @param data
+ * @returns 
+ */
+export const configUpdate = (data: string, file_path: string, dir_path: string) => {
+    return request({
+        url: '/config/update/',
+        method: 'post',
+        headers: {
+            'Content-Type': 'text/plain'
+        },
+        params: {
+            file_path,
+            dir_path
+        },
+        data
+    });
+}
