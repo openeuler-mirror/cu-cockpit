@@ -49,3 +49,24 @@ export function BatchDelete(keys: any) {
 		data: { keys },
 	});
 }
+/**
+ * 获取所有model
+ */
+export function getModelList() {
+	return request({
+		url: '/api/system/column/get_models/',
+		method: 'get',
+	});
+}
+
+/**
+ * 自动匹配field
+ * @param data
+ */
+export function automatchColumnsData(data: CurrentInfoType) {
+	return request({
+		url: '/api/system/column/auto_match_fields/',
+		method: 'post',
+		data,
+	});
+}
