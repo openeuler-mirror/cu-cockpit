@@ -1,5 +1,4 @@
 <template>
-
 	<div class="editor-container">
 		<Toolbar :editor="editorRef" :mode="mode" />
 		<Editor
@@ -12,8 +11,8 @@
 		/>
 	</div>
 </template>
-<script setup lang="ts" name="wngEditor">
 
+<script setup lang="ts" name="wngEditor">
 import '@wangeditor/editor/dist/css/style.css';
 import { reactive, shallowRef, watch, onBeforeUnmount } from 'vue';
 import { IDomEditor } from '@wangeditor/editor';

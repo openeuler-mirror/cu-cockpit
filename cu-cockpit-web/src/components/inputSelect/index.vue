@@ -1,5 +1,4 @@
 <template>
-
   <div class="custom-input-select">
     <el-input 
       :model-value="inputLabel" 
@@ -29,8 +28,8 @@
     </div>
   </div>
 </template>
-<script setup lang="ts" name="inputSelect">
 
+<script setup lang="ts" name="inputSelect">
 import { ref, watch, PropType } from "vue";
 
 interface Option {
@@ -214,8 +213,8 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside);
 });
 </script>
-<style scoped lang="scss">
 
+<style  scoped lang="scss">
 .selected-value {
   margin-top: 15px;
   padding: 12px;

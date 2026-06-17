@@ -1,13 +1,33 @@
-<template #default="{ item }">
-
+<template>
+	<div class="layout-search-dialog">
+		<el-dialog v-model="state.isShowSearch" destroy-on-close :show-close="false">
+			<template #footer>
+				<el-autocomplete
+					v-model="state.menuQuery"
+					:fetch-suggestions="menuSearch"
+					:placeholder="$t('message.user.searchPlaceholder')"
+					ref="layoutMenuAutocompleteRef"
+					@select="onHandleSelect"
+					:fit-input-width="true"
+				>
+					<template #prefix>
+						<el-icon class="el-input__icon">
+							<ele-Search />
+						</el-icon>
+					</template>
+					<template #default="{ item }">
 						<div>
 							<SvgIcon :name="item.meta.icon" class="mr5" />
 							{{ $t(item.meta.title) }}
 						</div>
-					
+					</template>
+				</el-autocomplete>
+			</template>
+		</el-dialog>
+	</div>
 </template>
-<script setup lang="ts" name="layoutBreadcrumbSearch">
 
+<script setup lang="ts" name="layoutBreadcrumbSearch">
 import { reactive, ref, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
@@ -77,8 +97,8 @@ defineExpose({
 	openSearch,
 });
 </script>
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 .layout-search-dialog {
 	position: relative;
 	:deep(.el-dialog) {
