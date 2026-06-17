@@ -1,13 +1,47 @@
-<template #footer>
-
+<template>
+  <div style="display: inline-block">
+    <el-button size="default" type="success" @click="handleImport()">
+      <slot>导入</slot>
+    </el-button>
+    <el-dialog :title="props.upload.title" v-model="uploadShow" width="400px" append-to-body>
+      <div v-loading="loading">
+        <el-upload
+            ref="uploadRef"
+            :limit="1"
+            accept=".xlsx, .xls"
+            :headers="props.upload.headers"
+            :action="props.upload.url"
+            :disabled="isUploading"
+            :on-progress="handleFileUploadProgress"
+            :on-success="handleFileSuccess"
+            :auto-upload="false"
+            drag
+        >
+          <i class="el-icon-upload"/>
+          <div class="el-upload__text">
+            将文件拖到此处，或
+            <em>点击上传</em>
+          </div>
+          <template #tip>
+          <div  class="el-upload__tip" style="color:red">提示：仅允许导入“xls”或“xlsx”格式文件！</div>
+          </template>
+        </el-upload>
+        <div>
+          <el-button type="warning" style="font-size:14px;margin-top: 20px" @click="importTemplate">下载导入模板</el-button>
+          <el-button type="warning" style="font-size:14px;margin-top: 20px" @click="updateTemplate">批量更新模板</el-button>
+        </div>
+      </div>
+      <template #footer>
       <div  class="dialog-footer">
         <el-button type="primary" :disabled="loading" @click="submitFileForm">确 定</el-button>
         <el-button :disabled="loading" @click="uploadShow = false">取 消</el-button>
       </div>
-      
+      </template>
+    </el-dialog>
+  </div>
 </template>
-<script lang="ts" setup name="importExcel">
 
+<script lang="ts" setup name="importExcel">
 import { request, downloadFile } from '/@/utils/service';
 import {inject,ref} from "vue";
 import { getBaseURL } from '/@/utils/baseUrl';
@@ -106,7 +140,7 @@ const submitFileForm=function () {
 }
 
 </script>
-<style scoped>
 
+<style scoped>
 
 </style>

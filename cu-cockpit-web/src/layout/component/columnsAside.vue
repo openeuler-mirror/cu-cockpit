@@ -1,5 +1,4 @@
 <template>
-
 	<div class="layout-columns-aside">
 		<el-scrollbar>
 			<ul @mouseleave="onColumnsAsideMenuMouseleave()">
@@ -44,8 +43,8 @@
 		</el-scrollbar>
 	</div>
 </template>
-<script setup lang="ts" name="layoutColumnsAside">
 
+<script setup lang="ts" name="layoutColumnsAside">
 import { reactive, ref, onMounted, nextTick, watch, onUnmounted } from 'vue';
 import { useRoute, useRouter, onBeforeRouteUpdate, RouteRecordRaw } from 'vue-router';
 import { storeToRefs } from 'pinia';
@@ -191,8 +190,8 @@ watch(
 	}
 );
 </script>
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 .layout-columns-aside {
 	width: 70px;
 	height: 100%;
