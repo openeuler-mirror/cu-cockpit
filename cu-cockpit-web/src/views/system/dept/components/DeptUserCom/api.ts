@@ -58,3 +58,18 @@ export function exportData(params: any) {
 		method: 'get',
 	});
 }
+
+export function getDeptInfoById(id: string, type: string) {
+	return request({
+		url: `/api/system/dept/dept_info/?dept_id=${id}&show_all=${type}`,
+		method: 'get',
+	});
+}
+
+export function resetPwd(id: number, data: { [key: string]: string }) {
+	return request({
+		url: `/api/system/user/${id}/reset_password/`,
+		method: 'put',
+		data,
+	});
+}

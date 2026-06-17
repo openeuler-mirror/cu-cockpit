@@ -1,5 +1,4 @@
 <template>
-
 	<el-form ref="formRef" :rules="rules" :model="deptFormData" label-width="100px" label-position="right" class="dept-form-com">
 		<el-form-item label="父级部门" prop="parent">
 			<el-tree-select
@@ -33,8 +32,8 @@
 		</el-form-item>
 	</el-form>
 </template>
-<script lang="ts" setup>
 
+<script lang="ts" setup>
 import { reactive, ref, onMounted } from 'vue';
 import { ElForm, FormRules } from 'element-plus';
 import { lazyLoadDept, AddObj, UpdateObj } from '../../api';
@@ -136,8 +135,8 @@ onMounted(async () => {
 	setDeptFormData();
 });
 </script>
-<style lang="scss" scoped>
 
+<style lang="scss" scoped>
 .dept-form-com {
 	height: 100%;
 	padding: 20px;
