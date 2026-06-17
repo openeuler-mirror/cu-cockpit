@@ -1,5 +1,4 @@
 <template>
-
 	<div class="notice-bar" :style="{ background, height: `${height}px` }" v-show="!state.isMode">
 		<div class="notice-bar-warp" :style="{ color, fontSize: `${size}px` }">
 			<i v-if="leftIcon" class="notice-bar-warp-left-icon" :class="leftIcon"></i>
@@ -11,8 +10,8 @@
 		</div>
 	</div>
 </template>
-<script setup lang="ts" name="noticeBar">
 
+<script setup lang="ts" name="noticeBar">
 import { reactive, ref, onMounted, nextTick } from 'vue';
 
 // 定义父组件传过来的值
@@ -143,8 +142,8 @@ onMounted(() => {
 	listenerAnimationend();
 });
 </script>
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 .notice-bar {
 	padding: 0 15px;
 	width: 100%;

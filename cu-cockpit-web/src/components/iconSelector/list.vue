@@ -1,5 +1,4 @@
 <template>
-
 	<div class="icon-selector-warp-row">
 		<el-scrollbar ref="selectorScrollbarRef">
 			<el-row :gutter="10" v-if="props.list.length > 0">
@@ -13,8 +12,8 @@
 		</el-scrollbar>
 	</div>
 </template>
-<script setup lang="ts" name="iconSelectorList">
 
+<script setup lang="ts" name="iconSelectorList">
 // 定义父组件传过来的值
 const props = defineProps({
 	// 图标列表数据
@@ -42,8 +41,8 @@ const onColClick = (v: unknown | string) => {
 	emit('get-icon', v);
 };
 </script>
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 .icon-selector-warp-row {
 	height: 230px;
 	overflow: hidden;
