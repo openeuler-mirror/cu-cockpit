@@ -1,5 +1,4 @@
 <template>
-
 	<div class="pccm-item" v-if="RoleMenuField.$state.length > 0">
 		<div class="menu-form-alert">
 			<el-button size="small" @click="handleSaveField">保存 </el-button>
@@ -28,8 +27,8 @@
 		</ul>
 	</div>
 </template>
-<script setup lang="ts">
 
+<script setup lang="ts">
 import { ElMessage } from 'element-plus';
 import { RoleDrawerStores } from '../stores/RoleDrawerStores';
 import { RoleMenuFieldStores, RoleMenuFieldHeaderStores } from '../stores/RoleMenuFieldStores';
@@ -48,8 +47,8 @@ const handleSaveField = async () => {
 	ElMessage({ message: res.msg, type: 'success' });
 };
 </script>
-<style lang="scss" scoped>
 
+<style lang="scss" scoped>
 .pccm-item {
 	margin-bottom: 10px;
 	.menu-form-alert {
