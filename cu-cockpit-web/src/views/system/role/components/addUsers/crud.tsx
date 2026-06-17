@@ -68,6 +68,14 @@ export const createCrudOptions = function ({ crudExpose, context }: CreateCrudOp
                 clearable: true,
               },
             },
+            component: {
+              multiple: false,
+              props: {
+                checkStrictly: true,
+                clearable: true,
+                filterable: true,
+              },
+            },
         },
     };
 };
