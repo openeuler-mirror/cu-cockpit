@@ -1,5 +1,4 @@
 <template>
-
 	<div class="menu-form-com">
 		<div class="menu-form-alert">
 			1.红色星号表示必填;<br />
@@ -104,8 +103,8 @@
 		</div>
 	</div>
 </template>
-<script lang="ts" setup>
 
+<script lang="ts" setup>
 import XEUtils from 'xe-utils';
 import { ref, onMounted, reactive } from 'vue';
 import { ElForm, FormRules } from 'element-plus';
@@ -289,8 +288,8 @@ onMounted(async () => {
 	setMenuFormData();
 });
 </script>
-<style lang="scss" scoped>
 
+<style lang="scss" scoped>
 .menu-form-com {
 	margin: 10px;
 	overflow-y: auto;
