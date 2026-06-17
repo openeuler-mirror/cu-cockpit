@@ -1,5 +1,4 @@
 <template>
-
 	<div class="layout-breadcrumb-seting">
 		<el-drawer
 			:title="$t('message.layout.configTitle')"
@@ -429,8 +428,8 @@
 		</el-drawer>
 	</div>
 </template>
-<script setup lang="ts" name="layoutBreadcrumbSeting">
 
+<script setup lang="ts" name="layoutBreadcrumbSeting">
 import { nextTick, onUnmounted, onMounted, computed, reactive } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useI18n } from 'vue-i18n';
@@ -683,8 +682,8 @@ defineExpose({
 	openDrawer,
 });
 </script>
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 .layout-breadcrumb-seting-bar {
 	height: calc(100vh - 50px);
 	padding: 0 15px;
