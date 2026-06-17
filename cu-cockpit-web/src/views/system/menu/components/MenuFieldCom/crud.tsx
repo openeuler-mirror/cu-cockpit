@@ -29,7 +29,25 @@ export const createCrudOptions = function ({ crudExpose, props,modelDialog,selec
 		form.menu = selectOptions.value.id;
 		return await api.AddObj(form);
 	};
+const selectedRows = ref<any>([]);
+
+const onSelectionChange = (changed: any) => {
+	const tableData = crudExpose.getTableData();
+	const unChanged = tableData.filter((row: any) => !changed.includes(row));
+	// 添加已选择的行
+	XEUtils.arrayEach(changed, (item: any) => {
+		const ids = XEUtils.pluck(selectedRows.value, 'id');
+		if (!ids.includes(item.id)) {
+			selectedRows.value = XEUtils.union(selectedRows.value, [item]);
+		}
+	});
+	// 剔除未选择的行
+	XEUtils.arrayEach(unChanged, (unItem: any) => {
+		selectedRows.value = XEUtils.remove(selectedRows.value, (item: any) => item.id !== unItem.id);
+	});
+};
     return {
+        selectedRows,
         crudOptions: {
         },
     };
