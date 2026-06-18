@@ -7,7 +7,6 @@ import { ElMessage } from 'element-plus';
 import { nextTick, ref } from 'vue';
 import XEUtils from 'xe-utils';
 //此处为crudOptions配置
-
 export const createCrudOptions = function ({crudExpose, context}: CreateCrudOptionsProps): CreateCrudOptionsRet {
     const pageRequest = async () => {
         if (context!.selectOptions.value.id) {
@@ -25,6 +24,7 @@ export const createCrudOptions = function ({crudExpose, context}: CreateCrudOpti
     const addRequest = async ({form}: AddReq) => {
         return await api.AddObj({...form, ...{menu: context!.selectOptions.value.id}});
     };
+    // 记录选中的行
 	const selectedRows = ref<any>([]);
 
 	const onSelectionChange = (changed: any) => {
@@ -57,6 +57,7 @@ export const createCrudOptions = function ({crudExpose, context}: CreateCrudOpti
 			});
 		});
 	};
+    
     return {
         selectedRows,
         crudOptions: {
@@ -125,6 +126,14 @@ export const createCrudOptions = function ({crudExpose, context}: CreateCrudOpti
 				onSelectionChange,
 				onRefreshed: () => toggleRowSelection(),
 			},
+            form: {
+                col: {span: 24},
+                labelWidth: '100px',
+                wrapper: {
+                    is: 'el-dialog',
+                    width: '600px',
+                },
+            },
             columns: {
                 $checked: {
 					title: '选择',
@@ -206,6 +215,66 @@ export const createCrudOptions = function ({crudExpose, context}: CreateCrudOpti
                             render() {
                                 return <el-alert title="唯一值" type="warning"
                                                  description="用于判断前端按钮权限或接口权限"/>;
+                            },
+                        },
+                    },
+                },
+                method: {
+                    title: '请求方式',
+                    search: {show: false},
+                    type: 'dict-select',
+                    column: {
+                        width: 120,
+                        sortable: true,
+                    },
+                    dict: dict({
+                        data: [
+                            {label: 'GET', value: 0},
+                            {label: 'POST', value: 1, color: 'success'},
+                            {label: 'PUT', value: 2, color: 'warning'},
+                            {label: 'DELETE', value: 3, color: 'danger'},
+                        ],
+                    }),
+                    form: {
+                        rules: [{required: true, message: '必填项'}],
+                    },
+                },
+                api: {
+                    title: '接口地址',
+                    search: {show: false},
+                    type: 'dict-select',
+                    dict: dict({
+                        getData() {
+                            return request({url: '/swagger.json'}).then((res: any) => {
+                                const ret = Object.keys(res.paths);
+                                const data = [];
+                                for (const item of ret) {
+                                    const obj: any = {};
+                                    obj.label = item;
+                                    obj.value = item;
+                                    data.push(obj);
+                                }
+                                return data;
+                            });
+                        },
+                    }),
+                    column: {
+                        minWidth: 250,
+                        sortable: true,
+                    },
+                    form: {
+                        rules: [{required: true, message: '必填项'}],
+                        component: {
+                            props: {
+                                allowCreate: true,
+                                filterable: true,
+                                clearable: true,
+                            },
+                        },
+                        helper: {
+                            render() {
+                                return <el-alert title="请正确填写，以免请求时被拦截。匹配单例使用正则,例如:/api/xx/.*?/"
+                                                 type="warning"/>;
                             },
                         },
                     },
