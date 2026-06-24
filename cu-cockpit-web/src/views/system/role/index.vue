@@ -1,13 +1,12 @@
 <template>
-
 	<fs-page>
 		<fs-crud ref="crudRef" v-bind="crudBinding"> </fs-crud>
 		<PermissionDrawerCom />
 		<RoleUser ref="RoleUserRef" />
 	</fs-page>
 </template>
-<script lang="ts" setup name="role">
 
+<script lang="ts" setup name="role">
 import { defineAsyncComponent, onMounted, ref} from 'vue';
 import { useFs } from '@fast-crud/fast-crud';
 import { createCrudOptions } from './crud';
