@@ -43,6 +43,7 @@
 	</fs-page>
 </template>
 <script lang="ts" setup name="menuPages">
+
 import { ref, onMounted } from 'vue';
 import XEUtils from 'xe-utils';
 import { ElMessageBox } from 'element-plus';
@@ -53,6 +54,74 @@ import MenuFieldCom from './components/MenuFieldCom/index.vue';
 import { GetList, DelObj } from './api';
 import { successNotification } from '/@/utils/message';
 import { APIResponseData, MenuTreeItemType } from './types';
+
+let menuTreeData = ref([]);
+let menuTreeCacheData = ref<MenuTreeItemType[]>([]);
+let drawerVisible = ref(false);
+let drawerFormData = ref<Partial<MenuTreeItemType>>({});
+let menuTreeRef = ref<InstanceType<typeof MenuTreeCom> | null>(null);
+let menuButtonRef = ref<InstanceType<typeof MenuButtonCom> | null>(null);
+let menuFieldRef = ref<InstanceType<typeof MenuFieldCom> | null>(null);
+const getData = () => {
+	GetList({}).then((ret: APIResponseData) => {
+		const responseData = ret.data;
+		const result = XEUtils.toArrayTree(responseData, {
+			parentKey: 'parent',
+			children: 'children',
+			strict: true,
+		});
+		menuTreeData.value = result;
+	});
+};
+
+/**
+ * 菜单的点击事件
+ */
+const handleTreeClick = (record: MenuTreeItemType) => {
+	menuButtonRef.value?.handleRefreshTable(record);
+  menuFieldRef.value?.handleRefreshTable(record)
+};
+
+/**
+ * 部门的 新增 or 编辑 事件
+ */
+const handleUpdateMenu = (type: string, record?: MenuTreeItemType) => {
+	if (type === 'update' && record) {
+		const parentData = menuTreeRef.value?.treeRef?.currentNode.parent.data || {};
+		menuTreeCacheData.value = [parentData];
+		drawerFormData.value = record;
+	}
+	drawerVisible.value = true;
+};
+const handleDrawerClose = (type?: string) => {
+	if (type === 'submit') {
+		getData();
+	}
+	drawerVisible.value = false;
+	drawerFormData.value = {};
+};
+
+/**
+ * 部门的删除事件
+ */
+const handleDeleteMenu = (id: string, callback: Function) => {
+	ElMessageBox.confirm('您确认删除该菜单项吗?', '温馨提示', {
+		confirmButtonText: '确认',
+		cancelButtonText: '取消',
+		type: 'warning',
+	}).then(async () => {
+		const res: APIResponseData = await DelObj(id);
+		callback();
+		if (res?.code === 2000) {
+			successNotification(res.msg as string);
+			getData();
+		}
+	});
+};
+
+onMounted(() => {
+	getData();
+});
 </script>
 <style lang="scss" scoped>
 </style>
