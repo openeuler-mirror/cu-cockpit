@@ -1,12 +1,11 @@
 <template>
-
 	<fs-page>
 		<fs-crud ref="crudRef" v-bind="crudBinding"> </fs-crud>
 		<subDict ref="subDictRef"></subDict>
 	</fs-page>
 </template>
-<script lang="ts" setup name="dictionary">
 
+<script lang="ts" setup name="dictionary">
 import { ref, onMounted, defineAsyncComponent } from 'vue';
 import { useFs } from '@fast-crud/fast-crud';
 import { createCrudOptions } from './crud';
