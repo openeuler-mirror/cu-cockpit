@@ -15,3 +15,19 @@ export function GetObj(id: InfoReq) {
 		method: 'get',
 	});
 }
+
+export function AddObj(obj: AddReq) {
+	return request({
+		url: apiPrefix,
+		method: 'post',
+		data: obj,
+	});
+}
+
+export function UpdateObj(obj: EditReq) {
+	return request({
+		url: apiPrefix + obj.id + '/',
+		method: 'put',
+		data: obj,
+	});
+}
