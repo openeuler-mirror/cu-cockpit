@@ -17,3 +17,25 @@ export function GetObj(id: InfoReq) {
         method: 'get',
     });
 }
+
+/**
+ * 获取自己接收的消息
+ * @param query
+ * @returns {*}
+ * @constructor
+ */
+export function GetSelfReceive (query:PageQuery) {
+    return request({
+        url: apiPrefix + 'get_self_receive/',
+        method: 'get',
+        params: query
+    })
+}
+
+export function AddObj(obj: AddReq) {
+    return request({
+        url: apiPrefix,
+        method: 'post',
+        data: obj,
+    });
+}
