@@ -10,3 +10,40 @@ export interface APIResponseData {
   data: [];
   msg?: string;
 }
+
+export interface FormType<T> {
+  [key: string]: T;
+}
+
+export interface TreeItemType {
+  id?: number | string;
+  modifier_name?: string;
+  creator_name?: string;
+  create_datetime?: string;
+  update_datetime?: string;
+  parent_name?: string;
+  status_label?: string;
+  has_children?: number;
+  hasChild?: false,
+  description?: string;
+  modifier?: string;
+  dept_belong_id?: string;
+  name?: string;
+  key?: string;
+  sort?: number;
+  owner?: string;
+  phone?: string;
+  email?: string;
+  status?: boolean;
+  creator?: number;
+  parent?: number;
+}
+
+export interface DeptFormDataType {
+  id?: string | number;
+  key: string;
+  parent: string | number;
+  name: string;
+  owner: string;
+  description: string;
+}
