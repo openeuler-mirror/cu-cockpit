@@ -1,11 +1,10 @@
 <template>
-
 	<fs-page>
 		<fs-crud ref="crudRef" v-bind="crudBinding"> </fs-crud>
 	</fs-page>
 </template>
-<script lang="ts" setup name="areas">
 
+<script lang="ts" setup name="areas">
 import { onMounted } from 'vue';
 import { useFs } from '@fast-crud/fast-crud';
 import { createCrudOptions } from './crud';
