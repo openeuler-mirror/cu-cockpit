@@ -95,4 +95,91 @@ onMounted(() => {
 });
 </script>
 <style scoped lang="scss">
+
+.login-container {
+    height: 100%;
+    background-image: url('/src/assets/login-back.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: scroll;
+    background-position: center;
+
+    .login-left,
+    .login-right {
+        flex: 1;
+        position: relative;
+    }
+}
+
+
+.login-cnt {
+    width: 460px;
+    background-color: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    padding: 12px 0 0;
+    margin: auto;
+    position: absolute;
+    top: calc(50% - 240px);
+    left: calc(75% - 230px);
+
+    .login-title {
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-weight: 600;
+        font-size: 24px;
+        color: #333333;
+        line-height: 1.5;
+        margin-top: 28px;
+
+        .logo-img {
+            width: 46px;
+        }
+
+        .title-text {
+            margin-left: 14px;
+            font-weight: 600;
+        }
+    }
+
+    .form-div {
+        margin: auto;
+        margin-top: 40px;
+        max-width: 360px;
+    }
+}
+
+.login-content-submit {
+    width: 100%;
+    letter-spacing: 2px;
+    font-weight: 800;
+    margin-top: 15px;
+}
+
+.el-form-zinput {
+    margin-bottom: 26px;
+}
+
+.form-input {
+    ::v-deep .el-input__wrapper {
+        background-color: #fcf9f9;
+        border-radius: 8px;
+    }
+}
+
+.login-foot {
+    border-top: 1px solid #f7f7f7;
+    margin: auto;
+    background: #ededed;
+    padding: 20px 0;
+
+    .login-foot-text {
+        max-width: 360px;
+        font-size: 18px;
+        color: #333333;
+        line-height: 1.5;
+        margin: auto;
+    }
+}
 </style>
