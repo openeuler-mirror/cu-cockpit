@@ -14,6 +14,40 @@
 	</div>
 </template>
 <script lang="ts">
+
+import { defineComponent, onMounted, reactive, toRefs } from 'vue';
+import * as loginApi from '../api';
+import { OAuth2Backend } from '/@/views/system/login/types';
+
+export default defineComponent({
+	name: 'loginOAuth2',
+	setup() {
+		const handleOAuth2LoginClick = (backend: OAuth2Backend) => {
+			history.replaceState(null, '', location.pathname + location.search);
+			window.location.href = backend.authentication_url + '?next=' + window.location.href;
+		};
+		const state = reactive({
+			handleOAuth2LoginClick: handleOAuth2LoginClick,
+			backends: [],
+		});
+		const getBackends = async () => {
+			loginApi.getBackends().then((ret: any) => {				
+				state.backends = ret.data;
+			});
+		};
+		// const handleTreeClick = (record: MenuTreeItemType) => {
+		//   menuButtonRef.value?.handleRefreshTable(record);
+		//   menuFieldRef.value?.handleRefreshTable(record)
+		// };
+
+		onMounted(() => {
+			// getBackends();
+		});
+		return {
+			...toRefs(state),
+		};
+	},
+});
 </script>
 <style scoped lang="scss">
 </style>
