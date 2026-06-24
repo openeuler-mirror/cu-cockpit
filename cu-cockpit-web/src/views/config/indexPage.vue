@@ -130,6 +130,138 @@ const timeDrawer = ref(false);
 const keyDrawer = ref(false);
 const btnLoading = ref(false);
 
+const showDetail = (key: string) => {
+    if (key === 'hostname') {
+        if (!isAdmin.value) {
+            ElMessageBox.alert('被限制访问模式下不可操作，请切换到管理员模式', '提示', {
+                confirmButtonText: '确定',
+                callback: () => {
+                }
+            })
+            return;
+        }
+        hostDrawer.value = true;
+        hostForm.hostname = state.hostname;
+        // 重置表单校验状态
+        if (hostFormRef.value) {
+            hostFormRef.value.clearValidate();
+        }
+    } else if (key === 'time') {
+        if (!isAdmin.value) {
+            ElMessageBox.alert('被限制访问模式下不可操作，请切换到管理员模式', '提示', {
+                confirmButtonText: '确定',
+                callback: () => {
+                }
+            })
+            return;
+        }
+        timeDrawer.value = true;
+        timeForm.time = dayjs().format('YYYY-MM-DD HH:mm:ss');
+        timeForm.zone = state.zone;
+        timeForm.type = state.type;
+
+        // 重置表单校验状态
+        if (timeFormRef.value) {
+            timeFormRef.value.clearValidate();
+        }
+    } else if (key === 'showssh') {
+        keyDrawer.value = true;
+    }
+}
+
+interface HostRuleForm {
+    hostname: string
+}
+const hostForm = reactive<HostRuleForm>({
+    hostname: '',
+})
+const hostFormRef = ref<FormInstance>()
+const hostRules = reactive<FormRules<HostRuleForm>>({
+    hostname: [
+        { required: true, message: '请输入主机名', trigger: 'blur' },
+    ],
+});
+const submitHostForm = async (formEl: FormInstance | undefined) => {
+    if (!formEl) return
+    await formEl.validate((valid) => {
+        if (valid) {
+            btnLoading.value = true;
+            hostSet(hostForm).then((res) => {
+                ElMessage.success(res.message)
+                btnLoading.value = false;
+                hostDrawer.value = false;
+                getConfig();
+            }).catch(() => {
+                btnLoading.value = false;
+            })
+        }
+    })
+}
+
+const timeTypeOptions = [
+    { value: 'settime', label: '手动的' },
+    { value: 'autotime', label: '自动使用NTP' },
+]
+
+interface TimeRuleForm {
+    zone: string,
+    type: string,
+    time: string,
+}
+const timeForm = reactive<TimeRuleForm>({
+    zone: '',
+    type: '',
+    time: '',
+})
+const timeFormRef = ref<FormInstance>()
+const timeRules = reactive<FormRules<TimeRuleForm>>({
+    zone: [
+        { required: true, message: '请输入时区', trigger: 'blur' },
+    ],
+    type: [
+        { required: true, message: '请选择时间类型', trigger: 'change' },
+    ],
+    time: [
+        { required: true, message: '请选择时间', trigger: 'change' },
+    ],
+});
+const submitTimeForm = async (formEl: FormInstance | undefined) => {
+    if (!formEl) return
+    await formEl.validate((valid) => {
+        if (valid) {
+            btnLoading.value = true;
+            timeForm.time = timeForm.time + ' +0800';
+            timeSet(timeForm).then((res) => {
+                ElMessage.success(res.message)
+                btnLoading.value = false;
+                timeDrawer.value = false;
+                getConfig();
+                setTimeout(() => {
+                    getConfig();
+                }, 7000);
+            }).catch(() => {
+                btnLoading.value = false;
+            })
+        }
+    })
+}
+
+const handleType = (value: string) => {
+    if (value === 'settime') {
+        timeForm.time = dayjs().format('YYYY-MM-DD HH:mm:ss');
+    }
+}
+const timer = ref();
+onMounted(() => {
+    getConfig();
+    timer.value = setInterval(() => {
+        getTime();
+    }, 30000);
+});
+onUnmounted(() => {
+    clearInterval(timer.value);
+});
 </script>
 <style scoped lang="scss">
+
 </style>
