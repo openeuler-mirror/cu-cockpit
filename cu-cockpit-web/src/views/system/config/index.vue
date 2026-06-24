@@ -40,12 +40,38 @@
 	</el-card>
 </template>
 <script lang="ts" setup name="config">
+
 import { Edit, FolderAdd } from '@element-plus/icons-vue';
 import * as api from './api';
 import addTabs from './components/addTabs.vue';
 import addContent from './components/addContent.vue';
 import formContent from './components/formContent.vue';
 import { ref, onMounted } from 'vue';
+let tabsDrawer = ref(false);
+let contentDrawer = ref(false);
+let editableTabsValue = ref('base');
+let editableTabs: any = ref([]);
+
+const getTabs = () => {
+	api
+		.GetList({
+			limit: 999,
+			parent__isnull: true,
+		})
+		.then((res: any) => {
+			let data = res.data;
+			data.push({
+				title: '无',
+				icon: 'el-icon-plus',
+				key: 'null',
+			});
+			editableTabs.value = data;
+		});
+};
+
+onMounted(() => {
+	getTabs();
+});
 </script>
 <style>
 </style>
