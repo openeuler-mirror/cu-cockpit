@@ -1,11 +1,10 @@
 <template>
-
 	<el-drawer size="70%" v-model="drawer" direction="rtl" destroy-on-close :before-close="handleClose">
     <fs-crud ref="crudRef" v-bind="crudBinding"> </fs-crud>
 	</el-drawer>
 </template>
-<script lang="ts" setup>
 
+<script lang="ts" setup>
 import { ref, onMounted, defineAsyncComponent } from 'vue';
 import { useFs } from '@fast-crud/fast-crud';
 import { createCrudOptions } from './crud';
