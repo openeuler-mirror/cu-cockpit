@@ -16,3 +16,10 @@ export function getMenuList(query: PageQuery) {
     params: {is_catalog:0,...query},
   });
 }
+
+export function getModelList() {
+  return request({
+    url: '/api/system/column/get_models/',
+    method: 'get',
+  });
+}
