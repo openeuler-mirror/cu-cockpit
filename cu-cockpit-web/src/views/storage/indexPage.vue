@@ -13,9 +13,36 @@
     </div>
 </template>
 <script lang="ts" setup name="storageIndex">
+
 import { onMounted, ref } from 'vue';
 import { hardInfo } from '/@/api/run/run';
 import { useRouter } from 'vue-router';
+
+const router = useRouter();
+
+const storageTableData = ref([]);
+const storageLoading = ref(false);
+
+const getStorageInfo = () => {
+    storageLoading.value = true;
+    hardInfo('storage').then((res) => {
+        storageTableData.value = res.blockdevices;
+        storageLoading.value = false;
+    });
+};
+
+const toDetail = (row: { name: string }) => {
+    router.push({
+        name: 'storageDetail',
+        params: {
+            name: row.name,
+        },
+    });
+};
+
+onMounted(() => {
+    getStorageInfo();
+});
 </script>
 <style scoped lang="scss">
 </style>
