@@ -16,3 +16,11 @@ export function GetObj(id: InfoReq) {
         method: 'get',
     });
 }
+
+export function AddObj(obj: AddReq) {
+    return request({
+        url: apiPrefix,
+        method: 'post',
+        data: obj,
+    });
+}
