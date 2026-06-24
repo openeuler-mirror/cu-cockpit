@@ -10,8 +10,21 @@ export const createCrudOptions = function ({ crudExpose }: { crudExpose: CrudExp
     const pageRequest = async (query: any) => {
         return await api.GetList(query);
     };
+    const editRequest = async ({ form, row }: EditReq) => {
+        form.id = row.id;
+        return await api.UpdateObj(form);
+    };
     return {
         crudOptions: {
+            request: {
+                pageRequest,
+                addRequest,
+                editRequest,
+                delRequest,
+            },
+            pagination: {
+                show: true
+            },
         },
     };
 };
