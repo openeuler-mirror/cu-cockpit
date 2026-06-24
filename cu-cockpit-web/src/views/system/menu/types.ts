@@ -10,3 +10,12 @@ export interface APIResponseData {
   data: [];
   msg?: string;
 }
+
+export interface FormTypes<T> {
+  [key: string]: T;
+}
+
+export interface ComponentFileItem {
+  value: string;
+  label: string;
+}
