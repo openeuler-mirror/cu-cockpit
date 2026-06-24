@@ -26,11 +26,71 @@
 	</fs-page>
 </template>
 <script lang="ts" setup>
+
 import { ref, reactive } from 'vue';
 import ItemCom from './components/ItemCom/index.vue';
 import ColumnsTableCom from './components/ColumnsTableCom/index.vue';
 import { getRoleList, getModelList,getMenuList } from './api';
 import { PageQuery, CurrentInfoType, ModelItemType } from './types';
+
+const columnsTableRef = ref<InstanceType<typeof ColumnsTableCom> | null>(null);
+let currentInfo = reactive<CurrentInfoType>({
+	role: '',
+	model: '',
+	app: '',
+  menu:''
+});
+
+/**
+ * 获取角色
+ * @param query
+ * @param callback
+ */
+const fetchRoleData = async (query: PageQuery, callback: Function) => {
+	const res = await getRoleList(query);
+	callback(res);
+};
+
+/**
+ * 获取菜单
+ * @param query
+ * @param callback
+ */
+const fetchMenuData= async (query: PageQuery, callback: Function) => {
+  const res = await getMenuList(query);
+  callback(res);
+};
+
+const fetchModelData = async (query: PageQuery, callback: Function) => {
+	const res = await getModelList();
+	res.data.forEach((item: ModelItemType) => {
+		item.showText = `${item.app}-${item.title}(${item.key})`;
+	});
+	callback(res);
+};
+
+const fetchTableData = () => {
+	if (currentInfo.role && currentInfo.model && currentInfo.app) {
+		columnsTableRef.value?.fetchData(currentInfo);
+		return;
+	}
+};
+
+const handleClick = (type: string, record: any) => {
+	if (type === 'role') {
+		currentInfo.role = record.id;
+	}
+
+  if(type === 'menu'){
+    currentInfo.menu = record.id;
+  }
+
+	if (type === 'model') {
+		currentInfo.model = record.key;
+		currentInfo.app = record.app;
+	}
+	fetchTableData();
+};
 </script>
 <style lang="scss" scoped>
 </style>
