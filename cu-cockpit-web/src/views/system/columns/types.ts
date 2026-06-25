@@ -23,3 +23,21 @@ export interface ModelItemType {
   title: string;
   showText?: string;
 }
+
+export interface AddColumnsDataType extends CurrentInfoType {
+  id?: number | string;
+  field_name: string;
+  title: string;
+  is_query: boolean;
+  is_create: boolean;
+  is_update: boolean;
+}
+
+export interface ColumnsFormDataType {
+  id?: number | string;
+  field_name: string;
+  title: string;
+  is_create: boolean;
+  is_update: boolean;
+  is_query: boolean;
+}
