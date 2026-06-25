@@ -20,3 +20,17 @@ export function updateUserInfo(data: AddReq) {
 		data: data,
 	});
 }
+
+/**
+ * 获取自己接收的消息
+ * @param query
+ * @returns {*}
+ * @constructor
+ */
+export function GetSelfReceive(query: PageQuery) {
+	return request({
+		url: '/api/system/message_center/get_self_receive/',
+		method: 'get',
+		params: query,
+	});
+}
