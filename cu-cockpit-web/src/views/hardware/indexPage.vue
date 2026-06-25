@@ -212,4 +212,51 @@ onMounted(() => {
 });
 </script>
 <style scoped lang="scss">
+
+.box-container {
+    padding: 15px 20px;
+
+    .el-descriptions {
+        ::v-deep .el-descriptions__cell {
+            color: #606266;
+        }
+
+        ::v-deep .el-descriptions__label {
+            width: 15%;
+            font-weight: 500;
+        }
+
+        ::v-deep .el-descriptions__content {
+            width: 35%;
+        }
+    }
+
+    .margin-top {
+        margin-top: 20px;
+    }
+
+    .cell-item {
+        display: flex;
+        align-items: center;
+    }
+
+    .el-collapse {
+        box-shadow: var(--el-box-shadow-light);
+
+        ::v-deep .el-collapse-item__title {
+            font-size: 14px;
+            color: #303133;
+            padding-left: 20px;
+        }
+
+        ::v-deep .el-collapse-item__content {
+            padding: 0 20px;
+        }
+
+        .el-button {
+            float: right;
+            margin-bottom: 10px;
+        }
+    }
+}
 </style>
