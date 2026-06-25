@@ -1,8 +1,4 @@
-<template>
-
-</template>
 <script lang="ts" setup name="logs">
-
 import { reactive, ref, computed, onMounted, h, onActivated, onUnmounted, nextTick, watch } from 'vue';
 import inputSelect from '/@/components/inputSelect/index.vue';
 import { logs, getBoot } from '/@/api/log';
@@ -333,5 +329,243 @@ watch(containerWidth, () => {
     });
 });
 </script>
-<style>
+
+<style scoped lang="scss">
+.logs-box {
+    padding: 15px 20px;
+
+    .logs-content {
+        height: calc(100vh - 115px);
+        overflow: auto;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: var(--el-box-shadow-light);
+
+        .logs-head {
+            background-color: #fff;
+            display: flex;
+            align-items: flex-start;
+        }
+    }
+}
+
+.logs-head-l {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    width: calc(100% - 240px);
+    background-color: #fff;
+    height: 60px;
+    font-size: 16px;
+    padding-top: 15px;
+    transition: height 0.3s ease;
+
+    .time {
+        :deep(.el-input__prefix) {
+            display: none;
+        }
+    }
+
+    :deep(.el-form-item__label) {
+        font-weight: 700;
+    }
+
+    .logs-head-l-item {
+        width: 264px;
+    }
+}
+
+.logs-head-show {
+    height: auto;
+}
+
+.logs-head-r {
+    display: flex;
+    align-items: center;
+    min-width: 220px;
+}
+
+.logs-middle {
+    :deep(.table_row .cell) {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    :deep(.el-table--fit .el-table__inner-wrapper:before) {
+        width: 0%;
+    }
+
+    // 添加 el-table-v2 表头样式
+    :deep(.table-v2-header) {
+        display: flex;
+        background-color: #f5f7fa;
+
+        .table-v2-header-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 0;
+            font-weight: bold;
+            color: #606266;
+            box-sizing: border-box;
+        }
+    }
+
+    // 优化 description 样式
+    :deep(.description) {
+        word-wrap: break-word;
+        white-space: pre-wrap;
+    }
+
+    :deep(.table_row_class .cell) {
+        cursor: default;
+    }
+
+    :deep(.overflow-ellipsis-column) {
+        height: 48px;
+        line-height: 48px;
+        word-break: break-all;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+    }
+
+    :deep(.table_v_row_class) {
+        padding: 12px 0;
+    }
+}
+
+.form_content {
+    display: flex;
+    align-items: center;
+    width: 100%
+}
+
+@media (max-width: 1820px) {
+    .logs-head-l {
+        .logs-head-l-item {
+            width: 258px;
+        }
+    }
+}
+
+@media (max-width: 1798px) {
+    .logs-head-l {
+        .logs-head-l-item {
+            width: 240px;
+        }
+    }
+}
+
+@media (max-width: 1710px) {
+    .logs-head-l {
+        .logs-head-l-item {
+            width: 280px;
+        }
+    }
+}
+
+@media (max-width: 1630px) {
+    .logs-head-l {
+        .logs-head-l-item {
+            width: 250px;
+        }
+    }
+}
+
+@media (max-width: 1508px) {
+    .logs-head-l {
+        .logs-head-l-item {
+            width: 250px;
+        }
+    }
+}
+
+.overflow-ellipsis {
+    height: 48px;
+    line-height: 48px;
+    word-break: break-all;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+}
 </style>
+<style>
+.text-center-popover {
+    text-align: center;
+}
+</style>
+<template>
+    <div class="logs-box">
+        <div class="logs-content" ref="logsContentRef">
+            <div class="logs-head" ref="logsHeadRef">
+                <el-form :model="state.ruleForm" label-width="auto" class="form_content">
+                    <div class="logs-head-l" :class="{ 'logs-head-show': showAdvancedSearch }">
+                        <el-form-item label="开始时间" class="logs-head-l-item time">
+                            <el-date-picker v-model="ruleForm.since" type="datetime" placeholder="开始时间"
+                                :disabled-date="sinceDisabledDate" class="logs-comm-item" format="YYYY-MM-DD HH:mm:ss"
+                                value-format="YYYY-MM-DD HH:mm:ss">
+                            </el-date-picker>
+                        </el-form-item>
+                        <el-form-item label="结束时间" class="logs-head-l-item time">
+                            <el-date-picker v-model="ruleForm.until" type="datetime" placeholder="结束时间"
+                                :disabled-date="untilDisabledDate" class="logs-comm-item" format="YYYY-MM-DD HH:mm:ss"
+                                value-format="YYYY-MM-DD HH:mm:ss">
+                            </el-date-picker>
+                        </el-form-item>
+                        <el-form-item label="&nbsp;&nbsp;&nbsp;日志优先级" class="logs-head-l-item logs-h-priority">
+                            <el-select v-model="ruleForm.priority" placeholder="日志优先级" clearable class="logs-comm-item">
+                                <el-option v-for="item in priorityOps" :key="item.value" :label="item.label"
+                                    :value="item.value" />
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="服务名称" class="logs-head-l-item">
+                            <el-input v-model="ruleForm.service" placeholder="服务名称" clearable class="logs-comm-item" />
+                        </el-form-item>
+                        <el-form-item label="标识符 " class="logs-head-l-item logs-head-">
+                            <el-input v-model="ruleForm.identifier" placeholder="标识符" clearable
+                                class="logs-comm-item" />
+                        </el-form-item>
+                        <el-form-item label="关键字 " class="logs-head-l-item">
+                            <el-input v-model="ruleForm.keyword" placeholder="关键字或正则表达式" clearable
+                                class="logs-comm-item" />
+                        </el-form-item>
+                        <el-form-item label="显示行数" class="logs-head-l-item">
+                            <inputSelect v-model:value="ruleForm.limit" :options="limits" filterable
+                                placeholder="显示的行数"></inputSelect>
+                        </el-form-item>
+                        <el-form-item label="boot" class="logs-head-l-item">
+                            <el-select v-model="ruleForm.boot" placeholder="boot" clearable class="logs-comm-item">
+                                <el-option v-for="item in bootOps" :key="item.value" :label="item.label"
+                                    :value="item.value" />
+                            </el-select>
+                        </el-form-item>
+                    </div>
+                    <div class="logs-head-r">
+                        <el-button type="primary" @click="searchLogs" class="btn btn_one">搜索</el-button>
+                        <el-button @click="resetForm" class="btn">重置</el-button>
+                        <el-button class="btn" @click="toggleAdvancedSearch">
+                            {{ showAdvancedSearch ? '收起' : '更多' }}
+                        </el-button>
+                    </div>
+                </el-form>
+            </div>
+            <div class="logs-middle" ref="logsMiddleRef">
+                <el-table-v2 :columns="tableColumns" :data="logData" :width="tableWidth" :height="tableHeightValue"
+                    fixed :row-event-handlers="rowEventHandlers" :estimated-row-height="73" :row-height="73"
+                    scrollbar-always-on v-loading="state.loading" row-class="table_v_row_class">
+                    <template #header="{ columns }">
+                        <div class="table-v2-header">
+                            <div v-for="column in columns" :key="column.key" class="table-v2-header-cell"
+                                :style="{ width: column.width + 'px' }">
+                                {{ column.title }}
+                            </div>
+                        </div>
+                    </template>
+                </el-table-v2>
+            </div>
+        </div>
+    </div>
+</template>
