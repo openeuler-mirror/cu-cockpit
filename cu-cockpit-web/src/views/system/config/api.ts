@@ -40,3 +40,22 @@ export function DelObj(id: DelReq) {
 		data: { id },
 	});
 }
+
+/*
+获取所有的model及字段信息
+ */
+export function GetAssociationTable() {
+	return request({
+		url: apiPrefix + 'get_association_table/',
+		method: 'get',
+		params: {},
+	});
+}
+
+export function saveContent(data: any) {
+	return request({
+		url: apiPrefix + 'save_content/',
+		method: 'put',
+		data: data,
+	});
+}
