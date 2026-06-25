@@ -56,6 +56,7 @@
 	</div>
 </template>
 <script setup lang="ts" name="loginIndex">
+
 import {defineAsyncComponent, onMounted, reactive, computed, watch} from 'vue';
 import { storeToRefs } from 'pinia';
 import { useThemeConfig } from '/@/stores/themeConfig';
@@ -65,8 +66,63 @@ import loginMain from '/@/assets/login-main.svg';
 import loginBg from '/@/assets/login-bg.png';
 import { SystemConfigStore } from '/@/stores/systemConfig'
 import { getBaseURL } from "/@/utils/baseUrl";
+// 引入组件
+const Account = defineAsyncComponent(() => import('/@/views/system/login/component/account.vue'));
+const Mobile = defineAsyncComponent(() => import('/@/views/system/login/component/mobile.vue'));
+const Scan = defineAsyncComponent(() => import('/@/views/system/login/component/scan.vue'));
+const ChangePwd = defineAsyncComponent(() => import('/@/views/system/login/component/changePwd.vue'));
+const OAuth2 = defineAsyncComponent(() => import('/@/views/system/login/component/oauth2.vue'));
+
 import _ from "lodash-es";
 import {useUserInfo} from "/@/stores/userInfo";
+const { userInfos } = storeToRefs(useUserInfo());
+
+// 定义变量内容
+const storesThemeConfig = useThemeConfig();
+const { themeConfig } = storeToRefs(storesThemeConfig);
+const state = reactive({
+	tabsActiveName: 'account',
+	isScan: false,
+});
+
+
+watch(()=>userInfos.value.pwd_change_count,(val)=>{
+  if(val===0){
+    state.tabsActiveName ='changePwd'
+  }else{
+    state.tabsActiveName ='account'
+  }
+},{deep:true,immediate:true})
+
+
+// 获取布局配置信息
+const getThemeConfig = computed(() => {
+	return themeConfig.value;
+});
+
+const systemConfigStore = SystemConfigStore()
+const { systemConfig } = storeToRefs(systemConfigStore)
+const getSystemConfig = computed(() => {
+	return systemConfig.value
+})
+
+const siteLogo = computed(() => {
+	if (!_.isEmpty(getSystemConfig.value['login.site_logo'])) {
+		return getSystemConfig.value['login.site_logo']
+	}
+	return logoMini
+});
+
+const siteBg = computed(() => {
+	if (!_.isEmpty(getSystemConfig.value['login.login_background'])) {
+		return getSystemConfig.value['login.login_background']
+	}
+});
+
+// 页面加载时
+onMounted(() => {
+	NextLoading.done();
+});
 </script>
 <style scoped lang="scss">
 </style>
