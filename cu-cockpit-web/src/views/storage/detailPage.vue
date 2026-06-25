@@ -117,4 +117,76 @@ onMounted(() => {
 });
 </script>
 <style scoped lang="scss">
+
+.box-container {
+    padding: 15px 20px;
+
+    .margin-top {
+        margin-top: 20px;
+    }
+
+    /* 鼠标移入行时，所有文本变色 */
+    .hover-text-table :deep(.el-table__body tr:hover td .cell) {
+        color: #409eff !important;
+        cursor: pointer;
+    }
+
+    .card-header {
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .card-box {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+
+        .el-card {
+            flex: 1 1 calc(25% - 20px);
+            min-width: 330px;
+
+            /* 中等屏幕：2个一行 */
+            @media (max-width: 1800px) {
+                flex: 1 1 calc(50% - 20px);
+            }
+
+            &:hover {
+                box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.2);
+                transition: all ease 0.3s;
+            }
+
+            .card-item {
+                display: flex;
+
+                .left-text {
+                    flex: 1;
+
+                    .label {
+                        font-size: 12px;
+                        font-weight: 500;
+                        color: #909399;
+                        display: flex;
+                        align-items: center;
+
+                        .iconfont {
+                            font-size: 22px;
+                            margin-right: 10px;
+                        }
+                    }
+
+                    .content {
+                        margin-top: 10px;
+                        font-size: 15px;
+                        color: #585858;
+                    }
+                }
+            }
+        }
+
+        .hard-card {
+            flex: 1 1 calc(20% - 20px);
+            min-width: 200px;
+        }
+    }
+}
 </style>
