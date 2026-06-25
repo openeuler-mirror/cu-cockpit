@@ -93,4 +93,33 @@ const handleClick = (type: string, record: any) => {
 };
 </script>
 <style lang="scss" scoped>
+
+.columns {
+	.columns-el-row {
+		height: 100%;
+		overflow: hidden;
+
+		.el-col {
+			height: 100%;
+			padding: 10px 0;
+			box-sizing: border-box;
+		}
+	}
+	.columns-box {
+		height: 100%;
+		padding: 10px;
+		background-color: #fff;
+		box-sizing: border-box;
+	}
+	.columns-left {
+		border-radius: 0 8px 8px 0;
+	}
+	.columns-center {
+		border-radius: 8px;
+	}
+	.columns-right {
+		position: relative;
+		border-radius: 8px 0 0 8px;
+	}
+}
 </style>
