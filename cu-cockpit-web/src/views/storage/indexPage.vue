@@ -1,5 +1,4 @@
 <template>
-
     <div class="box-container">
         <el-card class="box-card">
             <el-table :data="storageTableData" class="hover-text-table" row-key="name" default-expand-all size="large"
@@ -12,8 +11,8 @@
         </el-card>
     </div>
 </template>
-<script lang="ts" setup name="storageIndex">
 
+<script lang="ts" setup name="storageIndex">
 import { onMounted, ref } from 'vue';
 import { hardInfo } from '/@/api/run/run';
 import { useRouter } from 'vue-router';
@@ -44,5 +43,19 @@ onMounted(() => {
     getStorageInfo();
 });
 </script>
+
 <style scoped lang="scss">
+.box-container {
+    padding: 15px 20px;
+
+    .margin-top {
+        margin-top: 20px;
+    }
+
+    /* 鼠标移入行时，所有文本变色 */
+    .hover-text-table :deep(.el-table__body tr:hover td .cell) {
+        color: #409eff !important;
+        cursor: pointer;
+    }
+}
 </style>
