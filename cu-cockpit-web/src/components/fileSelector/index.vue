@@ -106,6 +106,192 @@ const handleTabChange = (name: string) => { pageForm.page = 1; listRequest(); };
 const handlePageChange = (currentPage: number, pageSize: number) => { pageForm.page = currentPage; pageForm.limit = pageSize; listRequest(); };
 // 选择的行为
 const listContainerRef = ref<any>();
+const onItemClick = async (e: MouseEvent) => {
+  if (!props.selectable) return;
+  let target = e.target as HTMLElement;
+  let flat = 0;  // -1删除 0不变 1添加
+  while (!target.dataset.id) target = target.parentElement as HTMLElement;
+  let fileId = target.dataset.id;
+  if (props.multiple) {
+    if (!!!data.value) data.value = [];
+    if (target.classList.contains('active')) { target.classList.remove('active'); flat = -1; }
+    else { target.classList.add('active'); flat = 1; }
+    if (data.value.length) {
+      let _l = JSON.parse(JSON.stringify(data.value));
+      if (flat === 1) _l.push(fileId);
+      else _l.splice(_l.indexOf(fileId), 1);
+      data.value = _l;
+    } else data.value = [fileId];
+    // 去重排序，<降序，>升序
+    data.value = Array.from(new Set(data.value)).sort();
+  } else {
+    for (let i of listContainerRef.value?.children) (i as HTMLElement).classList.remove('active');
+    target.classList.add('active');
+    data.value = fileId;
+  }
+  // onDataChange(data.value);
+};
+// 每次列表刷新都得更新一下选择状态，因为所有标签页共享列表
+const selectedInit = async () => {
+  if (!props.selectable) return;
+  await nextTick(); // 不等待一次不会刷新
+  for (let i of (listContainerRef.value?.children || [])) {
+    i.classList.remove('active');
+    let fid = (i as HTMLElement).dataset.id;
+    if (props.multiple) { if (data.value?.includes(fid)) i.classList.add('active'); }
+    else { if (fid === data.value) i.classList.add('active'); }
+  }
+};
+const uploadRef = ref<any>();
+const onSave = () => {
+  onDataChange(data.value);
+  emit('onSave', data.value);
+  selectVisiable.value = false;
+};
+const onClose = () => {
+  data.value = props.modelValue;
+  emit('onClose');
+  selectVisiable.value = false;
+};
+const onClosed = () => {
+  clearState();
+  emit('onClosed');
+};
+// 清空状态
+const clearState = () => {
+  filterForm.name = '';
+  pageForm.page = 1;
+  pageForm.limit = 10;
+  pageForm.total = 0;
+  listData.value = [];
+  // all数据不能清，因为all只会在挂载的时候赋值一次
+  // listAllData.value = [];
+};
+const clear = () => { data.value = null; onDataChange(null); };
+const clearOne = (item: any) => {
+  let _l = (JSON.parse(JSON.stringify(data.value)) as any[]).filter((i: any) => i !== item)
+  data.value = _l;
+  onDataChange(_l);
+};
+
+// 网络文件部分
+const netLoading = ref<boolean>(false);
+const netVisiable = ref<boolean>(false);
+const netUrl = ref<string>('');
+const netPrefix = ref<string>('HTTP://');
+const netChange = () => {
+  let s = netUrl.value.trim();
+  if (s.toUpperCase().startsWith('HTTP://') || s.toUpperCase().startsWith('HTTPS://')) s = s.split('://')[1];
+  if (s.startsWith('/')) s = s.substring(1);
+  netUrl.value = s;
+};
+const confirmNetUrl = () => {
+  if (!netUrl.value) return;
+  netLoading.value = true;
+  let controller = new AbortController();
+  let timeout = setTimeout(() => {
+    controller.abort();
+  }, 10 * 1000);
+  fetch(netPrefix.value + netUrl.value, { signal: controller.signal }).then(async (res: Response) => {
+    clearTimeout(timeout);
+    if (!res.ok) errorNotification(`网络${TypeLabel[tabsActived.value % 4]}获取失败！`);
+    const _ = res.url.split('?')[0].split('/');
+    let filename = _[_.length - 1];
+    // let filetype = res.headers.get('content-type')?.split('/')[1] || '';
+    let blob = await res.blob();
+    let file = new File([blob], filename, { type: blob.type });
+    let form = new FormData();
+    form.append('file', file);
+    form.append('upload_method', '1');
+    fetch(getBaseURL() + 'api/system/file/', { method: 'post', body: form })
+      .then(() => successNotification('网络文件上传成功！'))
+      .then(() => { netVisiable.value = false; listRequest(); listRequestAll(); })
+      .catch(() => errorNotification('网络文件上传失败！'))
+      .then(() => netLoading.value = false);
+  }).catch((err: any) => {
+    console.log(err);
+    clearTimeout(timeout);
+    errorNotification(`网络${TypeLabel[tabsActived.value % 4]}获取失败！`);
+    netLoading.value = false;
+  });
+};
+
+
+
+
+// fs-crud部分
+const data = ref<any>(null);
+const emit = defineEmits(['update:modelValue', 'onSave', 'onClose', 'onClosed']);
+watch(
+  () => props.modelValue,
+  (val) => data.value = props.multiple ? JSON.parse(JSON.stringify(val)) : val,
+  { immediate: true }
+);
+const { ui } = useUi();
+const formValidator = ui.formItem.injectFormItemContext();
+const onDataChange = (value: any) => {
+  let _v = null;
+  if (value) {
+    if (typeof value === 'string') _v = value.replace(/\\/g, '/');
+    else {
+      _v = [];
+      for (let i of value) _v.push(i.replace(/\\/g, '/'));
+    }
+  }
+  emit('update:modelValue', _v);
+  formValidator.onChange();
+  formValidator.onBlur();
+};
+
+defineExpose({ data, onDataChange, selectVisiable, clearState, clear });
+
+onMounted(() => {
+
+  if (props.multiple && !['selector', 'image'].includes(props.inputType))
+    throw new Error('FileSelector组件属性multiple为true时inputType必须为selector');
+  listRequestAll();
+  console.log('fileselector tenentmdoe', isTenentMode);
+  console.log('fileselector supertenent', isSuperTenent);
+});
 </script>
 <style scoped>
+
+.form-display {
+  --fileselector-close-display: none;
+  overflow: hidden;
+}
+
+._overlay {
+  width: unset !important;
+}
+
+.headerBar>* {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+:deep(.el-input-group__prepend) {
+  padding: 0 20px;
+}
+
+.listContainer {
+  display: grid;
+  justify-items: center;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: min-content;
+  grid-gap: 36px;
+  margin-top: 24px;
+  padding: 8px;
+  height: calc(50vh);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.listContainer>* {
+  aspect-ratio: 1 / 1;
+  box-shadow: 0 0 4px rgba(0, 0, 0, .2);
+  border-radius: 8px;
+  overflow: hidden;
+}
 </style>
