@@ -1,14 +1,4 @@
-<template v-for="item in logsConfig" :key="item.key">
-
-                    <el-descriptions-item v-if="logsDetail[item.key]"
-                        :label="item.label || item.key" :span="item.span ?? 1">
-                        {{ logsDetail[item.key] }}
-                    </el-descriptions-item>
-
-                
-</template>
 <script lang="ts" setup>
-
 import { onMounted, ref } from 'vue';
 import { Local } from '/@/utils/storage';
 import { logs } from '/@/api/log';
@@ -153,4 +143,50 @@ onMounted(() => {
 
 </script>
 <style scoped lang="scss">
+.box-container {
+    padding: 15px 20px;
+
+    ::v-deep .el-descriptions__label {
+        width: 15%;
+        font-weight: 500;
+    }
+
+    // 添加描述项内容换行样式
+    :deep(.el-descriptions__content) {
+        width: 35%;
+        word-wrap: break-word;
+        word-break: break-all;
+        white-space: pre-wrap;
+    }
+}
+.log-header .log-url{
+    :deep(.el-breadcrumb__inner.is-link){
+        color: #06c;
+    }
+}
 </style>
+<template>
+    <div class="box-container">
+        <el-card class="box-card">
+            <template #header>
+                <div class="card-header log-header">
+                    <el-breadcrumb separator="/">
+                        <el-breadcrumb-item :to="{ path: '/log' }" class="log-url">日志</el-breadcrumb-item>
+                        <el-breadcrumb-item >日志详情</el-breadcrumb-item>
+                    </el-breadcrumb>
+                </div>
+            </template>
+            <el-descriptions size="large" border :column="2">
+                <template v-for="item in logsConfig" :key="item.key">
+                    <el-descriptions-item v-if="logsDetail[item.key]"
+                        :label="item.label || item.key" :span="item.span ?? 1">
+                        {{ logsDetail[item.key] }}
+                    </el-descriptions-item>
+
+                </template>
+
+
+            </el-descriptions>
+        </el-card>
+    </div>
+</template>
