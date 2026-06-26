@@ -184,4 +184,42 @@ export default defineComponent({
 });
 </script>
 <style scoped lang="scss">
+
+.login-content-form {
+	margin-top: 20px;
+
+	@for $i from 1 through 4 {
+		.login-animation#{$i} {
+			opacity: 0;
+			animation-name: error-num;
+			animation-duration: 0.5s;
+			animation-fill-mode: forwards;
+			animation-delay: calc($i/10) + s;
+		}
+	}
+
+	.login-content-password {
+		display: inline-block;
+		width: 20px;
+		cursor: pointer;
+
+		&:hover {
+			color: #909399;
+		}
+	}
+
+	.login-content-captcha {
+		width: 100%;
+		padding: 0;
+		font-weight: bold;
+		letter-spacing: 5px;
+	}
+
+	.login-content-submit {
+		width: 100%;
+		letter-spacing: 2px;
+		font-weight: 800;
+		margin-top: 15px;
+	}
+}
 </style>
