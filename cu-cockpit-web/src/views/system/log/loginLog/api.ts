@@ -31,3 +31,18 @@ export function UpdateObj(obj: EditReq) {
 		data: obj,
 	});
 }
+
+export function DelObj(id: DelReq) {
+	return request({
+		url: apiPrefix + id + '/',
+		method: 'delete',
+		data: { id },
+	});
+}
+
+export function GetPermission() {
+    return request({
+        url: apiPrefix + 'field_permission/',
+        method: 'get',
+    });
+}
