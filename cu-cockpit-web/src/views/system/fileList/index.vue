@@ -1,5 +1,34 @@
-<template #cell_preview="scope">
-
+<template>
+  <fs-page>
+    <FileSelector v-model="selected" :showInput="false" ref="fileSelectorRef" :tabsShow="SHOW.ALL" :itemSize="120"
+      :multiple="false" :selectable="true" valueKey="url" inputType="image">
+      <!-- <template #input="scope">
+        input：{{ scope }}
+      </template> -->
+      <!-- <template #actionbar-left="scope">
+        actionbar-left：{{ scope }}
+      </template> -->
+      <!-- <template #actionbar-right="scope">
+        actionbar-right：{{ scope }}
+      </template> -->
+      <!-- <template #empty="scope">
+        empty：{{ scope }}
+      </template> -->
+      <!-- <template #item="{ data }">
+        {{ data }}
+      </template> -->
+    </FileSelector>
+    <fs-crud ref="crudRef" v-bind="crudBinding">
+      <template #actionbar-left="scope">
+        <el-upload :action="getBaseURL() + 'api/system/file/'" :multiple="false"
+          :on-success="() => crudExpose.doRefresh()" :drag="false" :show-file-list="false">
+          <el-button type="primary" icon="plus">上传</el-button>
+        </el-upload>
+      </template>
+      <template #cell_size="scope">
+        <span>{{ scope.row.size ? getSizeDisplay(scope.row.size) : '0b' }}</span>
+      </template>
+      <template #cell_preview="scope">
         <div v-if="scope.row.file_type === 0">
           <el-image style="width: 100%; aspect-ratio: 1 /1 ;" :src="getBaseURL(scope.row.url)"
             :preview-src-list="[getBaseURL(scope.row.url)]" :preview-teleported="true" />
@@ -20,10 +49,23 @@
           <Document />
         </el-icon>
         <div v-if="scope.row.file_type > 3">未知类型</div>
-      
+      </template>
+    </fs-crud>
+    <div class="preview" :class="{ show: openPreview }">
+      <video v-show="videoPreviewSrc" :src="videoPreviewSrc" class="previewItem" :controls="true" :autoplay="true"
+        :muted="true" :loop="false" ref="videoPreviewRef"></video>
+      <audio v-show="audioPreviewSrc" :src="audioPreviewSrc" class="previewItem" :controls="true" :autoplay="false"
+        :muted="true" :loop="false" ref="audioPreviewRef"></audio>
+      <div class="closePreviewBtn">
+        <el-icon :size="48" color="white" style="cursor: pointer;" @click="closePreview">
+          <CircleClose />
+        </el-icon>
+      </div>
+    </div>
+  </fs-page>
 </template>
-<script lang="ts" setup>
 
+<script lang="ts" setup>
 import { ref, onMounted, nextTick } from 'vue';
 import { useExpose, useCrud } from '@fast-crud/fast-crud';
 import { createCrudOptions } from './crud';
@@ -83,4 +125,43 @@ onMounted(() => {
 });
 </script>
 <style lang="css" scoped>
+.preview {
+  display: none;
+  position: fixed;
+  top: 0;
+  height: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, .5);
+  z-index: 9999;
+}
+
+.show {
+  display: block !important;
+}
+
+.previewItem {
+  width: 50%;
+  position: absolute;
+  top: 50%;
+  right: 50%;
+  transform: translate(25%, -50%);
+}
+
+.closePreviewBtn {
+  width: 50%;
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  transform: translate(-75%);
+  display: flex;
+  justify-content: center;
+}
+
+._preview {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
 </style>
