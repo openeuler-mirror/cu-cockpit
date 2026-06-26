@@ -40,3 +40,30 @@ export function DelObj(id: string) {
 		method: 'delete'
 	});
 }
+
+export function lazyLoadDept(query: UserPageQuery) {
+	return request({
+		url: apiPrefix,
+		method: 'get',
+		params: query,
+	});
+}
+
+/**
+ * 上下移动
+ */
+export function deptMoveUp(obj: AddReq) {
+	return request({
+		url: apiPrefix + 'move_up/',
+		method: 'post',
+		data: obj,
+	});
+}
+
+export function deptMoveDown(obj: AddReq) {
+	return request({
+		url: apiPrefix + 'move_down/',
+		method: 'post',
+		data: obj,
+	});
+}
