@@ -23,8 +23,17 @@ export const createCrudOptions = function ({crudExpose}: CreateCrudOptionsProps)
         form.id = row.id;
         return await api.UpdateObj(form);
     };
+    const delRequest = async ({row}: DelReq) => {
+        return await api.DelObj(row.id);
+    };
     return {
         crudOptions: {
+            request: {
+                pageRequest,
+                addRequest,
+                editRequest,
+                delRequest,
+            },
         },
     };
 };
