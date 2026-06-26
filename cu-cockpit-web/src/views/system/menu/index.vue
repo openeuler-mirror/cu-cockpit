@@ -124,4 +124,32 @@ onMounted(() => {
 });
 </script>
 <style lang="scss" scoped>
+
+.menu-el-row {
+	height: 100%;
+	overflow: hidden;
+
+	.el-col {
+		height: 100%;
+		padding: 10px 0;
+		box-sizing: border-box;
+	}
+}
+
+.menu-box {
+	height: 100%;
+	padding: 10px;
+	background-color: var(--el-fill-color-blank);;
+	box-sizing: border-box;
+}
+
+.menu-left-box {
+	position: relative;
+	border-radius: 0 8px 8px 0;
+	margin-right: 10px;
+}
+
+.menu-right-box {
+	border-radius: 8px 0 0 8px;
+}
 </style>
