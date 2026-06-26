@@ -1,5 +1,4 @@
 <template>
-
 	<el-card>
 		<div>
 			<el-header>
@@ -39,8 +38,8 @@
 		</el-tabs>
 	</el-card>
 </template>
-<script lang="ts" setup name="config">
 
+<script lang="ts" setup name="config">
 import { Edit, FolderAdd } from '@element-plus/icons-vue';
 import * as api from './api';
 import addTabs from './components/addTabs.vue';
@@ -73,5 +72,11 @@ onMounted(() => {
 	getTabs();
 });
 </script>
+
 <style>
+/*用 flex  两边对齐*/
+.yxt-flex-between {
+	display: flex;
+	justify-content: space-between;
+}
 </style>
