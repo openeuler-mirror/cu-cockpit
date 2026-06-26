@@ -1,8 +1,58 @@
 <template>
-
+    <div class="terminal-container">
+        <el-card class="mb15">
+            <el-form :model="connectForm" :inline="true" ref="connectFormRef" :rules="connectRules">
+                <el-form-item label="IP" prop="hostname">
+                    <el-input v-model="connectForm.hostname" placeholder="请输入IP" spellcheck="false" />
+                </el-form-item>
+                <el-form-item label="用户名" prop="username">
+                    <el-input v-model="connectForm.username" placeholder="请输入用户名" spellcheck="false" />
+                </el-form-item>
+                <el-form-item label="密码" prop="password">
+                    <el-input v-model="connectForm.password" placeholder="请输入密码"
+                        :class="showPassword ? '' : 'terminal-password'" spellcheck="false">
+                        <template #suffix>
+                            <el-icon @click="showPassword = !showPassword">
+                                <View v-if="showPassword" />
+                                <Hide v-else />
+                            </el-icon>
+                        </template>
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="端口" prop="port">
+                    <el-input v-model="connectForm.port" placeholder="请输入端口" spellcheck="false" />
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="submitConnectForm(connectFormRef)" :loading="btnLoading"
+                        :disabled="isConnected">连接</el-button>
+                </el-form-item>
+            </el-form>
+        </el-card>
+        <div class="terminal-box-wrap">
+            <div class="terminal-box" ref="terminalRef" v-resize-ob="handleResize"></div>
+            <el-card class="setting-box">
+                <el-form :model="form" label-width="80px" label-position="top">
+                    <el-form-item label="字体大小">
+                        <el-select v-model="form.fontSize" placeholder="请选择字体大小">
+                            <el-option v-for="item in fontSizeOption" :key="item" :label="item" :value="item" />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="外观">
+                        <el-select v-model="form.background" placeholder="请选择外观">
+                            <el-option v-for="item in backgroundOption" :key="item.background" :label="item.lable"
+                                :value="item.background" />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="term_clear" :disabled="!isConnected">重置</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-card>
+        </div>
+    </div>
 </template>
-<script lang="ts" setup name="terminalIndex">
 
+<script lang="ts" setup name="terminalIndex">
 import { onMounted, onBeforeUnmount, ref, reactive, watch, nextTick } from 'vue';
 import { FormInstance, FormRules } from 'element-plus';
 import { Terminal } from 'xterm';
@@ -324,4 +374,45 @@ onBeforeUnmount(() => {
 })
 </script>
 <style scoped lang="scss">
+.terminal-container {
+    padding: 15px 20px;
+
+    .mb15 {
+        margin-bottom: 15px;
+
+        .el-form--inline .el-form-item {
+            margin-top: 5px !important;
+            margin-bottom: 5px !important;
+
+            .el-icon {
+                cursor: pointer;
+            }
+        }
+    }
+}
+
+.terminal-box-wrap {
+    display: flex;
+}
+
+.terminal-box {
+    width: calc(100% - 200px);
+}
+
+.terminal-box ::v-deep .terminal {
+    height: calc(100vh - 215px);
+}
+
+.setting-box {
+    width: 200px;
+    margin-left: 10px;
+}
+
+::v-deep .el-form-item__label {
+    font-weight: 600;
+}
+
+.terminal-password ::v-deep input.el-input__inner {
+    -webkit-text-security: disc;
+}
 </style>
