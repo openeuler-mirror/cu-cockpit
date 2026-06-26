@@ -264,4 +264,121 @@ onUnmounted(() => {
 </script>
 <style scoped lang="scss">
 
+.box-container {
+    padding: 15px 20px;
+
+    .card-box {
+        display: flex;
+        gap: 20px;
+
+        .card-item {
+            flex: 1 1 calc(33.33% - 20px);
+            background: linear-gradient(to right, #f4f5f5, #e0ebf7);
+
+            &:hover {
+                box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.2);
+                transition: all ease 0.3s;
+            }
+
+            .icon {
+                width: 50px;
+                height: 50px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 10px;
+                background: #E4EAF5;
+
+                .iconfont {
+                    color: #548DFE;
+                }
+            }
+
+            .label {
+                font-size: 14px;
+                color: #333333;
+                margin-bottom: 10px;
+            }
+
+            .content {
+                font-size: 16px;
+                color: #585858;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .el-icon {
+                font-size: 20px;
+                color: var(--el-color-primary);
+                cursor: pointer;
+            }
+        }
+    }
+
+    .mt20 {
+        margin-top: 20px;
+    }
+
+    .el-textarea {
+        margin-top: 20px;
+
+        ::v-deep .el-textarea__inner {
+            resize: none;
+            box-shadow: none;
+            border: none;
+        }
+    }
+
+    .textarea-update ::v-deep .el-textarea__inner {
+        color: #fff;
+        border: none;
+        background-color: #000;
+    }
+
+    .textarea-update :deep(.el-textarea__inner)::-webkit-scrollbar-thumb {
+        background: #b3b3b3;
+    }
+
+    .save-btn {
+        margin-top: 20px;
+        text-align: right;
+    }
+
+    .drawer-content {
+        margin: 20px;
+
+        .btn-row ::v-deep .el-form-item__content {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .ntp-item ::v-deep .el-form-item__content {
+            display: flex;
+            justify-content: space-between;
+
+            .el-input {
+                flex: 1;
+            }
+
+            .el-button {
+                margin-left: 10px;
+
+                .el-icon {
+                    margin-right: 0;
+                }
+            }
+        }
+
+        .add-ntp {
+            text-align: right;
+            margin-bottom: 10px;
+
+            ::v-deep .el-icon {
+                margin-right: 0;
+            }
+        }
+    }
+}
 </style>
