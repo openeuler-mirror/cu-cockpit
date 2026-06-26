@@ -1,5 +1,39 @@
-<template #cell_avatar="scope">
-
+<template>
+  <fs-page>
+    <el-row class="mx-2">
+      <el-col xs="24" :sm="8" :md="6" :lg="4" :xl="4" class="p-1">
+        <el-card :body-style="{ height: '100%' }">
+          <p class="font-mono font-black text-center text-xl pb-5">
+            部门列表
+            <el-tooltip effect="dark" :content="content" placement="right">
+              <el-icon>
+                <QuestionFilled/>
+              </el-icon>
+            </el-tooltip>
+          </p>
+          <el-input v-model="filterText" :placeholder="placeholder"/>
+          <el-tree ref="treeRef" class="font-mono font-bold leading-6 text-7xl" :data="data" :props="treeProps"
+                   :filter-node-method="filterNode" icon="ArrowRightBold" :indent="38" highlight-current @node-click="onTreeNodeClick">
+            <template #default="{ node, data }">
+              <element-tree-line :node="node" :showLabelLine="false" :indent="32">
+					<span v-if="data.status" class="text-center font-black font-normal">
+						<SvgIcon name="iconfont icon-shouye" color="var(--el-color-primary)"/>&nbsp;{{ node.label }}
+					</span>
+                <span v-else color="var(--el-color-primary)"> <SvgIcon name="iconfont icon-shouye"/>&nbsp;{{
+                    node.label
+                  }} </span>
+              </element-tree-line>
+            </template>
+          </el-tree>
+        </el-card>
+      </el-col>
+      <el-col xs="24" :sm="16" :md="18" :lg="20" :xl="20" class="p-1">
+        <el-card :body-style="{ height: '100%' }">
+          <fs-crud ref="crudRef" v-bind="crudBinding">
+            <template #actionbar-right>
+              <importExcel api="api/system/user/" v-auth="'user:Import'">导入</importExcel>
+            </template>
+            <template #cell_avatar="scope">
               <div v-if="scope.row.avatar" style="display: flex; justify-content: center; align-items: center;">
                 <el-image 
                   style="width: 50px; height: 50px; border-radius: 50%; aspect-ratio: 1 /1 ; " 
@@ -7,10 +41,16 @@
                   :preview-src-list="[getBaseURL(scope.row.avatar)]" 
                   :preview-teleported="true" />
               </div>
-            
-</template>
-<script lang="ts" setup name="user">
+            </template>
+          </fs-crud>
+        </el-card>
+      </el-col>
+    </el-row>
 
+  </fs-page>
+</template>
+
+<script lang="ts" setup name="user">
 import {useExpose, useCrud} from '@fast-crud/fast-crud';
 import {createCrudOptions} from './crud';
 import * as api from './api';
@@ -102,5 +142,21 @@ onMounted(() => {
   crudExpose.doRefresh();
 });
 </script>
+
 <style lang="scss" scoped>
+.el-row {
+  height: 100%;
+
+  .el-col {
+    height: 100%;
+  }
+}
+
+.el-card {
+  height: 100%;
+}
+
+.font-normal {
+  font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, SimSun, sans-serif;
+}
 </style>
