@@ -40,3 +40,27 @@ export function DelObj(id: string | number) {
     method: 'delete',
   });
 }
+
+export function GetAllMenu(query: UserPageQuery) {
+  return request({
+    url: apiPrefix + 'get_all_menu/',
+    method: 'get',
+    params: query,
+  });
+}
+
+export function lazyLoadMenu(query: UserPageQuery) {
+  return request({
+    url: apiPrefix,
+    method: 'get',
+    params: query,
+  });
+}
+
+export function dragMenu(obj: AddReq) {
+  return request({
+    url: apiPrefix + 'drag_menu/',
+    method: 'post',
+    data: obj,
+  });
+}
