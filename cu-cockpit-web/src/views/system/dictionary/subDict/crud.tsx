@@ -20,12 +20,21 @@ export const createCrudOptions = function ({ crudExpose, context }: CreateCrudOp
     form.id = row.id;
     return await api.UpdateObj(form);
   };
+  const delRequest = async ({ row }: DelReq) => {
+    return await api.DelObj(row.id);
+  };
     return {
         crudOptions: {
             component: {
               props: {
                 clearable: true,
               },
+            },
+            component: {
+              props: {
+                clearable: true,
+              },
+              placeholder: '请输入名称',
             },
         },
     };
