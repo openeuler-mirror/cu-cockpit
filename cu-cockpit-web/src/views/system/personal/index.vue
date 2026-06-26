@@ -104,6 +104,105 @@ const submitForm = async () => {
 
 /**
  * 获取消息通知
+ */
+const getMsg = () => {
+	api.GetSelfReceive({}).then((res: any) => {
+		const { data } = res;
+		state.newsInfoList = data || [];
+	});
+};
+onMounted(() => {
+	getUserInfo();
+	getMsg();
+});
+
+/**************************密码修改部分************************/
+const passwordFormShow = ref(false);
+const userPasswordFormRef = ref();
+const userPasswordInfo = reactive({
+	oldPassword: '',
+	newPassword: '',
+	newPassword2: '',
+});
+
+const validatePass = (rule, value, callback) => {
+	const pwdRegex = new RegExp('(?=.*[0-9])(?=.*[a-zA-Z]).{8,30}');
+	if (value === '') {
+		callback(new Error('请输入密码'));
+	} else if (value === userPasswordInfo.oldPassword) {
+		callback(new Error('原密码与新密码一致'));
+	} else if (!pwdRegex.test(value)) {
+		callback(new Error('您的密码复杂度太低(密码中必须包含字母、数字)'));
+	} else {
+		if (userPasswordInfo.newPassword2 !== '') {
+			userPasswordFormRef.value.validateField('newPassword2');
+		}
+		callback();
+	}
+};
+const validatePass2 = (rule, value, callback) => {
+	if (value === '') {
+		callback(new Error('请再次输入密码'));
+	} else if (value !== userPasswordInfo.newPassword) {
+		callback(new Error('两次输入密码不一致!'));
+	} else {
+		callback();
+	}
+};
+
+const passwordRules = reactive({
+	oldPassword: [
+		{
+			required: true,
+			message: '请输入原密码',
+			trigger: 'blur',
+		},
+	],
+	newPassword: [{ validator: validatePass, trigger: 'blur' }],
+	newPassword2: [{ validator: validatePass2, trigger: 'blur' }],
+});
+
+/**
+ * 重新设置密码
+ */
+const settingPassword = () => {
+	userPasswordFormRef.value.validate((valid) => {
+		if (valid) {
+			api.UpdatePassword(userPasswordInfo).then((res: any) => {
+				ElMessage.success('密码修改成功');
+				setTimeout(() => {
+					Session.remove('token');
+					router.push('/login');
+				}, 1000);
+			});
+		} else {
+			// 校验失败
+			// 登录表单校验失败
+			ElMessage.error('表单校验失败，请检查');
+		}
+	});
+};
+
+const uploadImg = (data: any) => {
+	let formdata = new FormData();
+	formdata.append('file', data);
+	api.uploadAvatar(formdata).then((res: any) => {
+		if (res.code === 2000) {
+			selectImgVisible.value = false;
+			// state.personalForm.avatar = getBaseURL() + res.data.url;
+			state.personalForm.avatar = res.data.url;
+			api.updateUserInfo(state.personalForm).then((res: any) => {
+				successMessage('更新成功');
+				getUserInfo();
+				useUserInfo().updateUserInfos();
+				// @ts-ignore
+				avatarSelectorRef.value.updateAvatar(state.personalForm.avatar);
+			});
+		}
+	});
+};
 </script>
 <style scoped lang="scss">
+
+@use '/@/theme/mixins/index.scss' as mixins;
 </style>
