@@ -32,3 +32,19 @@ export function UpdateObj(obj: EditReq) {
 		data: obj,
 	});
 }
+
+export function DelObj(id: DelReq) {
+	return request({
+		url: apiPrefix + id + '/',
+		method: 'delete',
+		data: { id },
+	});
+}
+
+export function exportData(params:any){
+    return downloadFile({
+        url: apiPrefix + 'export_data/',
+        params: params,
+        method: 'get'
+    })
+}
