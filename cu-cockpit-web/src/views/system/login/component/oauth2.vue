@@ -50,4 +50,91 @@ export default defineComponent({
 });
 </script>
 <style scoped lang="scss">
+
+.login-content-form {
+	margin-top: 20px;
+	@for $i from 1 through 4 {
+		.login-animation#{$i} {
+			opacity: 0;
+			animation-name: error-num;
+			animation-duration: 0.5s;
+			animation-fill-mode: forwards;
+			animation-delay: calc($i/10) + s;
+		}
+	}
+
+	.login-content-code {
+		width: 100%;
+		padding: 0;
+	}
+
+	.login-content-submit {
+		width: 100%;
+		letter-spacing: 2px;
+		font-weight: 300;
+		margin-top: 15px;
+	}
+
+	.login-msg {
+		color: var(--el-text-color-placeholder);
+	}
+}
+.other-fast-way {
+	//height: 240px;
+	position: relative;
+
+	z-index: 1;
+	//display: flex;
+	//align-items: center;
+	//justify-content: center;
+	.fast-title {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		span {
+			color: #999;
+			font-size: 14px;
+			padding: 0 20px;
+		}
+		&:before,
+		&:after {
+			content: '';
+			flex: 1;
+			height: 1px;
+			background: #ddd;
+		}
+	}
+}
+.fast-list {
+	display: flex;
+	justify-content: center;
+	margin-top: 10px;
+	li {
+		margin-left: 20px;
+		opacity: 0;
+		animation-name: error-num;
+		animation-duration: 0.5s;
+		animation-fill-mode: forwards;
+		animation-delay: 0.1s;
+		a {
+			display: block;
+			text-align: center;
+			cursor: pointer;
+			img {
+				width: 35px;
+				margin: 0 auto;
+				max-width: 100%;
+				margin-bottom: 6px;
+			}
+			p {
+				font-size: 14px;
+				color: #333;
+			}
+		}
+		&:first-child {
+			margin-left: 0;
+		}
+	}
+}
 </style>
