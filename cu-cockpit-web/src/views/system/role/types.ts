@@ -38,3 +38,32 @@ export interface RoleDrawerType {
 	/** 用户*/
 	users: UsersType[];
 }
+
+/**
+ * 菜单数据类型
+ */
+export interface RoleMenuTreeType {
+	id: number | string | undefined;
+	/** 父级id */
+	parent: number | string | undefined;
+	name: string;
+	/** 是否选中 */
+	isCheck: boolean;
+	/** 是否是目录 */
+	is_catalog: boolean;
+}
+/**
+ * 菜单-按钮数据类型
+ */
+export interface RoleMenuBtnType {
+	id: string | number;
+	menu_btn_pre_id: string | number;
+	/** 是否选中 */
+	isCheck: boolean;
+	/** 按钮名称 */
+	name: string;
+	/** 数据权限范围 */
+	data_range: number | null;
+	/** 自定义部门 */
+	dept: number[];
+}
