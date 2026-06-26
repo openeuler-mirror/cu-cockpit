@@ -1,13 +1,48 @@
-<template #suffix>
-
+<template>
+    <!-- 2025-09-04 -->
+    <div class="login-container flex z-10">
+        <div class="login-cnt">
+            <div class="login-title flex">
+                <img :src="logoMini" class="logo-img" />
+                <div class="title-text">运维管理平台</div>
+            </div>
+            <div class="form-div">
+                <el-form ref="formRef" size="large" class="login-content-form" :rules="rules" :model="state.ruleForm"
+                    @keyup.enter="loginClick">
+                    <el-form-item prop="username" class="el-form-zinput">
+                        <el-input type="text" :placeholder="$t('message.account.accountPlaceholder6')"
+                            class="form-input" v-model="ruleForm.username" clearable autocomplete="off">
+                            <template #prefix>
+                                <el-icon class="el-input__icon"><ele-User /></el-icon>
+                            </template>
+                        </el-input>
+                    </el-form-item>
+                    <el-form-item prop="password" class="el-form-zinput" style="padding-bottom: 8px;">
+                        <el-input :type="isShowPassword ? 'text' : 'password'" class="form-input"
+                            :placeholder="$t('message.account.accountPlaceholder2')" v-model="ruleForm.password">
+                            <template #prefix>
+                                <el-icon class="el-input__icon"><ele-Unlock /></el-icon>
+                            </template>
+                            <template #suffix>
                                 <i class="iconfont el-input__icon login-content-password"
                                     :class="isShowPassword ? 'icon-yincangmima' : 'icon-xianshimima'"
                                     @click="isShowPassword = !isShowPassword">
                                 </i>
-                            
+                            </template>
+                        </el-input>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" class="login-content-submit" @click="loginClick"
+                            :loading="loading.signIn">
+                            <span>{{ $t('message.account.accountBtnText') }}</span>
+                        </el-button>
+                    </el-form-item>
+                </el-form>
+            </div>
+        </div>
+    </div>
 </template>
 <script setup lang="ts">
-
 import { onMounted, reactive, ref, toRefs } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { NextLoading } from '/@/utils/loading';
@@ -94,8 +129,8 @@ onMounted(() => {
     NextLoading.done();
 });
 </script>
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 .login-container {
     height: 100%;
     background-image: url('/src/assets/login-back.jpg');
