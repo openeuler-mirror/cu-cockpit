@@ -1,10 +1,54 @@
-<template #default="scope">
-
+<template>
+	<div>
+		<el-dialog ref="modelRef" v-model="modelDialog" title="选择model">
+			<div v-show="props.model">
+				<el-tag>已选择:{{ props.model }}</el-tag>
+			</div>
+			<!-- 搜索输入框 -->
+			<el-input v-model="searchQuery" placeholder="搜索模型..." style="margin-bottom: 10px"></el-input>
+			<div class="model-card">
+				<!--注释编号:django-vue3-admin-index483211: 对请求回来的allModelData进行computed计算，返加搜索框匹配到的内容-->
+				<div v-for="(item, index) in filteredModelData" :value="item.key" :key="index">
+					<el-text :type="modelCheckIndex === index ? 'primary' : ''" @click="onModelChecked(item, index)">
+						{{ item.app + '--' + item.title + '(' + item.key + ')' }}
+					</el-text>
+				</div>
+			</div>
+			<template #footer>
+				<span class="dialog-footer">
+					<el-button @click="modelDialog = false">取消</el-button>
+					<el-button type="primary" @click="handleAutomatch"> 确定 </el-button>
+				</span>
+			</template>
+		</el-dialog>
+		<div style="height: 72vh">
+			<fs-crud ref="crudRef" v-bind="crudBinding">
+				<template #pagination-left>
+					<el-tooltip content="批量删除">
+						<el-button text type="danger" :disabled="selectedRowsCount === 0" :icon="Delete" circle @click="handleBatchDelete" />
+					</el-tooltip>
+				</template>
+				<template #pagination-right>
+					<el-popover placement="top" :width="400" trigger="click">
+						<template #reference>
+							<el-button text :type="selectedRowsCount > 0 ? 'primary' : ''">已选中{{ selectedRowsCount }}条数据</el-button>
+						</template>
+						<el-table :data="selectedRows" size="small">
+							<el-table-column width="150" property="id" label="id" />
+							<el-table-column fixed="right" label="操作" min-width="60">
+								<template #default="scope">
 									<el-button text type="info" :icon="Close" @click="removeSelectedRows(scope.row)" circle />
-								
+								</template>
+							</el-table-column>
+						</el-table>
+					</el-popover>
+				</template>
+			</fs-crud>
+		</div>
+	</div>
 </template>
-<script lang="ts" setup>
 
+<script lang="ts" setup>
 import { ref, onMounted, reactive, computed } from 'vue';
 import { useFs } from '@fast-crud/fast-crud';
 import { createCrudOptions } from './crud';
@@ -118,5 +162,16 @@ onMounted(async () => {
 
 defineExpose({ selectOptions, handleRefreshTable });
 </script>
+
 <style scoped lang="scss">
+.model-card {
+	margin-top: 10px;
+	height: 30vh;
+	overflow-y: scroll;
+
+	div {
+		margin: 15px 0;
+		cursor: pointer;
+	}
+}
 </style>
