@@ -115,4 +115,32 @@ onMounted(() => {
 });
 </script>
 <style lang="scss" scoped>
+
+.dept-el-row {
+	height: 100%;
+	overflow: hidden;
+
+	.el-col {
+		height: 100%;
+		padding: 10px 0;
+		box-sizing: border-box;
+	}
+}
+
+.dept-box {
+	height: 100%;
+	position: relative;
+	box-sizing: border-box;
+}
+
+.dept-left {
+	background-color: var(--el-fill-color-blank);;
+	border-radius: 0 8px 8px 0;
+	padding: 10px;
+}
+
+.dept-table {
+	margin-left: 10px;
+	padding-bottom: 10px;
+}
 </style>
