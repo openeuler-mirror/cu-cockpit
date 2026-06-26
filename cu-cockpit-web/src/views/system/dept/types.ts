@@ -47,3 +47,22 @@ export interface DeptFormDataType {
   owner: string;
   description: string;
 }
+
+export interface DeptListType {
+  id: number;
+  name: string;
+  parent: number;
+}
+
+export interface HeadDeptInfoType {
+  dept_name: string;
+  dept_user: number;
+  owner: string;
+  description: string;
+  gender: {
+    male: number;
+    female: number;
+    unknown: number;
+  };
+  sub_dept_map: { name: string; count: number }[]
+}
