@@ -34,3 +34,30 @@ export function GetSelfReceive(query: PageQuery) {
 		params: query,
 	});
 }
+
+/***
+ * 修改密码
+ * @param data
+ */
+export function UpdatePassword(data: EditReq) {
+	return request({
+		url: '/api/system/user/change_password/',
+		method: 'put',
+		data: data,
+	});
+}
+
+/***
+ * 上传头像
+ * @param data
+ */
+export function uploadAvatar(data: AddReq) {
+	return request({
+		url: 'api/system/file/',
+		method: 'post',
+		data: data,
+		headers: {
+			'Content-Type': 'multipart/form-data',
+		},
+	});
+}
