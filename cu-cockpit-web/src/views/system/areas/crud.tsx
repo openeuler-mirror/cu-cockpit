@@ -21,6 +21,11 @@ export const createCrudOptions = function ({ crudExpose }: CreateCrudOptionsProp
 	const addRequest = async ({ form }: AddReq) => {
 		return await api.AddObj(form);
 	};
+	const loadContentMethod = (tree: any, treeNode: any, resolve: Function) => {
+		pageRequest({ pcode: tree.code }).then((res: APIResponseData) => {
+			resolve(res.data);
+		});
+	};
     return {
         crudOptions: {
         },
