@@ -664,4 +664,46 @@ const handleResize = debounce(() => {
 }
 
 
+.indicator-card-disk {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 165px;
+
+    .disk-echarts {
+        margin-top: 22px;
+        width: 50%;
+        height: 120px;
+    }
+
+    .title {
+        width: 50%;
+        color: #06c;
+        font-size: 18px;
+
+        .title-text,
+        .capacity {
+            padding-left: 20px;
+            word-wrap: break-word;
+            word-break: normal;
+        }
+
+        .capacity {
+            font-size: 12px;
+            margin-top: 4px;
+            color: #303133
+        }
+    }
+}
+
+.network-card {
+    margin-top: 20px;
+}
+
+.monitor-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-right: 20px;
+}
 </style>
