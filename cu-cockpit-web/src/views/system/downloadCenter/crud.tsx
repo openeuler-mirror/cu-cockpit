@@ -38,6 +38,35 @@ export const createCrudOptions = function ({ crudExpose }: { crudExpose: CrudExp
                     }
                 }
             },
+            toolbar: {
+                buttons: {
+                    export: {
+                        show: false
+                    }
+                }
+            },
+            rowHandle: {
+                //固定右侧
+                fixed: 'right',
+                width: 120,
+                buttons: {
+                    view: {
+                        show: false
+                    },
+                    edit: {
+                        show: false
+                    },
+                    remove: {
+                        show: false
+                    },
+                    download: {
+                        show: compute(ctx => ctx.row.task_status === 2),
+                        text: '下载文件',
+                        type: 'warning',
+                        click: (ctx) => window.open(getBaseURL(ctx.row.url), '_blank')
+                    }
+                },
+            },
             columns: {
                 _index: {
                     title: '序号',
@@ -58,6 +87,24 @@ export const createCrudOptions = function ({ crudExpose }: { crudExpose: CrudExp
                     },
                     search: {
                         show: true
+                    }
+                },
+                file_name: {
+                    title: '文件名',
+                    type: 'text',
+                    column: {
+                        minWidth: 160,
+                        align: 'left'
+                    },
+                    search: {
+                        show: true
+                    }
+                },
+                size: {
+                    title: '文件大小(b)',
+                    type: 'number',
+                    column: {
+                        width: 100
                     }
                 },
             },
