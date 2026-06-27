@@ -1,10 +1,102 @@
-<template #label>
-
+<template>
+    <div class="box-container config-container">
+        <el-card>
+            <div class="card-box">
+                <el-card v-for="item in desc" :key="item.key" class="card-item">
+                    <div class="icon">
+                        <i class="font32 iconfont" :class="item.icon"></i>
+                    </div>
+                    <div class="label">
+                        {{ item.label }}
+                    </div>
+                    <div class="content">
+                        {{ state[item.key] }}
+                        <el-tooltip :content="item.edit ? '编辑' : '查看'" placement="bottom" effect="light"
+                            :show-arrow="false">
+                            <el-icon @click="showDetail(item.key)">
+                                <Edit v-if="item.edit" />
+                                <View v-else />
+                            </el-icon>
+                        </el-tooltip>
+                    </div>
+                </el-card>
+            </div>
+        </el-card>
+        <el-card class="mt20">
+            <el-select v-model="fileName" placeholder="请选择配置文件" style="width: 20%">
+                <el-option v-for="item in options" :key="item.value" :label="item.value" :value="item.value" />
+            </el-select>
+            <el-button type="primary" style="margin-left: 10px;" @click="changeFile(false)"
+                :disabled="!fileName">查询</el-button>
+            <el-button type="warning" @click="changeFile(true)" :disabled="!fileName">修改</el-button>
+            <el-input v-model="fileContent" :rows="21" type="textarea" spellcheck="false"
+                :disabled="!updateFile || !isAdmin" :class="{ 'textarea-update': updateFile && isAdmin }" />
+            <div class="save-btn" v-show="updateFile && isAdmin">
+                <el-button type="primary" @click="saveFile" :loading="btnLoading">保存</el-button>
+                <el-button @click="cancelFile">取消</el-button>
+            </div>
+        </el-card>
+        <el-drawer v-model="hostDrawer" title="修改主机名" direction="rtl">
+            <el-form ref="hostFormRef" label-position="top" label-width="100px" :model="hostForm" :rules="hostRules"
+                class="drawer-content">
+                <el-form-item label="主机名" prop="hostname">
+                    <el-input v-model="hostForm.hostname" placeholder="请输入主机名" clearable spellcheck="false" />
+                </el-form-item>
+                <el-form-item class="btn-row">
+                    <el-button type="primary" @click="submitHostForm(hostFormRef)" :loading="btnLoading">保存</el-button>
+                    <el-button @click="hostDrawer = false">取消</el-button>
+                </el-form-item>
+            </el-form>
+        </el-drawer>
+        <el-drawer v-model="timeDrawer" title="修改系统时间" direction="rtl">
+            <el-form ref="timeFormRef" label-position="top" label-width="100px" :model="timeForm" :rules="timeRules"
+                class="drawer-content">
+                <el-form-item label="时区" prop="zone">
+                    <el-input v-model="timeForm.zone" disabled />
+                </el-form-item>
+                <el-form-item label="设置时间" prop="type">
+                    <el-select v-model="timeForm.type" @change="handleType">
+                        <el-option v-for="item in timeTypeOptions" :key="item.value" :label="item.label"
+                            :value="item.value" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item v-if="timeForm.type === 'settime'" prop="time">
+                    <el-date-picker v-model="timeForm.time" type="datetime" placeholder="请选择时间" style="width: 100%;"
+                        value-format="YYYY-MM-DD HH:mm:ss" />
+                </el-form-item>
+                <el-form-item class="btn-row">
+                    <el-button type="primary" @click="submitTimeForm(timeFormRef)" :loading="btnLoading">保存</el-button>
+                    <el-button @click="timeDrawer = false">取消</el-button>
+                </el-form-item>
+            </el-form>
+        </el-drawer>
+        <el-drawer v-model="keyDrawer" title="主机 SSH 密钥指纹" direction="rtl">
+            <div class="drawer-content">
+                <el-card v-for="(item, index) in state.sshkeys" :key="index" class="mb10">
+                    <template #header>
+                        <span>{{ item.name }}</span>
+                    </template>
+                    <el-descriptions direction="vertical" :column="1" border>
+                        <el-descriptions-item>
+                            <template #label>
+                                <div class="cell-item">MD5</div>
+                            </template>
+                            {{ item.md5 }}
+                        </el-descriptions-item>
+                        <el-descriptions-item>
+                            <template #label>
                                 <div class="cell-item">SHA256</div>
-                            
+                            </template>
+                            {{ item.sha256 }}
+                        </el-descriptions-item>
+                    </el-descriptions>
+                </el-card>
+            </div>
+        </el-drawer>
+    </div>
 </template>
-<script lang="ts" setup name="configIndex">
 
+<script lang="ts" setup name="configIndex">
 import { ref, reactive, onMounted, onUnmounted, computed } from 'vue';
 import { configGet, hostSet, timeSet, configUpdate } from '/@/api/config/config';
 import type { FormInstance, FormRules } from 'element-plus';
@@ -262,8 +354,8 @@ onUnmounted(() => {
     clearInterval(timer.value);
 });
 </script>
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 .box-container {
     padding: 15px 20px;
 
