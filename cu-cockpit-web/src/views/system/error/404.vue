@@ -1,5 +1,4 @@
 <template>
-
 	<div class="error layout-view-bg-white" :style="{ height: `calc(100vh - ${initTagViewHeight}` }">
 		<div class="error-flex">
 			<div class="left">
@@ -20,8 +19,8 @@
 		</div>
 	</div>
 </template>
-<script lang="ts">
 
+<script lang="ts">
 import { defineComponent, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
@@ -56,8 +55,8 @@ export default defineComponent({
 	},
 });
 </script>
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 .error {
 	height: 100%;
 	background-color: var(--el-color-white);
