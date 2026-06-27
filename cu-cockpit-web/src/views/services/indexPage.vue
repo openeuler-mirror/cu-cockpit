@@ -210,4 +210,13 @@ function canOperate(row: {[key:string]: string}): boolean {
 </script>
 <style>
 
+.d-message .el-message-box__content .el-message-box__container .el-message-box__message {
+
+    font-size: 18px;
+    line-height: 1.5;
+    padding: 20px 0;
+    color: #000;
+
+}
+ 
 </style>
