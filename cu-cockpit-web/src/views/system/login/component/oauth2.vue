@@ -1,5 +1,4 @@
 <template>
-
 	<div class="other-fast-way" v-if="backends.length">
 		<div class="fast-title"><span>其他快速方式登录</span></div>
 		<ul class="fast-list">
@@ -13,8 +12,8 @@
 		</ul>
 	</div>
 </template>
-<script lang="ts">
 
+<script lang="ts">
 import { defineComponent, onMounted, reactive, toRefs } from 'vue';
 import * as loginApi from '../api';
 import { OAuth2Backend } from '/@/views/system/login/types';
@@ -49,8 +48,8 @@ export default defineComponent({
 	},
 });
 </script>
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 .login-content-form {
 	margin-top: 20px;
 	@for $i from 1 through 4 {

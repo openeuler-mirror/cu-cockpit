@@ -1,5 +1,4 @@
 <template>
-
 	<div class="login-container flex z-10">
 		<div class="login-left">
 			<div class="login-left-logo">
@@ -55,8 +54,8 @@
 		<img :src="loginBg" class="loginBg fixed inset-0 z-1 w-full h-full" />
 	</div>
 </template>
-<script setup lang="ts" name="loginIndex">
 
+<script setup lang="ts" name="loginIndex">
 import {defineAsyncComponent, onMounted, reactive, computed, watch} from 'vue';
 import { storeToRefs } from 'pinia';
 import { useThemeConfig } from '/@/stores/themeConfig';
@@ -124,8 +123,8 @@ onMounted(() => {
 	NextLoading.done();
 });
 </script>
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 .login-container {
 	height: 100%;
 	background: var(--el-color-white);
