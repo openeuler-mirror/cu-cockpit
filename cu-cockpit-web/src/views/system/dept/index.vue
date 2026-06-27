@@ -1,5 +1,4 @@
 <template>
-
 	<fs-page>
 		<el-row class="dept-el-row">
 			<el-col :span="6">
@@ -32,8 +31,8 @@
 		</el-drawer>
 	</fs-page>
 </template>
-<script lang="ts" setup name="dept">
 
+<script lang="ts" setup name="dept">
 import { ref, onMounted } from 'vue';
 import XEUtils from 'xe-utils';
 import { ElMessageBox } from 'element-plus';
@@ -114,8 +113,8 @@ onMounted(() => {
 	getData();
 });
 </script>
-<style lang="scss" scoped>
 
+<style lang="scss" scoped>
 .dept-el-row {
 	height: 100%;
 	overflow: hidden;
