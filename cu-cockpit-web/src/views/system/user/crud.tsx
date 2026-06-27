@@ -32,6 +32,9 @@ export const createCrudOptions = function ({ crudExpose }: CreateCrudOptionsProp
     const delRequest = async ({ row }: DelReq) => {
         return await api.DelObj(row.id);
     };
+    const addRequest = async ({ form }: AddReq) => {
+        return await api.AddObj(form);
+    };
     return {
         crudOptions: {
             table: {
