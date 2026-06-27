@@ -23,6 +23,17 @@ export const createCrudOptions = function ({ crudExpose, context }: CreateCrudOp
   const delRequest = async ({ row }: DelReq) => {
     return await api.DelObj(row.id);
   };
+  const addRequest = async ({ form }: AddReq) => {
+    const data = crudExpose!.getSearchFormData()
+    const parent = data.parent
+    form.parent = parent
+    if (parent) {
+      return await api.AddObj(form);
+    } else {
+      return undefined
+    }
+
+  };
     return {
         crudOptions: {
             component: {
@@ -40,6 +51,12 @@ export const createCrudOptions = function ({ crudExpose, context }: CreateCrudOp
               props: {
                 clearable: true,
               },
+            },
+            component: {
+              props: {
+                clearable: true,
+              },
+              placeholder: '请选择数据值类型',
             },
         },
     };
