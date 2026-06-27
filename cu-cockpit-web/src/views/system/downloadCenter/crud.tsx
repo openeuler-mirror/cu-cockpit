@@ -5,7 +5,12 @@ import { successMessage } from '../../../utils/message';
 import { auth } from '/@/utils/authFunction';
 import { getBaseURL } from '/@/utils/baseUrl';
 
+interface CreateCrudOptionsTypes {
+    output: any;
+    crudOptions: CrudOptions;
+}
 
+//此处为crudOptions配置
 export const createCrudOptions = function ({ crudExpose }: { crudExpose: CrudExpose; }): CreateCrudOptionsTypes {
     const pageRequest = async (query: any) => {
         return await api.GetList(query);
@@ -20,6 +25,10 @@ export const createCrudOptions = function ({ crudExpose }: { crudExpose: CrudExp
     const addRequest = async ({ form }: AddReq) => {
         return await api.AddObj(form);
     };
+
+    //权限判定
+
+    // @ts-ignore
     return {
         crudOptions: {
             request: {
@@ -67,6 +76,14 @@ export const createCrudOptions = function ({ crudExpose }: { crudExpose: CrudExp
                     }
                 },
             },
+            form: {
+                col: { span: 24 },
+                labelWidth: '100px',
+                wrapper: {
+                    is: 'el-dialog',
+                    width: '600px',
+                },
+            },
             columns: {
                 _index: {
                     title: '序号',
@@ -107,6 +124,36 @@ export const createCrudOptions = function ({ crudExpose }: { crudExpose: CrudExp
                         width: 100
                     }
                 },
+                task_status: {
+                    title: '任务状态',
+                    type: 'dict-select',
+                    dict: dict({
+                        data: [
+                            { label: '任务已创建', value: 0 },
+                            { label: '任务进行中', value: 1 },
+                            { label: '任务完成', value: 2 },
+                            { label: '任务失败', value: 3 },
+                        ]
+                    }),
+                    column: {
+                        width: 120
+                    },
+                    search: {
+                        show: true
+                    }
+                },
+                create_datetime: {
+                    title: '创建时间',
+                    column: {
+                        width: 160
+                    }
+                },
+                update_datetime: {
+                    title: '创建时间',
+                    column: {
+                        width: 160
+                    }
+                }
             },
         },
     };
