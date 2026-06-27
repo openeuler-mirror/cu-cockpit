@@ -36,6 +36,11 @@ export const createCrudOptions = function ({ crudExpose, context }: CreateCrudOp
               },
               placeholder: '请输入名称',
             },
+            component: {
+              props: {
+                clearable: true,
+              },
+            },
         },
     };
 };
