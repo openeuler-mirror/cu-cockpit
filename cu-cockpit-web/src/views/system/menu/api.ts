@@ -64,3 +64,19 @@ export function dragMenu(obj: AddReq) {
     data: obj,
   });
 }
+
+export function menuMoveUp(obj: AddReq) {
+  return request({
+    url: apiPrefix + 'move_up/',
+    method: 'post',
+    data: obj,
+  });
+}
+
+export function menuMoveDown(obj: AddReq) {
+  return request({
+    url: apiPrefix + 'move_down/',
+    method: 'post',
+    data: obj,
+  });
+}
