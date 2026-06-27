@@ -34,6 +34,32 @@ export const createCrudOptions = function ({crudExpose}: CreateCrudOptionsProps)
                 editRequest,
                 delRequest,
             },
+            actionbar: {
+                buttons: {
+                    add: {
+                        show: auth('api_white_list:Create')
+                    }
+                }
+            },
+            columns: {
+                _index: {
+                    title: '序号',
+                    form: {show: false},
+                    column: {
+                        //type: 'index',
+                        align: 'center',
+                        width: '70px',
+                        columnSetDisabled: true, //禁止在列设置中选择
+                        //@ts-ignore
+                        formatter: (context) => {
+                            //计算序号,你可以自定义计算规则，此处为翻页累加
+                            let index = context.index ?? 1;
+                            let pagination: any = crudExpose!.crudBinding.value.pagination;
+                            return ((pagination.currentPage ?? 1) - 1) * pagination.pageSize + index + 1;
+                        },
+                    },
+                },
+            },
         },
     };
 };
