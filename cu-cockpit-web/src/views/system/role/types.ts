@@ -67,3 +67,33 @@ export interface RoleMenuBtnType {
 	/** 自定义部门 */
 	dept: number[];
 }
+
+/**
+ * 菜单-列字段数据类型
+ */
+export interface RoleMenuFieldType {
+	id: string | number | boolean;
+	/** 模型表字段名 */
+	field_name: string;
+	/** 字段显示名	*/
+	title: string;
+	/** 是否可查询 */
+	is_query: boolean;
+	/** 是否可创建 */
+	is_create: boolean;
+	/** 是否可更新 */
+	is_update: boolean;
+	[key: string]: string | number | boolean;
+}
+/**
+ * 菜单-列字段-标题数据类型
+ */
+export interface RoleMenuFieldHeaderType {
+	value: string;
+	/** 模型表字段名 */
+	label: string;
+	/** 字段显示名	*/
+	disabled: string;
+	/** 是否可查询 */
+	checked: boolean;
+}
