@@ -1,5 +1,4 @@
 <template>
-
 	<fs-page>
 		<el-row class="menu-el-row">
 			<el-col :span="6">
@@ -42,8 +41,8 @@
 		</el-drawer>
 	</fs-page>
 </template>
-<script lang="ts" setup name="menuPages">
 
+<script lang="ts" setup name="menuPages">
 import { ref, onMounted } from 'vue';
 import XEUtils from 'xe-utils';
 import { ElMessageBox } from 'element-plus';
@@ -123,8 +122,8 @@ onMounted(() => {
 	getData();
 });
 </script>
-<style lang="scss" scoped>
 
+<style lang="scss" scoped>
 .menu-el-row {
 	height: 100%;
 	overflow: hidden;
