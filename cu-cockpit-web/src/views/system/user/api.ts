@@ -48,3 +48,19 @@ export function DelObj(id: DelReq) {
         data: { id },
     });
 }
+
+export function exportData(params:any){
+    return downloadFile({
+        url: apiPrefix + 'export_data/',
+        params: params,
+        method: 'get'
+    })
+}
+
+
+export function resetToDefaultPassword(id:any){
+    return request({
+        url: apiPrefix  + id + '/reset_to_default_password/',
+        method: 'put'
+    })
+}
