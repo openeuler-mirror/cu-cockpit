@@ -1,10 +1,59 @@
-<template #prefix>
-
+<template>
+	<el-form ref="formRef" size="large" class="login-content-form" :model="state.ruleForm" :rules="rules" @keyup.enter="loginClick">
+		<el-form-item class="login-animation1" prop="username">
+			<el-input type="text" :placeholder="$t('message.account.accountPlaceholder1')" v-model="ruleForm.username"
+				clearable autocomplete="off">
+				<template #prefix>
+					<el-icon class="el-input__icon"><ele-User /></el-icon>
+				</template>
+			</el-input>
+		</el-form-item>
+		<el-form-item class="login-animation2" prop="password">
+			<el-input :type="isShowPassword ? 'text' : 'password'" :placeholder="$t('message.account.accountPlaceholder2')"
+				v-model="ruleForm.password">
+				<template #prefix>
+					<el-icon class="el-input__icon"><ele-Unlock /></el-icon>
+				</template>
+				<template #suffix>
+					<i class="iconfont el-input__icon login-content-password"
+						:class="isShowPassword ? 'icon-yincangmima' : 'icon-xianshimima'"
+						@click="isShowPassword = !isShowPassword">
+					</i>
+				</template>
+			</el-input>
+		</el-form-item>
+		<el-form-item class="login-animation3" v-if="isShowCaptcha" prop="captcha">
+			<el-col :span="15">
+				<el-input type="text" maxlength="4" :placeholder="$t('message.account.accountPlaceholder3')"
+					v-model="ruleForm.captcha" clearable autocomplete="off">
+					<template #prefix>
 						<el-icon class="el-input__icon"><ele-Position /></el-icon>
-					
+					</template>
+				</el-input>
+			</el-col>
+			<el-col :span="1"></el-col>
+			<el-col :span="8">
+				<el-button class="login-content-captcha">
+					<el-image :src="ruleForm.captchaImgBase" @click="refreshCaptcha" />
+				</el-button>
+			</el-col>
+		</el-form-item>
+		<el-form-item class="login-animation4">
+			<el-button type="primary" class="login-content-submit" round @click="loginClick"
+				:loading="loading.signIn">
+				<span>{{ $t('message.account.accountBtnText') }}</span>
+			</el-button>
+		</el-form-item>
+	</el-form>
+  <!--      申请试用-->
+  <div style="text-align: center" v-if="showApply()">
+    <el-button class="login-content-apply" link type="primary" plain round @click="applyBtnClick">
+      <span>申请试用</span>
+    </el-button>
+  </div>
 </template>
-<script lang="ts">
 
+<script lang="ts">
 import { toRefs, reactive, defineComponent, computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, FormInstance, FormRules } from 'element-plus';
@@ -183,8 +232,8 @@ export default defineComponent({
 	},
 });
 </script>
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 .login-content-form {
 	margin-top: 20px;
 
