@@ -1,12 +1,103 @@
-<template #header>
-
+<template>
+    <div class="box-container">
+        <el-card v-loading="loading">
+            <template #header>
+                <el-breadcrumb separator="/">
+                    <el-breadcrumb-item :to="{ path: '/storage' }">存储</el-breadcrumb-item>
+                    <el-breadcrumb-item :to="{ path: '/storage/detail/' + item }" v-for="item in breadcrumbs"
+                        :key="item">
+                        {{ item }}
+                    </el-breadcrumb-item>
+                </el-breadcrumb>
+            </template>
+            <el-card v-if="device.type && device.type == 'disk' || device.type == 'rom'">
+                <template #header>
+                    <div class="card-header">
+                        <span>Hard Disk Drive</span>
+                    </div>
+                </template>
+                <div class="card-box">
+                    <el-card v-for="item in hwDesc" :key="item.key" shadow="never" class="hard-card">
+                        <div class="card-item">
+                            <div class="left-text">
+                                <div class="label">
+                                    <i class="iconfont" :class="item.icon" :style="{ color: `var(${item.color})` }"></i>
+                                    {{ item.label }}
+                                </div>
+                                <div class="content" v-if="item.key == 'size'">{{ device[item.key] || '-' }}</div>
+                                <div class="content" v-else>{{ device.hardware[item.key as keyof Hardware] || '-' }}</div>
+                            </div>
+                        </div>
+                    </el-card>
+                </div>
+            </el-card>
+            <template v-if="device.type && device.type !== 'disk' && device.type !== 'rom'">
+                <el-card>
+                    <template #header>
+                        <div class="card-header">
+                            <span>{{ device.pttype ? device.pttype.toUpperCase() + ' 分区' : '分区' }}</span>
+                        </div>
+                    </template>
+                    <div class="card-box">
+                        <el-card v-for="item in ptDesc" :key="item.key" shadow="never">
+                            <div class="card-item">
+                                <div class="left-text">
+                                    <div class="label">
+                                        <i class="iconfont" :class="item.icon"
+                                            :style="{ color: `var(${item.color})` }"></i>
+                                        {{ item.label }}
+                                    </div>
+                                    <div class="content">{{ device[item.key as keyof Device] || '-' }}</div>
+                                </div>
+                            </div>
+                        </el-card>
+                    </div>
+                </el-card>
+                <el-card class="margin-top">
+                    <template #header>
+                        <div class="card-header">
+                            <span>{{ device.fstype ? device.fstype + ' 文件系统' : 'Unformatted data' }}</span>
+                        </div>
+                    </template>
+                    <div class="card-box">
+                        <el-card v-for="item in fsDesc" :key="item.key" shadow="never">
+                            <div class="card-item">
+                                <div class="left-text">
+                                    <div class="label">
+                                        <i class="iconfont" :class="item.icon"
+                                            :style="{ color: `var(${item.color})` }"></i>
+                                        {{ item.label }}
+                                    </div>
+                                    <div class="content">{{ device[item.key as keyof Device] || '-' }}</div>
+                                </div>
+                            </div>
+                        </el-card>
+                    </div>
+                </el-card>
+            </template>
+            <el-card class="margin-top" shadow="hover" v-if="device.children && device.children.length">
+                <template #header>
                     <div class="card-header">
                         <span>{{ device.pttype ? device.pttype.toUpperCase() + ' 分区' : '分区' }}</span>
                     </div>
-                
+                </template>
+                <el-table :data="device.children" class="hover-text-table" size="large" stripe @row-click="toDetail"
+                    :header-cell-style="{ background: '#f5f7fa' }">
+                    <el-table-column label="名称" prop="name" min-width="150" />
+                    <el-table-column label="类型" prop="type" min-width="150" />
+                    <el-table-column label="文件系统" prop="fstype" min-width="150" />
+                    <el-table-column label="分区类型" prop="pttype" min-width="150" />
+                    <el-table-column label="大小" prop="size" align="right" min-width="100" />
+                    <el-table-column label="挂载点" prop="mountpoint" min-width="150" />
+                    <el-table-column label="分区UUID" prop="partuuid" min-width="350" />
+                    <el-table-column label="UUID" prop="uuid" min-width="350" />
+                </el-table>
+            </el-card>
+        </el-card>
+    </div>
 </template>
-<script lang="ts" setup name="storageDetail">
 
+<script lang="ts" setup name="storageDetail">
 import { onMounted, ref } from 'vue';
 import { hardInfo } from '/@/api/run/run';
 import { useRouter } from 'vue-router';
@@ -116,8 +207,8 @@ onMounted(() => {
     getStorageInfo();
 });
 </script>
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 .box-container {
     padding: 15px 20px;
 
