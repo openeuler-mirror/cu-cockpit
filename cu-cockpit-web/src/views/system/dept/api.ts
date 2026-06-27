@@ -67,3 +67,24 @@ export function deptMoveDown(obj: AddReq) {
 		data: obj,
 	});
 }
+
+/**
+ * 用户相关接口
+ */
+export function getDeptUserList(query: PageQuery) {
+	return request({
+		url: "/api/system/user/",
+		method: 'get',
+		params: query,
+	});
+}
+
+/**
+ * 获取所有部门列表
+ */
+export function getAllDeptList() {
+	return request({
+		url: "/api/system/dept/all_dept/",
+		method: 'get',
+	});
+}
