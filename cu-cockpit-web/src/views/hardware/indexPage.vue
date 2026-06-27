@@ -1,12 +1,56 @@
-<template #label>
-
+<template>
+    <div class="box-container">
+        <el-card class="box-card">
+            <template #header>
+                <div class="card-header">
+                    <span>系统信息</span>
+                </div>
+            </template>
+            <el-descriptions :column="2" size="large" border>
+                <el-descriptions-item v-for="item in descriptions" :key="item.key">
+                    <template #label>
                         <div class="cell-item">
                             {{ item.label }}
                         </div>
-                    
-</template>
-<script lang="ts" setup name="hardwareIndex">
+                    </template>
+                    {{ getStateValue(item) }}
+                </el-descriptions-item>
+            </el-descriptions>
+        </el-card>
 
+        <el-collapse v-model="activeNames" class="margin-top">
+            <el-collapse-item title="PCI" name="pci">
+                <el-tooltip content="刷新" placement="bottom" effect="light" :show-arrow="false">
+                    <el-button :icon="Refresh" circle size="default" type="primary" @click="getPciInfo" />
+                </el-tooltip>
+                <el-table :data="pciTableData" stripe size="large" v-loading="pciLoading"
+                    :header-cell-style="{ background: '#f5f7fa' }">
+                    <el-table-column prop="等级" label="等级" sortable min-width="300" />
+                    <el-table-column prop="型号" label="型号" sortable min-width="400" />
+                    <el-table-column prop="厂商" label="厂商" sortable min-width="260" />
+                    <el-table-column prop="插槽" label="插槽" sortable min-width="260" />
+                </el-table>
+            </el-collapse-item>
+            <el-collapse-item title="内存" name="memory">
+                <el-tooltip content="刷新" placement="bottom" effect="light" :show-arrow="false">
+                    <el-button :icon="Refresh" circle size="default" type="primary" @click="getMemoryInfo" />
+                </el-tooltip>
+                <el-table :data="memoryTableData" stripe size="large" v-loading="memoryLoading"
+                    :header-cell-style="{ background: '#f5f7fa' }">
+                    <el-table-column prop="ID" label="ID" sortable min-width="300" />
+                    <el-table-column prop="内存拓扑" label="内存拓扑" sortable min-width="300" />
+                    <el-table-column prop="类型" label="类型" sortable min-width="200" />
+                    <el-table-column prop="大小" label="大小" sortable min-width="200" />
+                    <el-table-column prop="状态" label="状态" sortable min-width="200" />
+                    <el-table-column prop="Rank" label="Rank" sortable min-width="200" />
+                    <el-table-column prop="速度" label="速度" sortable min-width="200" />
+                </el-table>
+            </el-collapse-item>
+        </el-collapse>
+    </div>
+</template>
+
+<script lang="ts" setup name="hardwareIndex">
 import { reactive, onMounted, ref } from 'vue';
 import { hardInfo, pciInfo, memorySlot } from '/@/api/run/run';
 import { Refresh } from '@element-plus/icons-vue';
@@ -211,8 +255,8 @@ onMounted(() => {
     getMemoryInfo();
 });
 </script>
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 .box-container {
     padding: 15px 20px;
 
