@@ -653,4 +653,15 @@ const handleResize = debounce(() => {
 .cpu,
 .load,
 .memory,
+.swap {
+    text-align: center;
+    padding-bottom: 8px;
+    font-size: 12px;
+
+    .echarts-div {
+        height: 140px;
+    }
+}
+
+
 </style>
