@@ -294,4 +294,43 @@ onMounted(() => {
   border-radius: 8px;
   overflow: hidden;
 }
+
+.active {
+  box-shadow: 0 0 8px var(--el-color-primary);
+}
+
+.listPaginator {
+  display: flex;
+  justify-content: flex-end;
+  justify-items: center;
+  padding-top: 24px;
+}
+
+.addControllorHover {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  cursor: pointer;
+  border-radius: 8px;
+  border: 1px solid #dcdfe6;
+}
+
+.addControllorHover:hover {
+  border-color: #c0c4cc;
+}
+
+.closeHover {
+  display: var(--fileselector-close-display);
+  position: absolute;
+  right: 2px;
+  top: 2px;
+  cursor: pointer;
+}
+
+.itemList {
+  border: 1px solid #dcdfe6;
+  border-radius: 8px;
+}
 </style>
