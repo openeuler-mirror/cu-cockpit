@@ -1,5 +1,4 @@
 <template>
-
 	<fs-page class="columns">
 		<el-row class="columns-el-row" :gutter="10">
 			<el-col :span="6">
@@ -25,8 +24,8 @@
 		</el-row>
 	</fs-page>
 </template>
-<script lang="ts" setup>
 
+<script lang="ts" setup>
 import { ref, reactive } from 'vue';
 import ItemCom from './components/ItemCom/index.vue';
 import ColumnsTableCom from './components/ColumnsTableCom/index.vue';
@@ -92,8 +91,8 @@ const handleClick = (type: string, record: any) => {
 	fetchTableData();
 };
 </script>
-<style lang="scss" scoped>
 
+<style lang="scss" scoped>
 .columns {
 	.columns-el-row {
 		height: 100%;
