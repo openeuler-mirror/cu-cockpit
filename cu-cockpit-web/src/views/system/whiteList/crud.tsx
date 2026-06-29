@@ -14,7 +14,6 @@ import {dictionary} from '/@/utils/dictionary';
 import {successMessage} from '/@/utils/message';
 import {auth} from '/@/utils/authFunction'
 
-
 export const createCrudOptions = function ({crudExpose}: CreateCrudOptionsProps): CreateCrudOptionsRet {
     const pageRequest = async (query: UserPageQuery) => {
         return await api.GetList(query);
@@ -29,6 +28,8 @@ export const createCrudOptions = function ({crudExpose}: CreateCrudOptionsProps)
     const addRequest = async ({form}: AddReq) => {
         return await api.AddObj(form);
     };
+
+
     return {
         crudOptions: {
             request: {
@@ -62,6 +63,14 @@ export const createCrudOptions = function ({crudExpose}: CreateCrudOptionsProps)
                         type: 'text',
                         show: auth("api_white_list:Delete")
                     },
+                },
+            },
+            form: {
+                col: {span: 24},
+                labelWidth: '110px',
+                wrapper: {
+                    is: 'el-dialog',
+                    width: '600px',
                 },
             },
             columns: {
@@ -207,6 +216,32 @@ export const createCrudOptions = function ({crudExpose}: CreateCrudOptionsProps)
                             text: '请正确填写，以免请求时被拦截。匹配单例使用正则,例如:/api/xx/.*?/',
                         },
                     },
+                },
+                enable_datasource: {
+                    title: '数据权限认证',
+                    search: {
+                        disabled: false,
+                    },
+                    type: 'dict-radio',
+                    column: {
+                        minWidth: 120,
+                        component: {
+                            name: 'fs-dict-switch',
+                            activeText: '',
+                            inactiveText: '',
+                            style: '--el-switch-on-color: var(--el-color-primary); --el-switch-off-color: #dcdfe6',
+                            onChange: compute((context) => {
+                                return () => {
+                                    api.UpdateObj(context.row).then((res: APIResponseData) => {
+                                        successMessage(res.msg as string);
+                                    });
+                                };
+                            }),
+                        },
+                    },
+                    dict: dict({
+                        data: dictionary('button_status_bool'),
+                    }),
                 },
             },
         },
