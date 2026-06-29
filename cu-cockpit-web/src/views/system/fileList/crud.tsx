@@ -25,6 +25,9 @@ export const createCrudOptions = function ({ crudExpose, context }: CreateCrudOp
   const delRequest = async ({ row }: DelReq) => {
     return await api.DelObj(row.id);
   };
+  const addRequest = async ({ form }: AddReq) => {
+    return await api.AddObj(form);
+  };
     return {
         crudOptions: {
             component: {
@@ -37,6 +40,10 @@ export const createCrudOptions = function ({ crudExpose, context }: CreateCrudOp
               props: {
                 clearable: true,
               },
+            },
+            component: {
+              placeholder: '请输入文件名称',
+              clearable: true
             },
         },
     };
