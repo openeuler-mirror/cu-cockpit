@@ -38,6 +38,10 @@ export const createCrudOptions = function ({ crudExpose }: CreateCrudOptionsProp
     const exportRequest = async (query: UserPageQuery) => {
         return await api.exportData(query)
     }
+    const resetToDefaultPasswordRequest = async (row: EditReq) => {
+        await api.resetToDefaultPassword(row.id)
+        successMessage("重置密码成功")
+    }
     return {
         crudOptions: {
             table: {
@@ -50,6 +54,13 @@ export const createCrudOptions = function ({ crudExpose }: CreateCrudOptionsProp
                 addRequest,
                 editRequest,
                 delRequest,
+            },
+            form: {
+                initialForm: {
+                    password: computed(() => {
+                        return systemConfig.value['base.default_password']
+                    }),
+                }
             },
             columns: {
                 _index: {
@@ -113,6 +124,68 @@ export const createCrudOptions = function ({ crudExpose }: CreateCrudOptionsProp
                             form.password = Md5.hashStr(form.password)
                         }
                     }
+                },
+                name: {
+                    title: '姓名',
+                    search: {
+                        show: true,
+                    },
+                    type: 'input',
+                    column: {
+                        minWidth: 100, //最小列宽
+                    },
+                    form: {
+                        rules: [
+                            // 表单校验规则
+                            {
+                                required: true,
+                                message: '姓名必填项',
+                            },
+                        ],
+                        component: {
+                            span: 12,
+                            placeholder: '请输入姓名',
+                        },
+                    },
+                },
+                dept: {
+                    title: '部门',
+                    search: {
+                        disabled: true,
+                    },
+                    type: 'dict-tree',
+                    dict: dict({
+                        isTree: true,
+                        url: '/api/system/dept/all_dept/',
+                        value: 'id',
+                        label: 'name'
+                    }),
+                    column: {
+                        minWidth: 200, //最小列宽
+                        formatter({ value, row, index }) {
+                            return row.dept_name_all
+                        }
+                    },
+                    form: {
+                        rules: [
+                            // 表单校验规则
+                            {
+                                required: true,
+                                message: '必填项',
+                            },
+                        ],
+                        component: {
+                            filterable: true,
+                            placeholder: '请选择',
+                            props: {
+                                checkStrictly: true,
+                                props: {
+                                    value: 'id',
+                                    label: 'name',
+                                },
+                            },
+                        },
+                    },
                 },
             },
         },
