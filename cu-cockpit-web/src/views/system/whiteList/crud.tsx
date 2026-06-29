@@ -26,6 +26,9 @@ export const createCrudOptions = function ({crudExpose}: CreateCrudOptionsProps)
     const delRequest = async ({row}: DelReq) => {
         return await api.DelObj(row.id);
     };
+    const addRequest = async ({form}: AddReq) => {
+        return await api.AddObj(form);
+    };
     return {
         crudOptions: {
             request: {
@@ -40,6 +43,26 @@ export const createCrudOptions = function ({crudExpose}: CreateCrudOptionsProps)
                         show: auth('api_white_list:Create')
                     }
                 }
+            },
+            rowHandle: {
+                //固定右侧
+                fixed: 'right',
+                width: 150,
+                buttons: {
+                    view: {
+                        show: false,
+                    },
+                    edit: {
+                        iconRight: 'Edit',
+                        type: 'text',
+                        show: auth("api_white_list:Update")
+                    },
+                    remove: {
+                        iconRight: 'Delete',
+                        type: 'text',
+                        show: auth("api_white_list:Delete")
+                    },
+                },
             },
             columns: {
                 _index: {
@@ -56,6 +79,29 @@ export const createCrudOptions = function ({crudExpose}: CreateCrudOptionsProps)
                             let index = context.index ?? 1;
                             let pagination: any = crudExpose!.crudBinding.value.pagination;
                             return ((pagination.currentPage ?? 1) - 1) * pagination.pageSize + index + 1;
+                        },
+                    },
+                },
+                search: {
+                    title: '关键词',
+                    column: {
+                        show: false,
+                    },
+                    search: {
+                        show: true,
+                        component: {
+                            props: {
+                                clearable: true,
+                            },
+                            placeholder: '请输入关键词',
+                        },
+                    },
+                    form: {
+                        show: false,
+                        component: {
+                            props: {
+                                clearable: true,
+                            },
                         },
                     },
                 },
