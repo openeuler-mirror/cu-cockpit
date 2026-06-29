@@ -45,6 +45,11 @@ export const createCrudOptions = function ({ crudExpose, context }: CreateCrudOp
               placeholder: '请输入文件名称',
               clearable: true
             },
+            component: {
+                async buildUrl(value: any) {
+                    return getBaseURL(value);
+                    }
+            }
         },
     };
 };
