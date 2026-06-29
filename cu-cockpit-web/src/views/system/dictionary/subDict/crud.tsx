@@ -63,6 +63,12 @@ export const createCrudOptions = function ({ crudExpose, context }: CreateCrudOp
                 clearable: true,
               },
             },
+            component: {
+              props: {
+                clearable: true,
+              },
+              placeholder: '请输入数据值',
+            },
         },
     };
 };
