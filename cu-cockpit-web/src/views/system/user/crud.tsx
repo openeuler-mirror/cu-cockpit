@@ -62,6 +62,22 @@ export const createCrudOptions = function ({ crudExpose }: CreateCrudOptionsProp
                     }),
                 }
             },
+            actionbar: {
+                buttons: {
+                    add: {
+                        show: auth('user:Create')
+                    },
+                    export: {
+                        text: "导出",//按钮文字
+                        title: "导出",//鼠标停留显示的信息
+                        show: auth('user:Export'),
+                        click: (ctx: any) => ElMessageBox.confirm(
+                            '确定导出数据吗？', '提示',
+                            { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
+                        ).then(() => exportData(ctx.row))
+                    }
+                }
+            },
             columns: {
                 _index: {
                     title: '序号',
@@ -184,6 +200,83 @@ export const createCrudOptions = function ({ crudExpose }: CreateCrudOptionsProp
                                     label: 'name',
                                 },
                             },
+                        },
+                    },
+                },
+                role: {
+                    title: '角色',
+                    search: {
+                        disabled: true,
+                    },
+                    type: 'dict-select',
+                    dict: dict({
+                        url: '/api/system/role/',
+                        value: 'id',
+                        label: 'name',
+                    }),
+                    column: {
+                        minWidth: 200, //最小列宽
+                        // formatter({ value, row, index }) {
+                        //     const values = row.role_info.map((item: any) => item.name);
+                        //     return values.join(',')
+                        // }
+                    },
+                    form: {
+                        rules: [
+                            // 表单校验规则
+                            {
+                                required: true,
+                                message: '必填项',
+                            },
+                        ],
+                        component: {
+                            multiple: true,
+                            filterable: true,
+                            placeholder: '请选择角色',
+                        },
+                    },
+                },
+                mobile: {
+                    title: '手机号码',
+                    search: {
+                        show: true,
+                    },
+                    type: 'input',
+                    column: {
+                        minWidth: 120, //最小列宽
+                    },
+                    form: {
+                        rules: [
+                            {
+                                max: 20,
+                                message: '请输入正确的手机号码',
+                                trigger: 'blur',
+                            },
+                            {
+                                pattern: /^1[3-9]\d{9}$/,
+                                message: '请输入正确的手机号码',
+                            },
+                        ],
+                        component: {
+                            placeholder: '请输入手机号码',
+                        },
+                    },
+                },
+                email: {
+                    title: '邮箱',
+                    column: {
+                        width: 260,
+                    },
+                    form: {
+                        rules: [
+                            {
+                                type: 'email',
+                                message: '请输入正确的邮箱地址',
+                                trigger: ['blur', 'change'],
+                            },
+                        ],
+                        component: {
+                            placeholder: '请输入邮箱',
                         },
                     },
                 },
