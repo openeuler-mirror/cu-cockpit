@@ -58,6 +58,11 @@ export const createCrudOptions = function ({ crudExpose, context }: CreateCrudOp
               },
               placeholder: '请选择数据值类型',
             },
+            component: {
+              props: {
+                clearable: true,
+              },
+            },
         },
     };
 };
