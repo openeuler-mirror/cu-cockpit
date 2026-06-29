@@ -42,6 +42,24 @@ export const createCrudOptions = function ({ crudExpose }: CreateCrudOptionsProp
                     confirmMessage: '是否删除该用户？',
                 },
             },
+            request: {
+                pageRequest,
+                addRequest,
+                editRequest,
+                delRequest,
+            },
+            columns: {
+                _index: {
+                    title: '序号',
+                    form: { show: false },
+                    column: {
+                        type: 'index',
+                        align: 'center',
+                        width: '70px',
+                        columnSetDisabled: true, //禁止在列设置中选择
+                    },
+                },
+            },
         },
     };
 };
