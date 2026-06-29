@@ -280,6 +280,40 @@ export const createCrudOptions = function ({ crudExpose }: CreateCrudOptionsProp
                         },
                     },
                 },
+                gender: {
+                    title: '性别',
+                    type: 'dict-select',
+                    dict: dict({
+                        data: dictionary('gender'),
+                    }),
+                    form: {
+                        value: 1,
+                        component: {
+                            span: 12,
+                        },
+                    },
+                    component: { props: { color: 'auto' } }, // 自动染色
+                },
+                user_type: {
+                    title: '用户类型',
+                    search: {
+                        show: true,
+                    },
+                    type: 'dict-select',
+                    dict: dict({
+                        data: dictionary('user_type'),
+                    }),
+                    column: {
+                        minWidth: 100, //最小列宽
+                    },
+                    form: {
+                        show: false,
+                        value: 0,
+                        component: {
+                            span: 12,
+                        },
+                    },
+                },
             },
         },
     };
