@@ -105,6 +105,109 @@ export const createCrudOptions = function ({crudExpose}: CreateCrudOptionsProps)
                         },
                     },
                 },
+                method: {
+                    title: '请求方式',
+                    sortable: 'custom',
+                    search: {
+                        disabled: false,
+                    },
+                    type: 'dict-select',
+                    dict: dict({
+                        data: [
+                            {
+                                label: 'GET',
+                                value: 0,
+                            },
+                            {
+                                label: 'POST',
+                                value: 1,
+                            },
+                            {
+                                label: 'PUT',
+                                value: 2,
+                            },
+                            {
+                                label: 'DELETE',
+                                value: 3,
+                            },
+                            {
+                                label: 'PATCH',
+                                value: 4,
+                            },
+                        ],
+                    }),
+                    column: {
+                        minWidth: 120,
+                    },
+                    form: {
+                        rules: [
+                            // 表单校验规则
+                            {
+                                required: true,
+                                message: '必填项',
+                            },
+                        ],
+                        component: {
+                            span: 12,
+                        },
+                        itemProps: {
+                            class: {yxtInput: true},
+                        },
+                    },
+                },
+                url: {
+                    title: '接口地址',
+                    sortable: 'custom',
+                    search: {
+                        disabled: true,
+                    },
+                    type: 'dict-select',
+                    dict: dict({
+                        async getData(dict: any) {
+                            return request('/swagger.json').then((ret: any) => {
+                                const res = Object.keys(ret.paths);
+                                const data = [];
+                                for (const item of res) {
+                                    const obj = {label: '', value: ''};
+                                    obj.label = item;
+                                    obj.value = item;
+                                    data.push(obj);
+                                }
+                                return data;
+                            });
+                        },
+                    }),
+                    column: {
+                        minWidth: 200,
+                    },
+                    form: {
+                        rules: [
+                            // 表单校验规则
+                            {
+                                required: true,
+                                message: '必填项',
+                            },
+                        ],
+                        component: {
+                            span: 24,
+                            props: {
+                                allowCreate: true,
+                                filterable: true,
+                                clearable: true,
+                            },
+                        },
+                        itemProps: {
+                            class: {yxtInput: true},
+                        },
+                        helper: {
+                            position: 'label',
+                            tooltip: {
+                                placement: 'top-start',
+                            },
+                            text: '请正确填写，以免请求时被拦截。匹配单例使用正则,例如:/api/xx/.*?/',
+                        },
+                    },
+                },
             },
         },
     };
