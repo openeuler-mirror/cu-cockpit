@@ -1,12 +1,177 @@
-<template #footer>
+<template>
+	<div class="personal layout-pd">
+		<el-row>
+			<!-- 个人信息 -->
+			<el-col :xs="24" :sm="16">
+				<el-card shadow="hover" header="个人信息">
+					<div class="personal-user">
+						<div class="personal-user-left">
+							<avatarSelector v-model="selectImgVisible" @uploadImg="uploadImg" ref="avatarSelectorRef"></avatarSelector>
+						</div>
+						<div class="personal-user-right">
+							<el-row>
+								<el-col :span="24" class="personal-title mb18"
+									>{{ currentTime }}，{{ state.personalForm.username }}，生活变的再糟糕，也不妨碍我变得更好！
+								</el-col>
+								<el-col :span="24">
+									<el-row>
+										<el-col :xs="24" :sm="8" class="personal-item mb6">
+											<div class="personal-item-label">昵称：</div>
+											<div class="personal-item-value">{{ state.personalForm.name }}</div>
+										</el-col>
+										<el-col :xs="24" :sm="16" class="personal-item mb6">
+											<div class="personal-item-label">部门：</div>
+											<div class="personal-item-value">
+												<el-tag>{{ state.personalForm.dept_info.dept_name }}</el-tag>
+											</div>
+										</el-col>
+									</el-row>
+								</el-col>
+								<el-col :span="24">
+									<el-row>
+										<el-col :xs="24" :sm="24" class="personal-item mb6">
+											<div class="personal-item-label">角色：</div>
+											<div class="personal-item-value">
+												<el-tag v-for="(item, index) in state.personalForm.role_info" :key="index" style="margin-right: 5px">{{ item.name }}</el-tag>
+											</div>
+										</el-col>
+									</el-row>
+								</el-col>
+							</el-row>
+						</div>
+					</div>
+				</el-card>
+			</el-col>
 
+			<!-- 消息通知 -->
+			<el-col :xs="24" :sm="8" class="pl15 personal-info">
+				<el-card shadow="hover">
+					<template #header>
+						<span>消息通知</span>
+						<span class="personal-info-more" @click="msgMore">更多</span>
+					</template>
+					<div class="personal-info-box">
+						<ul class="personal-info-ul">
+							<li v-for="(v, k) in state.newsInfoList" :key="k" class="personal-info-li">
+								<div class="personal-info-li-title">[{{ v.creator_name }},{{ v.create_datetime }}] {{ v.title }}</div>
+							</li>
+						</ul>
+					</div>
+				</el-card>
+			</el-col>
+
+			<!-- 更新信息 -->
+			<el-col :span="24">
+				<el-card shadow="hover" class="mt15 personal-edit" header="更新信息">
+					<div class="personal-edit-title">基本信息</div>
+					<el-form :model="state.personalForm" ref="userInfoFormRef" :rules="rules" size="default" label-width="50px" class="mt35 mb35">
+						<el-row :gutter="35">
+							<el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="4" class="mb20">
+								<el-form-item label="昵称" prop="name">
+									<el-input v-model="state.personalForm.name" placeholder="请输入昵称" clearable></el-input>
+								</el-form-item>
+							</el-col>
+							<el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="4" class="mb20">
+								<el-form-item label="邮箱">
+									<el-input v-model="state.personalForm.email" placeholder="请输入邮箱" clearable></el-input>
+								</el-form-item>
+							</el-col>
+							<el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="4" class="mb20">
+								<el-form-item label="手机" prop="mobile">
+									<el-input v-model="state.personalForm.mobile" placeholder="请输入手机" clearable></el-input>
+								</el-form-item>
+							</el-col>
+							<el-col :xs="24" :sm="12" :md="8" :lg="6" :xl="4" class="mb20">
+								<el-form-item label="性别">
+									<el-select v-model="state.personalForm.gender" placeholder="请选择性别" clearable class="w100">
+										<!--										<el-option label="男" :value="1"></el-option>-->
+										<!--										<el-option label="女" :value="0"></el-option>-->
+										<!--										<el-option label="保密" :value="2"></el-option>-->
+										<el-option v-for="(item, index) in genderList" :key="index" :label="item.label" :value="item.value"></el-option>
+									</el-select>
+								</el-form-item>
+							</el-col>
+							<el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+								<el-form-item>
+									<el-button type="primary" @click="submitForm">
+										<el-icon>
+											<ele-Position />
+										</el-icon>
+										更新个人信息
+									</el-button>
+								</el-form-item>
+							</el-col>
+						</el-row>
+					</el-form>
+					<div class="personal-edit-title mb15">账号安全</div>
+					<div class="personal-edit-safe-box">
+						<div class="personal-edit-safe-item">
+							<div class="personal-edit-safe-item-left">
+								<div class="personal-edit-safe-item-left-label">账户密码</div>
+								<div class="personal-edit-safe-item-left-value">当前密码强度：强</div>
+							</div>
+							<div class="personal-edit-safe-item-right">
+								<el-button text type="primary" @click="passwordFormShow = true">立即修改</el-button>
+							</div>
+						</div>
+					</div>
+					<div class="personal-edit-safe-box">
+						<div class="personal-edit-safe-item">
+							<div class="personal-edit-safe-item-left">
+								<div class="personal-edit-safe-item-left-label">密保手机</div>
+								<div class="personal-edit-safe-item-left-value">已绑定手机：{{ state.personalForm.mobile }}</div>
+							</div>
+							<div class="personal-edit-safe-item-right">
+								<!--                <el-button text type="primary">立即修改</el-button>-->
+							</div>
+						</div>
+					</div>
+
+					<div class="personal-edit-safe-box">
+						<div class="personal-edit-safe-item">
+							<div class="personal-edit-safe-item-left">
+								<div class="personal-edit-safe-item-left-label">绑定邮箱</div>
+								<div class="personal-edit-safe-item-left-value">已绑定邮箱：{{ state.personalForm.email }}</div>
+							</div>
+							<div class="personal-edit-safe-item-right">
+								<!--                <el-button text type="primary">立即设置</el-button>-->
+							</div>
+						</div>
+					</div>
+				</el-card>
+			</el-col>
+		</el-row>
+		<!--    密码修改-->
+		<el-dialog v-model="passwordFormShow" title="密码修改">
+			<el-form
+				ref="userPasswordFormRef"
+				:model="userPasswordInfo"
+				required-asterisk
+				label-width="100px"
+				label-position="left"
+				:rules="passwordRules"
+				center
+			>
+				<el-form-item label="原密码" required prop="oldPassword">
+					<el-input type="password" v-model="userPasswordInfo.oldPassword" placeholder="请输入原始密码" show-password clearable></el-input>
+				</el-form-item>
+				<el-form-item required prop="newPassword" label="新密码">
+					<el-input type="password" v-model="userPasswordInfo.newPassword" placeholder="请输入新密码" show-password clearable></el-input>
+				</el-form-item>
+				<el-form-item required prop="newPassword2" label="确认密码">
+					<el-input type="password" v-model="userPasswordInfo.newPassword2" placeholder="请再次输入新密码" show-password clearable></el-input>
+				</el-form-item>
+			</el-form>
+			<template #footer>
 				<span class="dialog-footer">
 					<el-button type="primary" @click="settingPassword"> <i class="fa fa-check"></i>提交 </el-button>
 				</span>
-			
+			</template>
+		</el-dialog>
+	</div>
 </template>
-<script setup lang="ts" name="personal">
 
+<script setup lang="ts" name="personal">
 import { reactive, computed, onMounted, ref, defineAsyncComponent } from 'vue';
 import { formatAxis } from '/@/utils/formatTime';
 import * as api from './api';
@@ -202,8 +367,8 @@ const uploadImg = (data: any) => {
 	});
 };
 </script>
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 @use '/@/theme/mixins/index.scss' as mixins;
 .personal {
 	.personal-user {

@@ -1,5 +1,4 @@
 <template>
-
 	<div class="home-container">
 		<el-row :gutter="15" class="home-card-one mb15">
 			<el-col
@@ -65,8 +64,8 @@
 		</el-row>
 	</div>
 </template>
-<script lang="ts">
 
+<script lang="ts">
 import { toRefs, reactive, defineComponent, onMounted, ref, watch, nextTick, onActivated } from 'vue';
 import * as echarts from 'echarts';
 import { storeToRefs } from 'pinia';
@@ -552,8 +551,8 @@ export default defineComponent({
 	},
 });
 </script>
-<style scoped lang="scss">
 
+<style scoped lang="scss">
 $homeNavLengh: 8;
 .home-container {
 	overflow: hidden;
