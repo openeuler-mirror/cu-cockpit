@@ -1,20 +1,4 @@
-<template #reference>
-
-                                    <div class="indicator-card-disk">
-                                        <div class="title">
-                                            <div class="title-text"> /boot </div>
-                                            <div class="capacity">/boot剩余{{ diskInfo.boot.free }}可用</div>
-                                        </div>
-                                        <div class="disk-echarts">
-                                            <div ref='disk2' style="height: 100%;">
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                
-</template>
 <script lang="ts" setup>
-
 import { ref, reactive, onMounted, onUnmounted } from 'vue';
 import * as echarts from 'echarts';
 import { monitorStatus, hardInfo } from '/@/api/run/run';
@@ -627,7 +611,6 @@ const handleResize = debounce(() => {
 }, 300);
 </script>
 <style lang="scss" scoped>
-
 .indicator {
     padding: 10px;
     min-height: calc(100vh - 105px);
@@ -707,3 +690,140 @@ const handleResize = debounce(() => {
     padding-right: 20px;
 }
 </style>
+<template>
+    <div class="indicator" v-loading="loading">
+        <el-row :gutter="20">
+            <el-col :span="4">
+                <div class="indicator-card">
+                    <div class="indicator-card-title">cpu</div>
+                    <el-popover placement="bottom" :width="170">
+                        <el-tag type="primary" effect="plain" v-for="(val, index) in loadArray" :key="index" style="margin-bottom: 6px;">
+                            {{ val }}
+                        </el-tag>
+                        <template #reference>
+                            <div class="cpu">
+                                <div ref="cpuRef" class="echarts-div"></div>
+                                CPU {{ cpuCores }}核
+                            </div>
+                        </template>
+                    </el-popover>
+                </div>
+            </el-col>
+            <el-col :span="8">
+                <div class="indicator-card">
+                    <div class="indicator-card-title ">内存</div>
+                    <el-popover placement="bottom" :width="460">
+                        <el-table :data="serviceTableData">
+                            <el-table-column prop="name" label="服务" width="310">
+                                <template #default="scope">
+                                    <div style="color:#0066CC" class="table-col">{{ scope.row.name }}</div>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="size" label="已使用" />
+                        </el-table>
+                        <template #reference>
+                            <el-row>
+                                <el-col :span="12">
+                                    <div class="memory">
+                                        <div ref="memoryRef" class="echarts-div"></div>
+                                        内存 {{ availableGB }}GB可用
+                                    </div>
+                                </el-col>
+                                <el-col :span="12">
+                                    <div class="swap">
+                                        <div ref="swapRef" class="echarts-div"></div>
+                                        交换空间 {{ swapFreeGB }}GB 可用
+                                    </div>
+                                </el-col>
+                            </el-row>
+                        </template>
+                    </el-popover>
+                </div>
+            </el-col>
+            <el-col :span="12">
+                <div class="indicator-card">
+                    <div class="indicator-card-title ">磁盘</div>
+                    <el-row :gutter="10">
+                        <el-col :span='12'>
+                            <el-popover placement="bottom" :width="160">
+                                <el-tag type="primary" effect="plain" style="margin-top: 4px;">根目录总容量{{diskInfo.total.total}}</el-tag>
+                                <el-tag type="primary" effect="plain" style="margin-top: 4px;">根目录已使用{{diskInfo.total.used}}</el-tag>
+                                <el-tag type="primary" effect="plain" style="margin-top: 4px;">根目录剩余{{diskInfo.total.free }}</el-tag>
+                                <template #reference>
+                                    <div class="indicator-card-disk">
+                                        <div class="title">
+                                            <div class="title-text"> / </div>
+                                            <div class="capacity">根目录剩余{{ diskInfo.total.free }}可用</div>
+                                        </div>
+                                        <div class="disk-echarts">
+                                            <div ref='disk1' style="height: 100%;">
+
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </template>
+
+                            </el-popover>
+                        </el-col>
+                        <el-col :span='12'>
+                            <el-popover placement="bottom" :width="160">
+                                <el-tag type="primary" effect="plain" style="margin-top: 4px;">/boot总容量{{diskInfo.boot.total}}</el-tag>
+                                <el-tag type="primary" effect="plain" style="margin-top: 4px;">/boot已使用{{diskInfo.boot.used}}</el-tag>
+                                <el-tag type="primary" effect="plain" style="margin-top: 4px;">/boot剩余{{diskInfo.boot.free}}</el-tag>
+                                <template #reference>
+                                    <div class="indicator-card-disk">
+                                        <div class="title">
+                                            <div class="title-text"> /boot </div>
+                                            <div class="capacity">/boot剩余{{ diskInfo.boot.free }}可用</div>
+                                        </div>
+                                        <div class="disk-echarts">
+                                            <div ref='disk2' style="height: 100%;">
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </el-popover>
+                        </el-col>
+                    </el-row>
+                </div>
+            </el-col>
+            <el-col :span="12">
+                <div class="indicator-card network-card">
+                    <div class="indicator-card-title monitor-title">
+                        <div class="title"> 网络接收</div>
+                        <div class="monitor-sift">网卡：
+                            <el-select v-model="optVal" placeholder="Select" style="width: 180px" @change="netChange">
+                                <el-option v-for="item in options" :key="item.value" :label="item.label"
+                                    :value="item.value" />
+                            </el-select>
+                        </div>
+                    </div>
+                    <div style="height: 332px;" ref="diskIoRef">
+
+                    </div>
+                </div>
+            </el-col>
+            <el-col :span="12">
+                <div class="indicator-card network-card">
+                    <div class="indicator-card-title monitor-title">
+                        <div class="title">
+                            网络发送
+                        </div>
+                        <div class="monitor-sift">网卡：
+                            <el-select v-model="optVal2" placeholder="Select" style="width: 180px" @change="netChange2">
+                                <el-option v-for="item in options" :key="item.value" :label="item.label"
+                                    :value="item.value" />
+                            </el-select>
+                        </div>
+                    </div>
+                    <div style="height: 332px;" ref="diskIoRefs">
+
+                    </div>
+                </div>
+            </el-col>
+        </el-row>
+    </div>
+
+</template>
