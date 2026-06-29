@@ -20,7 +20,6 @@ import { Md5 } from 'ts-md5';
 import { commonCrudConfig } from "/@/utils/commonCrud";
 import { ElMessageBox } from 'element-plus';
 import { exportData } from "./api";
-
 export const createCrudOptions = function ({ crudExpose }: CreateCrudOptionsProps): CreateCrudOptionsRet {
     const pageRequest = async (query: UserPageQuery) => {
         return await api.GetList(query);
@@ -35,13 +34,24 @@ export const createCrudOptions = function ({ crudExpose }: CreateCrudOptionsProp
     const addRequest = async ({ form }: AddReq) => {
         return await api.AddObj(form);
     };
+
     const exportRequest = async (query: UserPageQuery) => {
         return await api.exportData(query)
     }
+
     const resetToDefaultPasswordRequest = async (row: EditReq) => {
         await api.resetToDefaultPassword(row.id)
         successMessage("重置密码成功")
     }
+
+    const systemConfigStore = SystemConfigStore()
+    const { systemConfig } = storeToRefs(systemConfigStore)
+    const getSystemConfig = computed(() => {
+        // console.log(systemConfig.value)
+        return systemConfig.value
+    })
+
+
     return {
         crudOptions: {
             table: {
@@ -77,6 +87,36 @@ export const createCrudOptions = function ({ crudExpose }: CreateCrudOptionsProp
                         ).then(() => exportData(ctx.row))
                     }
                 }
+            },
+            rowHandle: {
+                //固定右侧
+                fixed: 'right',
+                width: 200,
+                buttons: {
+                    view: {
+                        show: false,
+                    },
+                    edit: {
+                        iconRight: 'Edit',
+                        type: 'text',
+                        show: auth('user:Update'),
+                    },
+                    remove: {
+                        iconRight: 'Delete',
+                        type: 'text',
+                        show: auth('user:Delete'),
+                    },
+                    resetDefaultPwd: {
+                        text: '重置密码',
+                        type: 'text',
+                        iconRight: 'Setting',
+                        show: auth('user:ResetDefaultPassword'),
+                        click: (ctx: any) => ElMessageBox.confirm(
+                            '确定重置为系统默认密码吗？', '提示',
+                            { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
+                        ).then(() => resetToDefaultPasswordRequest(ctx.row))
+                    },
+                },
             },
             columns: {
                 _index: {
@@ -314,6 +354,48 @@ export const createCrudOptions = function ({ crudExpose }: CreateCrudOptionsProp
                         },
                     },
                 },
+                is_active: {
+                    title: '状态',
+                    search: {
+                        show: true,
+                    },
+                    type: 'dict-radio',
+                    column: {
+                        component: {
+                            name: 'fs-dict-switch',
+                            activeText: '',
+                            inactiveText: '',
+                            style: '--el-switch-on-color: var(--el-color-primary); --el-switch-off-color: #dcdfe6',
+                            onChange: compute((context) => {
+                                return () => {
+                                    api.UpdateObj(context.row).then((res: APIResponseData) => {
+                                        successMessage(res.msg as string);
+                                    });
+                                };
+                            }),
+                        },
+                    },
+                    dict: dict({
+                        data: dictionary('button_status_bool'),
+                    }),
+                },
+                avatar: {
+                    title: '头像',
+                    type: 'avatar-uploader',
+                    align: 'center',
+                    form: {
+                        show: false,
+                    },
+                    column: {
+                        minWidth: 100, //最小列宽
+                    },
+                },
+                ...commonCrudConfig({
+                    dept_belong_id: {
+                        form: true,
+                        table: true
+                    }
+                })
             },
         },
     };
