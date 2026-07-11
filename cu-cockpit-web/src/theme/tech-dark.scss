@@ -1,0 +1,323 @@
+/**
+ * 全站「科技暗色」主题
+ * 仅在 <html class="theme-tech-dark"> 时生效；默认不挂载，opt-in，对现有亮色界面零影响。
+ * 由布局设置抽屉的「科技风主题」开关控制（isTechTheme）。
+ * 变量取自 src/theme/tokens.scss（--tech-*）。
+ *
+ * 策略：优先覆盖 Element Plus / dvadmin 的 CSS 变量，使多数组件自动暗色化；
+ * 再对布局（侧栏、顶栏、标签栏）与常见组件补充科技点缀（玻璃、发光、描边）。
+ */
+html.theme-tech-dark {
+	/* ===== Element Plus 核心变量覆盖 ===== */
+	--el-bg-color: #0d1526;
+	--el-bg-color-page: #070b16;
+	--el-bg-color-overlay: #101a2f;
+	--el-text-color-primary: #e8f2ff;
+	--el-text-color-regular: #c7d2e5;
+	--el-text-color-secondary: #8fa2c2;
+	--el-text-color-placeholder: #5f6f8c;
+	--el-text-color-disabled: #4a5876;
+	--el-border-color: rgba(90, 165, 255, 0.18);
+	--el-border-color-light: rgba(90, 165, 255, 0.14);
+	--el-border-color-lighter: rgba(90, 165, 255, 0.1);
+	--el-border-color-extra-light: rgba(90, 165, 255, 0.08);
+	--el-border-color-dark: rgba(90, 165, 255, 0.22);
+	--el-fill-color: rgba(255, 255, 255, 0.04);
+	--el-fill-color-light: rgba(255, 255, 255, 0.03);
+	--el-fill-color-lighter: rgba(255, 255, 255, 0.02);
+	--el-fill-color-blank: #0d1526;
+	--el-mask-color: rgba(7, 11, 22, 0.8);
+	--el-color-primary: #22d3ee;
+
+	/* ===== dvadmin 布局自定义变量 ===== */
+	--next-bg-topBar: rgba(11, 20, 36, 0.72);
+	--next-bg-topBarColor: #c7d2e5;
+	--next-bg-menuBar: #0b1424;
+	--next-bg-menuBarColor: #c7d2e5;
+	--next-bg-columnsMenuBar: #0a1120;
+	--next-bg-columnsMenuBarColor: #c7d2e5;
+
+	background-color: var(--el-bg-color-page);
+	color: var(--el-text-color-regular);
+
+	body {
+		background-color: var(--el-bg-color-page);
+		color: var(--el-text-color-regular);
+	}
+
+	/* ===== 布局背景 ===== */
+	.layout-container {
+		background: var(--tech-bg-grad);
+		background-attachment: fixed;
+	}
+
+	/* 侧栏菜单玻璃化 + 选中发光 */
+	.el-aside,
+	.layout-aside {
+		background:
+			linear-gradient(180deg, rgba(12, 24, 46, 0.92), rgba(7, 13, 27, 0.94)) !important;
+		backdrop-filter: blur(14px);
+		-webkit-backdrop-filter: blur(14px);
+		border-right: 1px solid rgba(34, 211, 238, 0.22);
+		box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.03), 10px 0 28px rgba(0, 0, 0, 0.28);
+	}
+
+	/* 科技风下隐藏左侧 Logo 区，避免折叠状态下图标被裁切变形。 */
+	.layout-logo,
+	.layout-logo-size {
+		display: none !important;
+	}
+
+	.el-menu,
+	.el-menu--vertical,
+	.el-menu--horizontal {
+		background: transparent !important;
+		border-right: none !important;
+	}
+
+	.el-menu-item,
+	.el-sub-menu__title {
+		color: var(--tech-text) !important;
+		margin: 6px 12px;
+		gap: 10px;
+		border-radius: 12px;
+		border: 1px solid transparent;
+		transition: color 0.25s ease, background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+
+		.iconfont,
+		.fa {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 20px;
+			min-width: 20px;
+			height: 20px;
+			font-size: 16px !important;
+			line-height: 1;
+			color: rgba(199, 210, 229, 0.82) !important;
+			transform: none !important;
+			transition: color 0.25s ease, filter 0.25s ease;
+		}
+
+		span {
+			color: #cfeeff !important;
+			font-weight: 700;
+			letter-spacing: 1.1px;
+			text-shadow: 0 0 10px rgba(34, 211, 238, 0.22);
+			transition: color 0.25s ease, letter-spacing 0.25s ease, text-shadow 0.25s ease;
+		}
+	}
+
+	.el-menu-item:hover,
+	.el-sub-menu__title:hover {
+		background: linear-gradient(90deg, rgba(34, 211, 238, 0.12), rgba(59, 130, 246, 0.05)) !important;
+		border-color: rgba(34, 211, 238, 0.24);
+		box-shadow: 0 0 16px -8px rgba(34, 211, 238, 0.9);
+
+		span {
+			color: #eaffff !important;
+			letter-spacing: 1.4px;
+			text-shadow: 0 0 12px rgba(34, 211, 238, 0.55), 0 0 22px rgba(59, 130, 246, 0.22);
+		}
+	}
+
+	.el-menu-item.is-active {
+		color: var(--tech-cyan) !important;
+		background: linear-gradient(90deg, rgba(34, 211, 238, 0.28), rgba(59, 130, 246, 0.12), transparent) !important;
+		border-color: rgba(34, 211, 238, 0.45);
+		box-shadow: inset 3px 0 0 var(--tech-cyan), 0 0 22px -8px rgba(34, 211, 238, 0.95);
+
+		.iconfont,
+		.fa {
+			color: var(--tech-cyan) !important;
+			filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.8));
+		}
+
+		span {
+			background: linear-gradient(90deg, #ffffff, #5eeeff 42%, #a7f3ff 100%);
+			background-clip: text;
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			font-weight: 800;
+			letter-spacing: 1.6px;
+			text-shadow: 0 0 12px rgba(34, 211, 238, 0.65), 0 0 26px rgba(59, 130, 246, 0.35);
+		}
+	}
+
+	/* 顶栏磨砂 */
+	.layout-navbars-breadcrumb-index {
+		background: rgba(8, 16, 31, 0.72) !important;
+		backdrop-filter: blur(14px);
+		-webkit-backdrop-filter: blur(14px);
+		border-bottom: 1px solid rgba(34, 211, 238, 0.2);
+		box-shadow: 0 8px 28px rgba(0, 0, 0, 0.26), inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+	}
+
+	.layout-navbars-breadcrumb-index .layout-navbars-breadcrumb-span,
+	.layout-navbars-breadcrumb-index .el-breadcrumb__inner {
+		color: var(--tech-text) !important;
+	}
+
+	/* Logo */
+	.layout-logo,
+	.layout-logo-medium,
+	.layout-logo-size {
+		color: var(--tech-cyan) !important;
+	}
+
+	/* 标签栏：概览科技风下以左侧菜单为唯一主导航，避免双层菜单。 */
+	.layout-navbars-tagsview,
+	.layout-navbars-tagsview-ul {
+		display: none !important;
+	}
+
+	.layout-navbars-tagsview-ul-li {
+		margin: 6px 6px 6px 0 !important;
+		border-radius: 12px !important;
+		color: rgba(199, 210, 229, 0.86) !important;
+		background: rgba(10, 18, 34, 0.42) !important;
+		border: 1px solid rgba(90, 165, 255, 0.13) !important;
+		transition: color 0.25s ease, background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+
+		span {
+			color: #cae8ff !important;
+			font-weight: 700;
+			letter-spacing: 0.9px;
+			text-shadow: 0 0 9px rgba(34, 211, 238, 0.2);
+			transition: color 0.25s ease, letter-spacing 0.25s ease, text-shadow 0.25s ease;
+		}
+
+		&:hover {
+			color: var(--tech-cyan) !important;
+			border-color: rgba(34, 211, 238, 0.38) !important;
+			box-shadow: 0 0 16px -8px rgba(34, 211, 238, 0.9);
+
+			span {
+				color: #eaffff !important;
+				letter-spacing: 1.2px;
+				text-shadow: 0 0 12px rgba(34, 211, 238, 0.5);
+			}
+		}
+	}
+
+	.layout-navbars-tagsview-ul-li.is-active {
+		color: #eaffff !important;
+		background: linear-gradient(135deg, rgba(34, 211, 238, 0.26), rgba(59, 130, 246, 0.16)) !important;
+		border-color: rgba(34, 211, 238, 0.55) !important;
+		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 0 18px -5px rgba(34, 211, 238, 0.8);
+
+		span {
+			background: linear-gradient(90deg, #ffffff, #5eeeff 45%, #8bc8ff 100%);
+			background-clip: text;
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			font-weight: 800;
+			letter-spacing: 1.3px;
+			text-shadow: 0 0 12px rgba(34, 211, 238, 0.65), 0 0 22px rgba(59, 130, 246, 0.25);
+		}
+	}
+
+	/* ===== 通用组件点缀 ===== */
+	.el-card {
+		background: var(--tech-panel);
+		border: 1px solid var(--tech-border);
+		backdrop-filter: blur(10px);
+		-webkit-backdrop-filter: blur(10px);
+	}
+
+	/* 表格 */
+	.el-table {
+		background: transparent;
+		--el-table-bg-color: transparent;
+		--el-table-tr-bg-color: transparent;
+		--el-table-header-bg-color: rgba(16, 26, 45, 0.9);
+		--el-table-border-color: var(--tech-border);
+	}
+
+	.el-table th.el-table__cell {
+		background: rgba(16, 26, 45, 0.9) !important;
+		color: var(--tech-text-strong);
+	}
+
+	.el-table--enable-row-hover .el-table__body tr:hover > td.el-table__cell {
+		background: rgba(34, 211, 238, 0.06) !important;
+	}
+
+	/* 输入 / 选择 / 文本域 */
+	.el-input__wrapper,
+	.el-textarea__inner {
+		background: rgba(10, 18, 34, 0.7);
+		box-shadow: 0 0 0 1px var(--tech-border) inset;
+	}
+
+	.el-input__wrapper.is-focus {
+		box-shadow: 0 0 0 1px var(--tech-cyan) inset;
+	}
+
+	/* 主按钮发光 */
+	.el-button--primary {
+		background: linear-gradient(135deg, #22d3ee, #3b82f6);
+		border: none;
+		box-shadow: 0 0 16px -4px rgba(34, 211, 238, 0.6);
+	}
+
+	.el-button--primary:hover {
+		filter: brightness(1.08);
+	}
+
+	/* 弹窗 / 抽屉 / 下拉浮层 */
+	.el-dialog,
+	.el-drawer,
+	.el-message-box,
+	.el-dropdown__popper,
+	.el-popper {
+		background: var(--el-bg-color-overlay);
+	}
+
+	/* 分页 */
+	.el-pagination {
+		--el-pagination-bg-color: transparent;
+		--el-pagination-button-bg-color: transparent;
+	}
+
+	.el-pagination button,
+	.el-pager li {
+		background: transparent !important;
+		color: var(--tech-text);
+	}
+
+	.el-pager li.is-active {
+		color: var(--tech-cyan);
+	}
+
+	/* ===== 登录页 ===== */
+	.login-container {
+		background: var(--tech-bg-grad) !important;
+	}
+
+	.login-container .login-left {
+		background-color: transparent !important;
+	}
+
+	.login-container .login-left-logo-text span {
+		color: var(--tech-text-strong) !important;
+	}
+
+	.loginBg {
+		opacity: 0.12;
+	}
+
+	.login-right-warp {
+		background: var(--tech-panel);
+		border: 1px solid var(--tech-border);
+		border-radius: var(--tech-radius);
+		backdrop-filter: blur(14px);
+		-webkit-backdrop-filter: blur(14px);
+		box-shadow: 0 0 34px -10px rgba(34, 211, 238, 0.45);
+	}
+
+	.login-right-warp-main-title {
+		color: var(--tech-text-strong) !important;
+		text-shadow: 0 0 16px rgba(34, 211, 238, 0.35);
+	}
+}
