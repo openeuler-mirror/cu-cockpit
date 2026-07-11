@@ -1,0 +1,41 @@
+/**
+ * 设计 Token —— 科技风专用 CSS 变量
+ * 说明：这里仅新增 --tech-* 系列变量（不覆盖 Element 的 --el-* 变量），
+ * 因此对现有亮色界面零影响；科技风样式统一引用这些变量，便于全局调整与后续「主题色可配置」。
+ */
+:root {
+	/* 主色 / 辅色 */
+	--tech-cyan: #22d3ee;
+	--tech-cyan-soft: rgba(34, 211, 238, 0.75);
+	--tech-blue: #3b82f6;
+	--tech-purple: #a855f7;
+
+	/* 状态色 */
+	--tech-green: #10f5a0;
+	--tech-amber: #ffb020;
+	--tech-red: #ff4d6d;
+
+	/* 文字 */
+	--tech-text: #c7d2e5;
+	--tech-text-dim: #74849f;
+	--tech-text-strong: #e8f2ff;
+
+	/* 面板 / 描边 / 底色 */
+	--tech-panel: rgba(17, 27, 48, 0.55);
+	--tech-panel-solid: #0b1324;
+	--tech-border: rgba(90, 165, 255, 0.16);
+
+	/* 形状 / 阴影 / 发光 */
+	--tech-radius: 14px;
+	--tech-shadow: 0 10px 34px rgba(0, 0, 0, 0.42);
+	--tech-glow-cyan: 0 0 24px rgba(34, 211, 238, 0.16);
+
+	/* 背景渐变（深蓝黑 + 双色光晕） */
+	--tech-bg-grad:
+		radial-gradient(1200px 600px at 12% -12%, rgba(34, 211, 238, 0.12), transparent 60%),
+		radial-gradient(1000px 520px at 105% -5%, rgba(168, 85, 247, 0.12), transparent 55%),
+		linear-gradient(180deg, #070b16 0%, #0a1120 60%, #0b1428 100%);
+
+	/* 网格纹理线色 */
+	--tech-grid-line: rgba(90, 165, 255, 0.06);
+}
