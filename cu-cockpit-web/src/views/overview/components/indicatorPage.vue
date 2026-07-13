@@ -1,48 +1,58 @@
 <template>
   <div class="card">
-    <el-row :gutter="20" @click="toIndicator">
+    <el-row :gutter="20" class="metric-row" @click="toIndicator">
       <el-col :span="8">
-        <div class="el-card cpu">
-          <h3>CPU 使用率</h3>
-          <i class="font32 iconfont icon-yingjianxinxi"></i>
-          <div class="high-usage-text">{{ cpuUsage }}% </div>
-          <div class="progress">
-            <div class="progress-bar" :class="{ 'high-usage': cpuUsage > 80 }" :style="{ width: cpuUsage + '%' }">
+        <div class="metric-card" :class="{ 'is-danger': cpuUsage > 80 }"
+          :style="{ '--metric': String(cpuUsage), '--metric-color': cpuUsage > 80 ? 'var(--tech-red)' : 'var(--tech-cyan)' }">
+          <div class="metric-card__head">
+            <i class="iconfont icon-yingjianxinxi"></i>
+            <span>CPU 使用率</span>
+          </div>
+          <div class="ring">
+            <div class="ring__inner">
+              <div class="ring__num">{{ cpuUsage }}<small>%</small></div>
+              <div class="ring__cap">USAGE</div>
             </div>
           </div>
-          核心数：{{ cpuCores }}核
+          <div class="metric-card__foot">核心数：{{ cpuCores }} 核</div>
         </div>
       </el-col>
       <el-col :span="8">
-        <div class="el-card memory">
-          <h3>内存使用</h3>
-          <i class="font32 iconfont icon-neicun"></i>
-          <div class="high-usage-text">{{ memUsage }}%</div>
-          <div class="progress">
-            <div class="progress-bar" :class="{ 'high-usage': memUsage > 80 }" :style="{ width: memUsage + '%' }">
+        <div class="metric-card" :class="{ 'is-danger': memUsage > 80 }"
+          :style="{ '--metric': String(memUsage), '--metric-color': memUsage > 80 ? 'var(--tech-red)' : 'var(--tech-purple)' }">
+          <div class="metric-card__head">
+            <i class="iconfont icon-neicun"></i>
+            <span>内存使用</span>
+          </div>
+          <div class="ring">
+            <div class="ring__inner">
+              <div class="ring__num">{{ memUsage }}<small>%</small></div>
+              <div class="ring__cap">MEMORY</div>
             </div>
           </div>
-          {{ memUsed }} GB / {{ memTotal }} GB
+          <div class="metric-card__foot">{{ memUsed }} GB / {{ memTotal }} GB</div>
         </div>
       </el-col>
       <el-col :span="8">
-        <div class="el-card directory">
-          <h3>磁盘使用率</h3>
-          <i class="font32 iconfont icon-04"></i>
-          <div class="high-usage-text">
-            {{ diskUsage }}%
+        <div class="metric-card" :class="{ 'is-danger': diskUsage > 80 }"
+          :style="{ '--metric': String(diskUsage), '--metric-color': diskUsage > 80 ? 'var(--tech-red)' : 'var(--tech-green)' }">
+          <div class="metric-card__head">
+            <i class="iconfont icon-04"></i>
+            <span>磁盘使用率</span>
           </div>
-          <div class="progress">
-            <div class="progress-bar" :class="{ 'high-usage': diskUsage > 80 }" :style="{ width: diskUsage + '%' }">
+          <div class="ring">
+            <div class="ring__inner">
+              <div class="ring__num">{{ diskUsage }}<small>%</small></div>
+              <div class="ring__cap">DISK</div>
             </div>
           </div>
-          根目录剩余 {{ diskUsed }} 可用
+          <div class="metric-card__foot">根目录剩余 {{ diskUsed }} 可用</div>
         </div>
       </el-col>
     </el-row>
     <el-card style="margin-top: 20px;">
       <div class="echarts-title">
-        <div class="echarts-text">网络接口流量</div>
+        <div class="echarts-text"><span class="echarts-bar"></span>网络接口流量</div>
         <div class="echarts-sift">网卡：
           <el-select v-model="optVal" placeholder="Select" style="width: 180px" @change="netChange">
             <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
@@ -248,6 +258,10 @@ const initChart = () => {
     z: 1,
     tooltip: {
       trigger: 'axis',
+      backgroundColor: 'rgba(10, 18, 34, 0.92)',
+      borderColor: 'rgba(34, 211, 238, 0.35)',
+      borderWidth: 1,
+      textStyle: { color: '#c7d2e5' },
       formatter: params => {
         let res = params[0].name + '<br/>';
         for (const item of params) {
@@ -262,23 +276,30 @@ const initChart = () => {
       right: '4%',
       itemWidth: 16,
       textStyle: {
-        color: '#646A73',
+        color: '#8fa2c2',
       },
       icon: 'circle',
     },
     xAxis: {
       name: '时间',
       nameTextStyle: {
+        color: '#74849f',
         padding: [0, 0, 0, 0]
       },
+      axisLine: { lineStyle: { color: 'rgba(90, 165, 255, 0.2)' } },
+      axisLabel: { color: '#8fa2c2' },
       data: networkXAxis,
       boundaryGap: false
     },
     yAxis: {
       name: '速率(kB/S)',
+      nameTextStyle: { color: '#74849f' },
+      axisLabel: { color: '#8fa2c2' },
+      axisLine: { show: false },
       splitLine: {
         lineStyle: {
           type: 'dashed',
+          color: 'rgba(90, 165, 255, 0.1)',
           opacity: 1,
         },
       },
@@ -286,38 +307,46 @@ const initChart = () => {
     series: [{
       name: 'rx',
       type: 'line',
+      smooth: true,
+      lineStyle: {
+        width: 2.5,
+        color: '#22d3ee',
+        shadowColor: 'rgba(34, 211, 238, 0.6)',
+        shadowBlur: 12,
+      },
       itemStyle: {
-        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: 'rgba(27, 143, 60)' },
-          { offset: 1, color: 'rgba(27, 143, 60)' },
-        ]),
+        color: '#22d3ee',
       },
       areaStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: 'rgba(0, 94, 235, .1)' },
-          { offset: 1, color: 'rgba(0, 94, 235, .2)' },
+          { offset: 0, color: 'rgba(34, 211, 238, 0.35)' },
+          { offset: 1, color: 'rgba(34, 211, 238, 0.02)' },
         ]),
       },
       data: diskData.get(optVal.value)?.rx || [],
-      // showSymbol: false,
+      showSymbol: false,
       symbolSize: 6,
     }, {
       name: 'tx',
       type: 'line',
+      smooth: true,
+      lineStyle: {
+        width: 2.5,
+        color: '#a855f7',
+        shadowColor: 'rgba(168, 85, 247, 0.6)',
+        shadowBlur: 12,
+      },
       itemStyle: {
-        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: 'rgba(249, 199, 79)' },
-          { offset: 1, color: 'rgba(249, 199, 79)' },
-        ]),
+        color: '#a855f7',
       },
       areaStyle: {
         color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-          { offset: 0, color: 'rgba(0, 94, 235, .1)' },
-          { offset: 1, color: 'rgba(0, 94, 235, .2)' },
+          { offset: 0, color: 'rgba(168, 85, 247, 0.3)' },
+          { offset: 1, color: 'rgba(168, 85, 247, 0.02)' },
         ]),
       },
       data: diskData.get(optVal.value)?.tx || [],
-      // showSymbol: false,
+      showSymbol: false,
       symbolSize: 6,
     }],
     dataZoom: [{ startValue: 0, show: true }],
@@ -437,49 +466,144 @@ const handleResize = debounce(() => {
   width: 100%;
 }
 
-.card-header {
-  font-size: 18px;
-  font-weight: bolder;
+.metric-row {
+  cursor: pointer;
 }
 
-.cpu,
-.memory,
-.directory {
-  border-radius: 4px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  margin: 0;
-  font-size: 12px;
-
-  h3 {
-    margin: 0 0 12px;
-    font-size: 14px;
-  }
-
-  .high-usage-text {
-    font-weight: bolder;
-    font-size: 30px;
-  }
-}
-
-.progress {
-  height: 18px;
-  background: #f3f3f3;
-  border-radius: 9px;
+/* 指标卡片：玻璃面板 + 顶部霓虹描边 */
+.metric-card {
+  --metric: 0;
+  --metric-color: var(--tech-cyan, #22d3ee);
+  position: relative;
+  padding: 20px 18px 18px;
+  border-radius: 14px;
+  background: rgba(17, 27, 48, 0.55);
+  border: 1px solid var(--tech-border, rgba(90, 165, 255, 0.16));
+  backdrop-filter: blur(14px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 10px 30px rgba(0, 0, 0, 0.4);
+  text-align: center;
   overflow: hidden;
-  margin-bottom: 8px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--metric-color), transparent);
+    opacity: 0.9;
+  }
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: var(--metric-color);
+    box-shadow: 0 0 26px -6px var(--metric-color), 0 14px 34px rgba(0, 0, 0, 0.45);
+  }
+
+  &.is-danger {
+    animation: metric-alert 1.4s ease-in-out infinite;
+  }
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #e8f2ff;
+
+    .iconfont {
+      font-size: 18px;
+      color: var(--metric-color);
+    }
+  }
+
+  &__foot {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--tech-text-dim, #74849f);
+    letter-spacing: 0.3px;
+  }
 }
 
-.progress-bar {
-  height: 100%;
-  background: #42b983;
-  border-radius: 9px;
-  transition: width 0.3s ease;
+@keyframes metric-alert {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 77, 109, 0); }
+  50% { box-shadow: 0 0 24px -4px rgba(255, 77, 109, 0.65); }
 }
 
-/* 使用率过高警示 */
-.high-usage {
-  background: #ff4d4f;
+/* 环形仪表：conic-gradient 进度 + 中空数字 */
+.ring {
+  --size: 132px;
+  position: relative;
+  width: var(--size);
+  height: var(--size);
+  margin: 16px auto 4px;
+  border-radius: 50%;
+  background:
+    conic-gradient(var(--metric-color) calc(var(--metric) * 1%), rgba(255, 255, 255, 0.06) 0);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--metric-color) 45%, transparent));
+  transition: background 0.6s ease;
+
+  /* 内圈遮罩，形成圆环 */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 35%, #101a2f 0%, #0a1120 100%);
+    box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.6);
+  }
+
+  /* 起点高亮小点 */
+  &::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    margin-left: -3px;
+    border-radius: 50%;
+    background: var(--metric-color);
+    box-shadow: 0 0 10px var(--metric-color);
+  }
+
+  &__inner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  }
+
+  &__num {
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 16px color-mix(in srgb, var(--metric-color) 65%, transparent);
+
+    small {
+      font-size: 14px;
+      font-weight: 600;
+      margin-left: 2px;
+      color: var(--metric-color);
+    }
+  }
+
+  &__cap {
+    margin-top: 6px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--tech-text-dim, #74849f);
+  }
 }
 
 .echarts-title {
@@ -489,13 +613,27 @@ const handleResize = debounce(() => {
   position: relative;
 
   .echarts-text {
+    display: flex;
+    align-items: center;
     left: 0;
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #e8f2ff;
     line-height: 1.5;
+
+    .echarts-bar {
+      width: 4px;
+      height: 15px;
+      margin-right: 8px;
+      border-radius: 2px;
+      background: linear-gradient(180deg, var(--tech-cyan, #22d3ee), var(--tech-purple, #a855f7));
+      box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+    }
   }
 
   .echarts-sift {
     right: 0;
+    color: var(--tech-text, #c7d2e5);
   }
 }
 
