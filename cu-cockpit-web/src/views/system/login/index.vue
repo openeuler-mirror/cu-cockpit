@@ -121,6 +121,10 @@ const siteBg = computed(() => {
 // 页面加载时
 onMounted(() => {
 	NextLoading.done();
+	// 若已开启科技风主题，登录页同步应用
+	if (themeConfig.value.isTechTheme) {
+		document.documentElement.classList.add('theme-tech-dark');
+	}
 });
 </script>
 
