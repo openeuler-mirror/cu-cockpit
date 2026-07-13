@@ -82,6 +82,7 @@ export interface ThemeConfigState {
 	isGrayscale: boolean;
 	isInvert: boolean;
 	isIsDark: boolean;
+	isTechTheme: boolean;
 	isWartermark: boolean;
 	wartermarkText: string;
 	tagsStyle: string;
