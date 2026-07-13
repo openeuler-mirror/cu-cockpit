@@ -21,6 +21,8 @@ export const useThemeConfig = defineStore('themeConfig', {
 			primary: '#409eff',
 			// 是否开启深色模式
 			isIsDark: false,
+			// 是否开启「科技风」主题（深色霓虹，opt-in）
+			isTechTheme: false,
 
 			/**
 			 * 顶栏设置
