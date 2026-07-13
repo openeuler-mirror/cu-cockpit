@@ -1,3 +1,4 @@
+@use './tokens.scss';
 @use './app.scss';
 @use 'common/transition.scss';
 @use './other.scss';
@@ -5,4 +6,5 @@
 @use './media/media.scss';
 @use './waves.scss';
 @use './dark.scss';
+@use './tech-dark.scss';
 @use './fa/css/font-awesome.min.css';
