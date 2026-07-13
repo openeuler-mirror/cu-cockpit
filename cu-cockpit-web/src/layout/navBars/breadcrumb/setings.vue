@@ -23,6 +23,12 @@
 						<el-switch v-model="getThemeConfig.isIsDark" size="small" @change="onAddDarkChange"></el-switch>
 					</div>
 				</div>
+				<div class="layout-breadcrumb-seting-bar-flex mt15">
+					<div class="layout-breadcrumb-seting-bar-flex-label">科技风主题</div>
+					<div class="layout-breadcrumb-seting-bar-flex-value">
+						<el-switch v-model="getThemeConfig.isTechTheme" size="small" @change="onTechThemeChange"></el-switch>
+					</div>
+				</div>
 
 				<!-- 顶栏设置 -->
 				<el-divider content-position="left">{{ $t('message.layout.twoTopTitle') }}</el-divider>
@@ -563,6 +569,13 @@ const onAddDarkChange = () => {
 	if (getThemeConfig.value.isIsDark) body.setAttribute('data-theme', 'dark');
 	else body.setAttribute('data-theme', '');
 };
+// 4、界面显示 --> 科技风主题（深色霓虹，给 html 挂 theme-tech-dark 类）
+const onTechThemeChange = () => {
+	const html = document.documentElement as HTMLElement;
+	if (getThemeConfig.value.isTechTheme) html.classList.add('theme-tech-dark');
+	else html.classList.remove('theme-tech-dark');
+	setLocalThemeConfig();
+};
 // 4、界面显示 --> 开启水印
 const onWartermarkChange = () => {
 	getThemeConfig.value.isWartermark ? Watermark.set(getThemeConfig.value.wartermarkText) : Watermark.del();
@@ -664,6 +677,8 @@ onMounted(() => {
 			if (getThemeConfig.value.isInvert) onAddFilterChange('invert');
 			// 深色模式
 			if (getThemeConfig.value.isIsDark) onAddDarkChange();
+			// 科技风主题
+			onTechThemeChange();
 			// 开启水印
 			onWartermarkChange();
 			// 语言国际化
