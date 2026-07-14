@@ -37,6 +37,8 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/rescrouce/', include('osmanager.rescrouce_monitor.urls')),
+    # 兼容旧前端构建包仍在请求 /api/run/monitor/... 的路径。
+    path('api/run/', include('osmanager.rescrouce_monitor.urls')),
     path('api/config/', include('osmanager.config.urls')),
     path('api/auth/', include('osmanager.auth.url')),
     path('api/logs/', include('osmanager.system_log.urls')),
