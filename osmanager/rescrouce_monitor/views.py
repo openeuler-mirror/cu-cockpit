@@ -98,8 +98,8 @@ def run_shell_script_api(request, script_name):
             stdout = result.stdout.strip()
             stderr = result.stderr.strip()
 
-            # 检查脚本是否执行失败
-            if return_code != 0 or stderr:
+            # 脚本可能把兼容性告警写到 stderr；查询类接口只按返回码判定失败。
+            if return_code != 0:
                 return JsonResponse({
                     "error": "脚本执行失败",
                     "script": script_name,
