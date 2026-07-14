@@ -59,7 +59,8 @@ def get_service_status_api(request):
             stdout = result.stdout.strip()
             stderr = result.stderr.strip()
 
-            if return_code != 0 or stderr:
+            # 查询类脚本可能把兼容性告警写到 stderr；只按返回码判定失败。
+            if return_code != 0:
                 return JsonResponse({
                     "error": "获取服务状态失败",
                     "return_code": return_code,
