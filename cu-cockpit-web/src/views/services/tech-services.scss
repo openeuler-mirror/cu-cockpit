@@ -225,17 +225,17 @@
 
 	.services-filter--search {
 		--filter-accent: var(--tech-cyan);
-		width: min(320px, 34vw);
+		width: min(340px, 34vw);
 	}
 
 	.services-filter--state {
 		--filter-accent: var(--tech-green);
-		width: 180px;
+		width: 250px;
 	}
 
 	.services-filter--register {
 		--filter-accent: var(--tech-cyan);
-		width: 220px;
+		width: 320px;
 	}
 
 	.services-filter--search .el-input__wrapper,
@@ -295,6 +295,12 @@
 
 	.services-filter--state,
 	.services-filter--register {
+		.el-select__selection {
+			flex-wrap: nowrap;
+			gap: 6px;
+			overflow: hidden;
+		}
+
 		.el-select__placeholder {
 			color: #9eb0cc;
 			font-size: 13px;
@@ -312,28 +318,58 @@
 		}
 
 		.el-tag {
-			--el-tag-bg-color: color-mix(in srgb, var(--filter-accent) 13%, rgba(9, 18, 34, 0.9));
-			--el-tag-border-color: color-mix(in srgb, var(--filter-accent) 42%, transparent);
-			--el-tag-text-color: color-mix(in srgb, var(--filter-accent) 72%, #f1f7ff);
+			--tag-accent: var(--filter-accent);
+			--el-tag-bg-color: color-mix(in srgb, var(--tag-accent) 13%, rgba(9, 18, 34, 0.9));
+			--el-tag-border-color: color-mix(in srgb, var(--tag-accent) 42%, transparent);
+			--el-tag-text-color: color-mix(in srgb, var(--tag-accent) 72%, #f1f7ff);
 			height: 28px;
+			flex: none;
 			padding: 0 9px;
 			border-radius: 5px;
 			background: var(--el-tag-bg-color);
-			box-shadow: inset 0 0 10px color-mix(in srgb, var(--filter-accent) 7%, transparent);
+			box-shadow:
+				inset 0 0 10px color-mix(in srgb, var(--tag-accent) 7%, transparent),
+				0 0 10px color-mix(in srgb, var(--tag-accent) 7%, transparent);
 			font-size: 12px;
 			font-weight: 700;
 			letter-spacing: 0.5px;
 		}
 
+		.services-filter-tag.is-active,
+		.services-filter-tag.is-enabled,
+		.services-filter-tag.is-enabled-runtime {
+			--tag-accent: var(--tech-green);
+		}
+
+		.services-filter-tag.is-inactive {
+			--tag-accent: var(--tech-amber);
+		}
+
+		.services-filter-tag.is-disabled,
+		.services-filter-tag.is-masked {
+			--tag-accent: var(--tech-red);
+		}
+
+		.services-filter-tag.is-static,
+		.services-filter-tag.is-alias,
+		.services-filter-tag.is-indirect {
+			--tag-accent: var(--tech-purple);
+		}
+
 		.el-tag__close {
-			color: color-mix(in srgb, var(--filter-accent) 68%, #dce8f8);
+			color: color-mix(in srgb, var(--tag-accent) 68%, #dce8f8);
 			background: transparent;
 
 			&:hover {
 				color: #07111f;
-				background: var(--filter-accent);
+				background: var(--tag-accent);
 			}
 		}
+	}
+
+	.services-filter--register .services-filter-tag.is-enabled,
+	.services-filter--register .services-filter-tag.is-enabled-runtime {
+		--tag-accent: var(--tech-cyan);
 	}
 
 	.services-filter-count {
