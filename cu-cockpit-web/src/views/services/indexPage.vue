@@ -56,6 +56,17 @@
                         placeholder="运行状态"
                         popper-class="services-filter-popper services-filter-popper--runtime"
                     >
+                        <template #tag="{ data, deleteTag, selectDisabled }">
+                            <el-tag
+                                v-for="item in data"
+                                :key="String(item.value)"
+                                :class="['services-filter-tag', runtimeFilterTagClass(item.value)]"
+                                :closable="!selectDisabled && !item.isDisabled"
+                                @close="deleteTag($event, item)"
+                            >
+                                {{ item.currentLabel }}
+                            </el-tag>
+                        </template>
                         <el-option v-for="item in runtimeOptions" :key="item.value" :label="item.label" :value="item.value" />
                     </el-select>
                     <el-select
@@ -63,11 +74,32 @@
                         class="services-filter--register"
                         multiple
                         collapse-tags
+                        :max-collapse-tags="2"
                         collapse-tags-tooltip
                         clearable
                         placeholder="注册状态"
                         popper-class="services-filter-popper services-filter-popper--register"
                     >
+                        <template #tag="{ data, deleteTag, selectDisabled }">
+                            <el-tag
+                                v-for="item in data.slice(0, 2)"
+                                :key="String(item.value)"
+                                :class="['services-filter-tag', registerFilterTagClass(item.value)]"
+                                :closable="!selectDisabled && !item.isDisabled"
+                                @close="deleteTag($event, item)"
+                            >
+                                {{ item.currentLabel }}
+                            </el-tag>
+                            <el-tooltip
+                                v-if="data.length > 2"
+                                :content="data.slice(2).map((item) => item.currentLabel).join('、')"
+                                placement="top"
+                                effect="dark"
+                                popper-class="service-command-tooltip"
+                            >
+                                <el-tag class="services-filter-tag services-filter-tag--count">+ {{ data.length - 2 }}</el-tag>
+                            </el-tooltip>
+                        </template>
                         <el-option v-for="item in registerOptions" :key="item.value" :label="item.label" :value="item.value" />
                     </el-select>
                 </div>
@@ -260,6 +292,9 @@ const registerOptions = [
     { value: 'indirect', label: '间接' },
     { value: 'masked', label: '已屏蔽' },
 ];
+
+const runtimeFilterTagClass = (status: unknown) => `is-${String(status || 'unknown')}`;
+const registerFilterTagClass = (status: unknown) => `is-${String(status || 'unknown')}`;
 
 const isEnabled = (status: string) => ['enabled', 'enabled-runtime'].includes(status);
 const canOperate = (row: ServiceRow) => ['enabled', 'enabled-runtime', 'disabled'].includes(row.注册状态);
