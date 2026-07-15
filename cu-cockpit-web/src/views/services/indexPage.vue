@@ -1,348 +1,382 @@
 <template>
-    <div>
-        <div class="table-div" style="height: calc(100vh - 130px);overflow: hidden;">
-            <el-affix :offset="76">
-                <div class="top-tabs">
-                    <!-- <div class="top-l">
-                        <div class="item">服务</div>
-                    </div> -->
-                    <div class="sift">
-                        <div class="flex gap-4 items-center">
-                            <el-input v-model="searchName" style="width: 240px" size="default" placeholder="根据名称或描述进行过滤"
-                                prefix-icon="Search" clearable @input="searchInput" />
-                            <el-select v-model="value" multiple clearable @change="startChange" :reserve-keyword="false"
-                                placeholder="运行状态" style="width: 190px">
-                                <el-option v-for="item in options" :key="item.value" :label="item.label"
-                                    :value="item.value" />
-                            </el-select>
-                            <el-select v-model="fileType" multiple collapse-tags collapse-tags-tooltip clearable
-                                @change="fileChange" :reserve-keyword="false" placeholder="注册状态" style="width: 300px">
-                                <el-option v-for="item in fileOptions" :key="item.value" :label="item.label"
-                                    :value="item.value" />
-                            </el-select>
-                        </div>
-                    </div>
+    <div class="tech-services services-overview">
+        <header class="services-hud">
+            <div class="services-identity">
+                <span class="services-identity__mark"><el-icon><Setting /></el-icon></span>
+                <div>
+                    <h1 class="services-title">服务管理</h1>
+                    <div class="services-kicker">SERVICE CONTROL · SYSTEMD UNIT INVENTORY</div>
                 </div>
-            </el-affix>
-            <div style="height: calc(100vh - 222px);">
-                <el-table :data="tableData.data" v-loading="tableData.loading" ref="tableRef" height="100%"
-                    :header-cell-style="{ background: '#f5f7fa' }" size="large"
-                    style="width: 100%;line-height: 1.5;"  :key="tablekey">
-                    <el-table-column prop="服务名称" width="350" label="服务名称">
-                        <template #default="scope">
-                            <div style="color:#0066cc;line-height: 1.5;padding-top:14px;padding-bottom: 14px; cursor: default;">
-                                {{ scope.row.服务名称 }}</div>
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="描述" label="描述">
-                        <template #default="scope">
-                            <div style="width: 90%;cursor: default" >{{ scope.row.描述 }}</div>
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="运行状态" width="110" label="运行状态"  align="center">
-                        <template #default="scope">
-                            <div v-if="scope.row.运行状态 != 'N/A'" style="cursor: default"> 
-                                <el-tag v-if="scope.row.运行状态 == 'inactive'" type="info">未运行</el-tag> 
-                                <el-tag  v-else-if="scope.row.运行状态 == 'active'" type="success">运行中</el-tag> 
-                            </div>
-                            <div v-else>
-                            </div>
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="注册状态" width="130" label="注册状态" align="center">
-                        <template #default="scope">
-                            <div v-if="scope.row.注册状态 != 'N/A'" style="cursor: default">
-                                <el-tag  v-if="isDisabled(scope.row.注册状态)" type="info" round style="width: 90px;font-size: 14px;">禁用</el-tag>
-                                <el-tag  v-else-if="isEnabled(scope.row.注册状态)" round style="width: 90px;font-size: 14px;">启用</el-tag>
-                                <div v-else style="text-align: center;">{{ getRegisterStatusLabel(scope.row.注册状态) }}</div>
-                            </div>
-                            <div v-else>
-                            </div>
-                        </template>
-                    </el-table-column>
-                    <el-table-column label="操作" width="160" align="center">
-                        <template #default="scope">
-                            <div style="margin: auto;">
-                                <template v-if="canOperate(scope.row)">
-                                    <el-button link type="primary" @click="setStatus('start', scope.row)"
-                                        :disabled="scope.row.运行状态 == 'active'">启动</el-button>
-                                    <el-button link type="primary"
-                                        @click="setStatus('restart', scope.row)">重启</el-button>
-                                    <el-button link type="danger" @click="setStatus('stop', scope.row)"
-                                        :disabled="scope.row.运行状态 != 'active'">停止</el-button>
-                                </template>
-                                <template v-else>
-                                </template>
-                            </div>
-                        </template>
-                    </el-table-column>
-                </el-table>
             </div>
-        </div>
+            <div class="services-hud__actions">
+                <div v-if="u_Permission !== 'root'" class="services-access-state">
+                    <el-icon><Lock /></el-icon>
+                    <span>受限访问</span>
+                </div>
+                <div v-if="!loadError" class="services-sync-state">
+                    <span class="services-sync-state__dot"></span>
+                    <span>{{ serviceLoading ? '同步中' : '服务在线' }}</span>
+                </div>
+                <el-button class="services-action" :icon="Refresh" :loading="serviceLoading" @click="getService">
+                    刷新
+                </el-button>
+            </div>
+        </header>
 
+        <section class="services-summary" aria-label="服务摘要">
+            <div
+                v-for="item in summaryItems"
+                :key="item.label"
+                class="services-summary__item"
+                :style="{ '--summary-accent': item.color }"
+            >
+                <span class="services-summary__icon"><el-icon><component :is="item.icon" /></el-icon></span>
+                <div>
+                    <div class="services-summary__label">{{ item.label }}</div>
+                    <div class="services-summary__value">{{ item.value }}</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="services-panel">
+            <div class="services-toolbar">
+                <div class="services-filters">
+                    <el-input
+                        v-model="searchName"
+                        class="services-filter--search"
+                        :prefix-icon="Search"
+                        placeholder="按服务名称或描述过滤"
+                        clearable
+                    />
+                    <el-select
+                        v-model="runtimeFilter"
+                        class="services-filter--state"
+                        multiple
+                        clearable
+                        placeholder="运行状态"
+                    >
+                        <el-option v-for="item in runtimeOptions" :key="item.value" :label="item.label" :value="item.value" />
+                    </el-select>
+                    <el-select
+                        v-model="registerFilter"
+                        class="services-filter--register"
+                        multiple
+                        collapse-tags
+                        collapse-tags-tooltip
+                        clearable
+                        placeholder="注册状态"
+                    >
+                        <el-option v-for="item in registerOptions" :key="item.value" :label="item.label" :value="item.value" />
+                    </el-select>
+                </div>
+                <div class="services-filter-count">
+                    显示 <strong>{{ filteredServices.length }}</strong> / {{ services.length }} 项
+                </div>
+            </div>
+
+            <div v-if="loadError && !serviceLoading" class="services-error">
+                <el-icon><WarningFilled /></el-icon>
+                <p>{{ loadError }}</p>
+                <el-button class="services-action" :icon="Refresh" @click="getService">重新加载</el-button>
+            </div>
+
+            <el-table
+                v-else
+                v-loading="serviceLoading"
+                :data="filteredServices"
+                class="services-table"
+                row-key="服务名称"
+                size="large"
+                empty-text="未检测到服务"
+            >
+                <el-table-column label="服务名称" min-width="240">
+                    <template #default="{ row }">
+                        <div class="service-identity" :class="{ 'is-active': row.运行状态 === 'active' }">
+                            <span class="service-identity__mark"></span>
+                            <span class="service-identity__name">{{ row.服务名称 }}</span>
+                        </div>
+                    </template>
+                </el-table-column>
+                <el-table-column label="描述" min-width="300" class-name="services-column--description">
+                    <template #default="{ row }">
+                        <span class="service-description">{{ row.描述 || '暂无描述' }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="运行状态" width="124" align="center">
+                    <template #default="{ row }">
+                        <span class="service-runtime" :class="runtimeStatusClass(row.运行状态)">
+                            <span class="service-runtime__dot"></span>
+                            {{ runtimeStatusLabel(row.运行状态) }}
+                        </span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="注册状态" width="132" align="center">
+                    <template #default="{ row }">
+                        <span class="service-register" :class="registerStatusClass(row.注册状态)">
+                            {{ registerStatusLabel(row.注册状态) }}
+                        </span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="操作" width="132" align="right" fixed="right">
+                    <template #default="{ row }">
+                        <div v-if="canOperate(row)" class="service-commands">
+                            <el-tooltip content="启动" placement="top">
+                                <el-button
+                                    class="service-command service-command--start"
+                                    :icon="VideoPlay"
+                                    :loading="isOperating(row, 'start')"
+                                    :disabled="row.运行状态 === 'active' || isOperating(row)"
+                                    circle
+                                    aria-label="启动服务"
+                                    @click="setStatus('start', row)"
+                                />
+                            </el-tooltip>
+                            <el-tooltip content="重启" placement="top">
+                                <el-button
+                                    class="service-command service-command--restart"
+                                    :icon="RefreshRight"
+                                    :loading="isOperating(row, 'restart')"
+                                    :disabled="isOperating(row)"
+                                    circle
+                                    aria-label="重启服务"
+                                    @click="setStatus('restart', row)"
+                                />
+                            </el-tooltip>
+                            <el-tooltip content="停止" placement="top">
+                                <el-button
+                                    class="service-command service-command--stop"
+                                    :icon="VideoPause"
+                                    :loading="isOperating(row, 'stop')"
+                                    :disabled="row.运行状态 !== 'active' || isOperating(row)"
+                                    circle
+                                    aria-label="停止服务"
+                                    @click="setStatus('stop', row)"
+                                />
+                            </el-tooltip>
+                        </div>
+                        <span v-else>—</span>
+                    </template>
+                </el-table-column>
+                <template #empty>
+                    <div class="services-empty">
+                        <el-icon><Operation /></el-icon>
+                        <p>{{ services.length ? '没有符合筛选条件的服务' : '未检测到服务' }}</p>
+                        <el-button v-if="hasFilters" class="services-action" @click="resetFilters">清除筛选</el-button>
+                    </div>
+                </template>
+            </el-table>
+        </section>
     </div>
 </template>
-<script setup lang="ts">
-import { reactive, ref, onMounted, nextTick, watch } from "vue"
-import { serviceStatus, runServiceManage } from '/@/api/run/run'
+
+<script setup lang="ts" name="servicesIndex">
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
+import {
+    CircleCheck,
+    CircleClose,
+    Lock,
+    Operation,
+    Refresh,
+    RefreshRight,
+    Search,
+    Setting,
+    VideoPause,
+    VideoPlay,
+    WarningFilled,
+} from '@element-plus/icons-vue';
 import { ElMessageBox } from 'element-plus';
-import { errorNotification, successNotification } from '/@/utils/message';
 import { storeToRefs } from 'pinia';
+import { serviceStatus, runServiceManage } from '/@/api/run/run';
+import { useThemeConfig } from '/@/stores/themeConfig';
 import { userPermissiom } from '/@/stores/userPermissiom';
-const storeUserPermissiom = userPermissiom();
-const { u_Permission } = storeToRefs(storeUserPermissiom);
-const tableRef = ref();
-const tableData= reactive({
-    loading: true,
-    data: [],
-    history: [],
+import { errorNotification, successNotification } from '/@/utils/message';
 
+interface ServiceRow {
+    服务名称: string;
+    描述: string;
+    运行状态: string;
+    注册状态: string;
+}
+
+interface RequestError {
+    request?: {
+        responseText?: string;
+    };
+}
+
+interface ErrorPayload {
+    error?: string;
+}
+
+type StatusType = 'start' | 'stop' | 'restart';
+
+const permissionStore = userPermissiom();
+const themeStore = useThemeConfig();
+const { u_Permission } = storeToRefs(permissionStore);
+const { themeConfig } = storeToRefs(themeStore);
+const services = ref<ServiceRow[]>([]);
+const serviceLoading = ref(false);
+const loadError = ref('');
+const searchName = ref('');
+const runtimeFilter = ref<string[]>([]);
+const registerFilter = ref<string[]>([]);
+const operating = ref<{ name: string; action: StatusType } | null>(null);
+
+const runtimeOptions = [
+    { value: 'active', label: '运行中' },
+    { value: 'inactive', label: '未运行' },
+];
+
+const registerOptions = [
+    { value: 'enabled', label: '启用' },
+    { value: 'disabled', label: '禁用' },
+    { value: 'static', label: '静态' },
+    { value: 'alias', label: '别名' },
+    { value: 'indirect', label: '间接' },
+    { value: 'masked', label: '已屏蔽' },
+];
+
+const isEnabled = (status: string) => ['enabled', 'enabled-runtime'].includes(status);
+const canOperate = (row: ServiceRow) => ['enabled', 'enabled-runtime', 'disabled'].includes(row.注册状态);
+const hasFilters = computed(() => Boolean(searchName.value || runtimeFilter.value.length || registerFilter.value.length));
+
+const matchesRegisterFilter = (status: string) => {
+    if (!registerFilter.value.length) return true;
+    return registerFilter.value.some((selected) => (selected === 'enabled' ? isEnabled(status) : selected === status));
+};
+
+const filteredServices = computed(() => {
+    const keyword = searchName.value.trim().toLowerCase();
+    return services.value.filter((service) => {
+        const matchesKeyword =
+            !keyword ||
+            service.服务名称.toLowerCase().includes(keyword) ||
+            (service.描述 || '').toLowerCase().includes(keyword);
+        const matchesRuntime = !runtimeFilter.value.length || runtimeFilter.value.includes(service.运行状态);
+        return matchesKeyword && matchesRuntime && matchesRegisterFilter(service.注册状态);
+    });
 });
-const tablekey = ref(0);
-const searchName = ref<string>("");
-//精确搜索
-const searchInput = () => {
-    siftfunction();
-}
 
-const value = ref<string[]>([])
-const options = [
-    {
-        value: 'active',
-        label: '运行中',
-    },
-    {
-        value: 'inactive',
-        label: '未运行',
-    },
-]
+const serviceSummary = computed(() => ({
+    total: services.value.length,
+    active: services.value.filter((service) => service.运行状态 === 'active').length,
+    inactive: services.value.filter((service) => service.运行状态 === 'inactive').length,
+    operable: services.value.filter(canOperate).length,
+}));
 
-const startChange = (value: string[]) => {
-    siftfunction();
-}
+const summaryItems = computed(() => [
+    { label: '服务总量', value: serviceSummary.value.total, icon: Setting, color: '#22d3ee' },
+    { label: '运行中', value: serviceSummary.value.active, icon: CircleCheck, color: '#10f5a0' },
+    { label: '已停止', value: serviceSummary.value.inactive, icon: CircleClose, color: '#ffb020' },
+    { label: '可管理服务', value: serviceSummary.value.operable, icon: Operation, color: '#a855f7' },
+]);
 
+const runtimeStatusLabels: Record<string, string> = { active: '运行中', inactive: '未运行' };
+const runtimeStatusLabel = (status: string) => runtimeStatusLabels[status] || status || '未知';
+const runtimeStatusClass = (status: string) => ({ 'is-active': status === 'active', 'is-inactive': status === 'inactive' });
+const registerStatusLabels: Record<string, string> = {
+    enabled: '启用',
+    'enabled-runtime': '临时启用',
+    disabled: '禁用',
+    static: '静态',
+    alias: '别名',
+    indirect: '间接',
+    masked: '已屏蔽',
+};
+const registerStatusLabel = (status: string) => registerStatusLabels[status] || status || '未知';
+const registerStatusClass = (status: string) => `is-${isEnabled(status) ? 'enabled' : status || 'unknown'}`;
 
-//文件状态
-const fileType = ref<string[]>([]);
-const fileOptions = [
-    {
-        value: 'enabled',
-        label: '启用'
-    },
-    {
-        value: 'disabled',
-        label: '禁用'
-    }, {
-        value: 'static',
-        label: '静态'
-    },
-    {
-        value: 'alias',
-        label: '别名'
-    },
-    {
-        value: 'indirect',
-        label: '间接的'
-    },
-    {
-        value: 'masked',
-        label: '已屏蔽'
-    },
-]
+const resetFilters = () => {
+    searchName.value = '';
+    runtimeFilter.value = [];
+    registerFilter.value = [];
+};
 
-const getService = () => {
-    serviceStatus().then(res => {
-        tableData.data = res;
-        tableData.history = res;
-        tableData.loading = false;
-        if (searchName.value != '' || value.value.length > 0 || fileType.value.length > 0) {
-            siftfunction()
+const getService = async () => {
+    serviceLoading.value = true;
+    loadError.value = '';
+    try {
+        const response = await serviceStatus();
+        services.value = Array.isArray(response) ? response : [];
+    } catch (error) {
+        services.value = [];
+        loadError.value = '服务状态加载失败，请检查服务管理接口后重试。';
+        console.error('获取服务状态失败:', error);
+    } finally {
+        serviceLoading.value = false;
+    }
+};
+
+const isOperating = (row: ServiceRow, action?: StatusType) =>
+    operating.value?.name === row.服务名称 && (!action || operating.value.action === action);
+
+const parseOperationError = (error: unknown) => {
+    if (typeof error !== 'object' || error === null) return '';
+    const responseText = (error as RequestError).request?.responseText;
+    if (!responseText) return '';
+    try {
+        const payload = JSON.parse(responseText) as ErrorPayload;
+        return typeof payload.error === 'string' ? payload.error : '';
+    } catch {
+        return '';
+    }
+};
+
+const setStatus = async (status: StatusType, service: ServiceRow) => {
+    if (u_Permission.value !== 'root') {
+        await ElMessageBox.alert('被限制访问模式下不可操作，请切换到管理员模式', '提示', {
+            confirmButtonText: '确定',
+        });
+        return;
+    }
+
+    const actionLabels: Record<StatusType, string> = { start: '启动', stop: '停止', restart: '重启' };
+    try {
+        await ElMessageBox.confirm(`是否确定${actionLabels[status]} ${service.服务名称} 服务`, '服务操作确认', {
+            confirmButtonText: '确认',
+            cancelButtonText: '取消',
+            type: 'warning',
+        });
+        operating.value = { name: service.服务名称, action: status };
+        const response = await runServiceManage({ service_name: service.服务名称, operation: status });
+        if (response?.return_code === 0) {
+            successNotification(`${service.服务名称}${actionLabels[status]}成功`);
+            await getService();
+        } else {
+            errorNotification(`${service.服务名称}${actionLabels[status]}失败`);
         }
-    })
-}
+    } catch (error: unknown) {
+        if (error === 'cancel' || error === 'close') return;
+        const detail = parseOperationError(error);
+        errorNotification(
+            detail
+                ? `${service.服务名称}服务出现${detail}，${actionLabels[status]}失败`
+                : `${service.服务名称}${actionLabels[status]}失败`
+        );
+    } finally {
+        operating.value = null;
+    }
+};
 
-const fileChange = () => {
-    siftfunction()
-}
+const mountServicesTechShell = () => document.documentElement.classList.add('theme-tech-dark');
+const restoreServicesTechShell = () => {
+    if (!themeConfig.value.isTechTheme) document.documentElement.classList.remove('theme-tech-dark');
+};
+const resetMainScroll = async () => {
+    await nextTick();
+    const scrollContainer = document.querySelector<HTMLElement>('.layout-main-scroll.el-scrollbar__wrap');
+    if (scrollContainer) scrollContainer.scrollTop = 0;
+};
 
 onMounted(() => {
+    mountServicesTechShell();
+    resetMainScroll();
     getService();
-})
-type statusType = 'start' | 'stop' | 'restart';
-//修改状态
-const setStatus = (status: statusType, data: {[key: string]: string}) => {
-    //不是管理员权限
-    if (u_Permission.value != 'root') {
-        ElMessageBox.alert('被限制访问模式下不可操作，请切换到管理员模式', '提示', {
-            confirmButtonText: '确定',
-            callback: () => {
-            }
-        })
-        return false;
-    }
-    let typeText:{[key: string]: string} = {
-        'start': '启动',
-        'stop': "停止",
-        'restart': '重启',
-    }
+});
 
-    ElMessageBox.confirm(`是否确定${typeText[status]} ${data['服务名称']} 服务`, '温馨提示', {
-        confirmButtonText: '确认',
-        cancelButtonText: '取消',
-        type: 'warning',
-        center: true,
-        customClass: 'd-message'
-    }).then(async (res) => {
-        if (res == 'confirm') {
-            await runServiceManage({
-                service_name: data['服务名称'],
-                operation: status
-            }).then(res => {
-                console.log(res);
-                if (res.return_code == 0) {
-                    successNotification(`${data['服务名称']}${typeText[status]}成功`)
-                    getService();
-                }else if(res.return_code == 4){
-                    errorNotification(`${data['服务名称']}${typeText[status]}失败`)
-                }
-            }, err => {
-                let tmpErr = JSON.parse(err.request.responseText);
-                if(tmpErr.return_code == 4){
-                    errorNotification(`${data['服务名称']}服务出现${tmpErr.error}导致${typeText[status]}失败`)
-                }
-             })
-        }
-    }, err => { console.log(err) })
-}
-
-const siftfunction = () => {
-    let siftArray = tableData.history;
-    if (searchName.value != '') {
-        let tmp = searchName.value.toLowerCase();
-        siftArray = siftArray.filter((item: { [x: string]: string; }) =>
-            item['服务名称'].toLowerCase().indexOf(tmp) !== -1 || item['描述'].toLowerCase().indexOf(tmp) !== -1
-        )
-    }
-    if (value.value.length > 0) {
-        siftArray = siftArray.filter((item: { [x: string]: string; }) => {
-            if (value.value.length == 1) {
-                return item['运行状态'] == value.value[0];
-            } else {
-                return item['运行状态'] != "N/A";
-            }
-        })
-    }
-    if (fileType.value.length > 0) {
-        let tmp = fileType.value;
-        siftArray = siftArray.filter((item: { [x: string]: string; }) => {
-            if (tmp.length < 6) {
-                return tmp.indexOf(item['注册状态']) !== -1;
-            } else {
-                return item['注册状态'] != "N/A";
-            }
-        })
-    }
-    tableData.data =siftArray;   
-    tablekey.value =Math.random();
-}
-
-watch(() => tableData.data, () => {
-    nextTick(() => {
-         if (tableRef.value) {
-            // 先重新计算布局
-            tableRef.value.doLayout();
-            
-            // 再重置滚动位置
-            setTimeout(() => {
-                try {
-                    tableRef.value.setScrollTop(0);
-                } catch (e) {
-                    console.warn('Failed to reset scroll position:', e);
-                }
-            }, 50);
-        }
-    })
-}, { deep: true });
-
-// 工具函数
-function isDisabled(status: string): boolean {
-    return ['disabled'].includes(status);
-}
-function isEnabled(status: string): boolean {
-    return ['enabled', 'enabled-runtime'].includes(status);
-}
-
-function getRegisterStatusLabel(status: string): string {
-    const map: Record<string, string> = {
-        static: '静态',
-        alias: '别名',
-        indirect: '间接的',
-        masked: '屏蔽的'
-    };
-    return map[status];
-}
-
-function canOperate(row: {[key:string]: string}): boolean {
-    const validStates = ['enabled', 'enabled-runtime', 'disabled'];
-    return validStates.includes(row['注册状态']);
-}
+onUnmounted(restoreServicesTechShell);
 </script>
-<style scoped lang="scss">
-.top-tabs {
-    background: var(--el-color-white);
-    position: relative;
-    display: flex;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-    //文字不可选
-    -moz-user-select: none;
-    -webkit-user-select: none;
-    -ms-user-select: none;
-    -khtml-user-select: none;
-    user-select: none;
 
-}
-
-.top-l {
-    display: flex;
-    align-items: center;
-    max-width: 50%;
-
-    .item {
-        position: relative;
-        font-size: 14px;
-        line-height: 1.5;
-        margin-right: 16px;
-        padding-left: 4px;
-
-        .title {
-            padding-left: 4px;
-            cursor: pointer;
-        }
-    }
-
-}
-
-.sift {
-    width: 100%;
-    margin-top: 10px;
-}
-
-.table-div {
-    margin: 20px 16px 0;
-    padding: 10px 16px;
-    background: var(--el-color-white);
-    border-radius: 8px;
-}
-</style>
-<style>
-.d-message .el-message-box__content .el-message-box__container .el-message-box__message {
-
-    font-size: 18px;
-    line-height: 1.5;
-    padding: 20px 0;
-    color: #000;
-
-}
- 
+<style lang="scss">
+@use './tech-services.scss';
 </style>
