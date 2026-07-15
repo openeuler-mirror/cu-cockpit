@@ -104,7 +104,10 @@
                     </el-select>
                 </div>
                 <div class="services-filter-count">
-                    显示 <strong>{{ filteredServices.length }}</strong> / {{ services.length }} 项
+                    <strong class="services-filter-count__current">{{ filteredServices.length }}</strong>
+                    <span class="services-filter-count__separator">/</span>
+                    <span class="services-filter-count__total">{{ services.length }}</span>
+                    <span class="services-filter-count__unit">项</span>
                 </div>
             </div>
 
