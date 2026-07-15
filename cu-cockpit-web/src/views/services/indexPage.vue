@@ -99,7 +99,9 @@
                 </el-table-column>
                 <el-table-column label="描述" min-width="300" class-name="services-column--description">
                     <template #default="{ row }">
-                        <span class="service-description">{{ row.描述 || '暂无描述' }}</span>
+                        <span class="service-description" :class="{ 'is-empty': !row.描述 }">
+                            {{ row.描述 || '暂无描述' }}
+                        </span>
                     </template>
                 </el-table-column>
                 <el-table-column label="运行状态" width="124" align="center">
@@ -117,10 +119,17 @@
                         </span>
                     </template>
                 </el-table-column>
-                <el-table-column label="操作" width="132" align="right" fixed="right">
+                <el-table-column label="操作" width="156" align="center" fixed="right">
                     <template #default="{ row }">
                         <div v-if="canOperate(row)" class="service-commands">
-                            <el-tooltip content="启动" placement="top">
+                            <el-tooltip
+                                :content="row.运行状态 === 'active' ? '服务已在运行' : '启动服务'"
+                                placement="top"
+                                effect="dark"
+                                popper-class="service-command-tooltip"
+                                :show-after="120"
+                                :hide-after="0"
+                            >
                                 <el-button
                                     class="service-command service-command--start"
                                     :icon="VideoPlay"
@@ -131,7 +140,14 @@
                                     @click="setStatus('start', row)"
                                 />
                             </el-tooltip>
-                            <el-tooltip content="重启" placement="top">
+                            <el-tooltip
+                                content="重启服务"
+                                placement="top"
+                                effect="dark"
+                                popper-class="service-command-tooltip"
+                                :show-after="120"
+                                :hide-after="0"
+                            >
                                 <el-button
                                     class="service-command service-command--restart"
                                     :icon="RefreshRight"
@@ -142,7 +158,14 @@
                                     @click="setStatus('restart', row)"
                                 />
                             </el-tooltip>
-                            <el-tooltip content="停止" placement="top">
+                            <el-tooltip
+                                :content="row.运行状态 !== 'active' ? '服务未运行' : '停止服务'"
+                                placement="top"
+                                effect="dark"
+                                popper-class="service-command-tooltip"
+                                :show-after="120"
+                                :hide-after="0"
+                            >
                                 <el-button
                                     class="service-command service-command--stop"
                                     :icon="VideoPause"
