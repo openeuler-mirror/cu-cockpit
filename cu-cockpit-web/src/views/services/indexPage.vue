@@ -54,6 +54,7 @@
                         multiple
                         clearable
                         placeholder="运行状态"
+                        popper-class="services-filter-popper services-filter-popper--runtime"
                     >
                         <el-option v-for="item in runtimeOptions" :key="item.value" :label="item.label" :value="item.value" />
                     </el-select>
@@ -65,6 +66,7 @@
                         collapse-tags-tooltip
                         clearable
                         placeholder="注册状态"
+                        popper-class="services-filter-popper services-filter-popper--register"
                     >
                         <el-option v-for="item in registerOptions" :key="item.value" :label="item.label" :value="item.value" />
                     </el-select>
