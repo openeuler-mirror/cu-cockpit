@@ -158,16 +158,25 @@
             </div>
             <el-table
                 :data="pagedServiceMemory"
+                :default-sort="serviceDefaultSort"
                 class="indicator-service-table"
                 size="large"
                 empty-text="未检测到服务内存数据"
+                @sort-change="onServiceSortChange"
             >
                 <el-table-column prop="name" label="服务名称" min-width="360">
                     <template #default="{ row }">
                         <span class="indicator-service-name"><span class="indicator-service-name__dot"></span>{{ row.name }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="size" label="已使用内存" width="180" align="right">
+                <el-table-column
+                    prop="bytes"
+                    label="已使用内存"
+                    width="180"
+                    align="right"
+                    sortable="custom"
+                    :sort-orders="['descending', 'ascending', null]"
+                >
                     <template #default="{ row }"><strong class="indicator-service-size">{{ row.size }}</strong></template>
                 </el-table-column>
             </el-table>
@@ -308,7 +317,10 @@ interface CapacityInfo {
 interface ServiceMemoryItem {
     name: string;
     size: string;
+    bytes: number;
 }
+
+type ServiceSortOrder = 'ascending' | 'descending' | null;
 
 interface NetworkOption {
     value: string;
@@ -345,6 +357,8 @@ const serviceTableData = ref<ServiceMemoryItem[]>([]);
 const servicePage = ref(1);
 const servicePageSize = ref(5);
 const servicePageSizes = [5, 10, 20];
+const serviceSortOrder = ref<ServiceSortOrder>('descending');
+const serviceDefaultSort = { prop: 'bytes', order: 'descending' as const };
 const networkOptions = ref<NetworkOption[]>([{ value: 'all', label: '所有网卡' }]);
 const rxInterface = ref('all');
 const txInterface = ref('all');
@@ -371,9 +385,14 @@ const summaryItems = computed(() => [
     { label: '根目录可用', value: diskInfo.value.total.free || '—', unit: '', icon: PieChart, color: '#10f5a0' },
     { label: '网络接口', value: networkInterfaceCount.value, unit: '个', icon: DataAnalysis, color: '#22d3ee' },
 ]);
+const sortedServiceMemory = computed(() => {
+    if (!serviceSortOrder.value) return serviceTableData.value;
+    const direction = serviceSortOrder.value === 'ascending' ? 1 : -1;
+    return [...serviceTableData.value].sort((left, right) => (left.bytes - right.bytes) * direction);
+});
 const pagedServiceMemory = computed(() => {
     const start = (servicePage.value - 1) * servicePageSize.value;
-    return serviceTableData.value.slice(start, start + servicePageSize.value);
+    return sortedServiceMemory.value.slice(start, start + servicePageSize.value);
 });
 
 const metricColor = (value: number) => {
@@ -384,6 +403,13 @@ const metricColor = (value: number) => {
 
 const percent = (used: number, total: number) => (total > 0 ? Math.round((used / total) * 1000) / 10 : 0);
 const parseNumber = (value: string | number) => Number.parseFloat(String(value).replace(/[^\d.]/g, '')) || 0;
+const memorySizeToBytes = (value: string) => {
+    const match = String(value).trim().match(/^([\d.]+)\s*([KMGT]?I?B)?$/i);
+    if (!match) return 0;
+    const unit = (match[2] || 'B').toUpperCase().replace('IB', 'B');
+    const unitPower = { B: 0, KB: 1, MB: 2, GB: 3, TB: 4 }[unit] ?? 0;
+    return Number.parseFloat(match[1]) * 1024 ** unitPower;
+};
 const currentTime = () => new Date().toLocaleTimeString('zh-CN', { hour12: false });
 
 const gaugeOption = (label: string, value: number, color: string) => ({
@@ -526,9 +552,18 @@ const processMemory = (section: MemorySection) => {
 };
 
 const processServiceMemory = (section: ServiceMemorySection) => {
-    serviceTableData.value = Object.entries(section?.service_memory || {}).map(([name, size]) => ({ name, size }));
+    serviceTableData.value = Object.entries(section?.service_memory || {}).map(([name, size]) => ({
+        name,
+        size,
+        bytes: memorySizeToBytes(size),
+    }));
     const lastPage = Math.max(1, Math.ceil(serviceTableData.value.length / servicePageSize.value));
     if (servicePage.value > lastPage) servicePage.value = lastPage;
+};
+
+const onServiceSortChange = ({ order }: { order: ServiceSortOrder }) => {
+    serviceSortOrder.value = order;
+    servicePage.value = 1;
 };
 
 const onServicePageSizeChange = (size: number) => {
