@@ -77,31 +77,16 @@
                     </div>
                 </div>
                 <div class="indicator-panel__body">
-                    <el-popover
-                        placement="bottom"
-                        :width="460"
-                        popper-class="indicator-service-popper"
-                        trigger="hover"
-                    >
-                        <el-table :data="serviceTableData" max-height="300">
-                            <el-table-column prop="name" label="服务" min-width="300" />
-                            <el-table-column prop="size" label="已使用" width="110" />
-                        </el-table>
-                        <template #reference>
-                            <div class="indicator-memory-trigger">
-                                <div class="indicator-memory-grid">
-                                    <div class="indicator-gauge">
-                                        <div ref="memoryRef" class="indicator-gauge__chart"></div>
-                                        <div class="indicator-gauge__caption">可用 <strong>{{ availableGB }}</strong> GB</div>
-                                    </div>
-                                    <div class="indicator-gauge">
-                                        <div ref="swapRef" class="indicator-gauge__chart"></div>
-                                        <div class="indicator-gauge__caption">可用 <strong>{{ swapFreeGB }}</strong> GB</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
-                    </el-popover>
+                    <div class="indicator-memory-grid">
+                        <div class="indicator-gauge">
+                            <div ref="memoryRef" class="indicator-gauge__chart"></div>
+                            <div class="indicator-gauge__caption">可用 <strong>{{ availableGB }}</strong> GB</div>
+                        </div>
+                        <div class="indicator-gauge">
+                            <div ref="swapRef" class="indicator-gauge__chart"></div>
+                            <div class="indicator-gauge__caption">可用 <strong>{{ swapFreeGB }}</strong> GB</div>
+                        </div>
+                    </div>
                 </div>
             </article>
 
@@ -134,6 +119,46 @@
                     </div>
                 </div>
             </article>
+        </section>
+
+        <section class="indicator-panel indicator-service-panel">
+            <div class="indicator-panel__head">
+                <div class="indicator-panel__identity">
+                    <span class="indicator-panel__mark"><el-icon><Service /></el-icon></span>
+                    <div>
+                        <h2 class="indicator-panel__title">服务内存占用</h2>
+                        <div class="indicator-panel__meta">SERVICE MEMORY · LIVE PROCESS FOOTPRINT</div>
+                    </div>
+                </div>
+                <span class="indicator-service-count"><strong>{{ serviceTableData.length }}</strong> 项服务</span>
+            </div>
+            <el-table
+                :data="pagedServiceMemory"
+                class="indicator-service-table"
+                size="large"
+                empty-text="未检测到服务内存数据"
+            >
+                <el-table-column prop="name" label="服务名称" min-width="360">
+                    <template #default="{ row }">
+                        <span class="indicator-service-name"><span class="indicator-service-name__dot"></span>{{ row.name }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="size" label="已使用内存" width="180" align="right">
+                    <template #default="{ row }"><strong class="indicator-service-size">{{ row.size }}</strong></template>
+                </el-table-column>
+            </el-table>
+            <div v-if="serviceTableData.length" class="indicator-pagination">
+                <el-pagination
+                    :current-page="servicePage"
+                    :page-size="servicePageSize"
+                    :page-sizes="servicePageSizes"
+                    :pager-count="5"
+                    :total="serviceTableData.length"
+                    layout="total, sizes, prev, pager, next"
+                    @size-change="onServicePageSizeChange"
+                    @current-change="servicePage = $event"
+                />
+            </div>
         </section>
 
         <section class="indicator-network-grid">
@@ -187,7 +212,7 @@
 <script lang="ts" setup name="indicatorIndex">
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import * as echarts from 'echarts';
-import { Cpu, DataAnalysis, Download, Memo, PieChart, Refresh, Upload, WarningFilled } from '@element-plus/icons-vue';
+import { Cpu, DataAnalysis, Download, Memo, PieChart, Refresh, Service, Upload, WarningFilled } from '@element-plus/icons-vue';
 import { storeToRefs } from 'pinia';
 import { debounce } from 'lodash';
 import { hardInfo, monitorStatus } from '/@/api/run/run';
@@ -283,6 +308,9 @@ const swapFreeGB = ref(0);
 const networkInterfaceCount = ref(0);
 const loadArray = ref<LoadItem[]>([]);
 const serviceTableData = ref<ServiceMemoryItem[]>([]);
+const servicePage = ref(1);
+const servicePageSize = ref(5);
+const servicePageSizes = [5, 10, 20];
 const networkOptions = ref<NetworkOption[]>([{ value: 'all', label: '所有网卡' }]);
 const rxInterface = ref('all');
 const txInterface = ref('all');
@@ -309,6 +337,10 @@ const summaryItems = computed(() => [
     { label: '根目录可用', value: diskInfo.value.total.free || '—', unit: '', icon: PieChart, color: '#10f5a0' },
     { label: '网络接口', value: networkInterfaceCount.value, unit: '个', icon: DataAnalysis, color: '#22d3ee' },
 ]);
+const pagedServiceMemory = computed(() => {
+    const start = (servicePage.value - 1) * servicePageSize.value;
+    return serviceTableData.value.slice(start, start + servicePageSize.value);
+});
 
 const metricColor = (value: number) => {
     if (value >= 80) return '#ff4d6d';
@@ -449,6 +481,13 @@ const processMemory = (section: MemorySection) => {
 
 const processServiceMemory = (section: ServiceMemorySection) => {
     serviceTableData.value = Object.entries(section?.service_memory || {}).map(([name, size]) => ({ name, size }));
+    const lastPage = Math.max(1, Math.ceil(serviceTableData.value.length / servicePageSize.value));
+    if (servicePage.value > lastPage) servicePage.value = lastPage;
+};
+
+const onServicePageSizeChange = (size: number) => {
+    servicePageSize.value = size;
+    servicePage.value = 1;
 };
 
 const processDisk = (section: DiskSection) => {
