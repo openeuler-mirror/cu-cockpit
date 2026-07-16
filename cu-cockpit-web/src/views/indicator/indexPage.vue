@@ -1,8 +1,198 @@
-<script lang="ts" setup>
-import { ref, reactive, onMounted, onUnmounted } from 'vue';
+<template>
+    <div class="tech-indicator" v-loading="loading">
+        <header class="indicator-hud">
+            <div class="indicator-identity">
+                <span class="indicator-identity__mark"><el-icon><DataAnalysis /></el-icon></span>
+                <div>
+                    <h1 class="indicator-title">实时指标</h1>
+                    <div class="indicator-kicker">LIVE METRICS · CPU / MEMORY / DISK / NETWORK</div>
+                </div>
+            </div>
+            <div class="indicator-hud__actions">
+                <div class="indicator-status" :class="{ 'is-error': Boolean(loadError) }">
+                    <span class="indicator-status__dot"></span>
+                    <span>{{ loading ? '同步中' : loadError ? '同步异常' : '5 秒实时采样' }}</span>
+                </div>
+                <el-button class="indicator-action" :icon="Refresh" :loading="loading" @click="refreshMetrics">
+                    刷新
+                </el-button>
+            </div>
+        </header>
+
+        <div v-if="loadError" class="indicator-error">
+            <el-icon><WarningFilled /></el-icon>
+            <span>{{ loadError }}</span>
+            <el-button class="indicator-action" :icon="Refresh" @click="refreshMetrics">重试</el-button>
+        </div>
+
+        <section class="indicator-summary" aria-label="实时指标摘要">
+            <div
+                v-for="item in summaryItems"
+                :key="item.label"
+                class="indicator-summary__item"
+                :style="{ '--summary-accent': item.color }"
+            >
+                <span class="indicator-summary__icon"><el-icon><component :is="item.icon" /></el-icon></span>
+                <div>
+                    <div class="indicator-summary__label">{{ item.label }}</div>
+                    <div class="indicator-summary__value">
+                        {{ item.value }}<span v-if="item.unit" class="indicator-summary__unit">{{ item.unit }}</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="indicator-resource-grid">
+            <article class="indicator-panel indicator-panel--cpu">
+                <div class="indicator-panel__head">
+                    <div class="indicator-panel__identity">
+                        <span class="indicator-panel__mark"><el-icon><Cpu /></el-icon></span>
+                        <div>
+                            <h2 class="indicator-panel__title">CPU 与系统负载</h2>
+                            <div class="indicator-panel__meta">PROCESSOR UTILIZATION · LOAD AVERAGE</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="indicator-panel__body">
+                    <div class="indicator-gauge">
+                        <div ref="cpuRef" class="indicator-gauge__chart"></div>
+                        <div class="indicator-gauge__caption">逻辑核心 <strong>{{ cpuCores || '—' }}</strong> 核</div>
+                    </div>
+                    <div class="indicator-loads">
+                        <div v-for="item in loadArray" :key="item.label" class="indicator-load">
+                            <span>{{ item.label }}</span><strong>{{ item.value }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="indicator-panel indicator-panel--memory">
+                <div class="indicator-panel__head">
+                    <div class="indicator-panel__identity">
+                        <span class="indicator-panel__mark"><el-icon><Memo /></el-icon></span>
+                        <div>
+                            <h2 class="indicator-panel__title">内存资源</h2>
+                            <div class="indicator-panel__meta">RAM / SWAP AVAILABILITY</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="indicator-panel__body">
+                    <el-popover
+                        placement="bottom"
+                        :width="460"
+                        popper-class="indicator-service-popper"
+                        trigger="hover"
+                    >
+                        <el-table :data="serviceTableData" max-height="300">
+                            <el-table-column prop="name" label="服务" min-width="300" />
+                            <el-table-column prop="size" label="已使用" width="110" />
+                        </el-table>
+                        <template #reference>
+                            <div class="indicator-memory-trigger">
+                                <div class="indicator-memory-grid">
+                                    <div class="indicator-gauge">
+                                        <div ref="memoryRef" class="indicator-gauge__chart"></div>
+                                        <div class="indicator-gauge__caption">可用 <strong>{{ availableGB }}</strong> GB</div>
+                                    </div>
+                                    <div class="indicator-gauge">
+                                        <div ref="swapRef" class="indicator-gauge__chart"></div>
+                                        <div class="indicator-gauge__caption">可用 <strong>{{ swapFreeGB }}</strong> GB</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </el-popover>
+                </div>
+            </article>
+
+            <article class="indicator-panel indicator-panel--disk">
+                <div class="indicator-panel__head">
+                    <div class="indicator-panel__identity">
+                        <span class="indicator-panel__mark"><el-icon><PieChart /></el-icon></span>
+                        <div>
+                            <h2 class="indicator-panel__title">磁盘容量</h2>
+                            <div class="indicator-panel__meta">ROOT / BOOT CAPACITY</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="indicator-panel__body">
+                    <div class="indicator-disk-grid">
+                        <div class="indicator-disk-item">
+                            <div>
+                                <div class="indicator-disk-name">/</div>
+                                <div class="indicator-disk-free">剩余 <strong>{{ diskInfo.total.free || '—' }}</strong> 可用</div>
+                            </div>
+                            <div ref="disk1" class="indicator-disk-chart"></div>
+                        </div>
+                        <div class="indicator-disk-item">
+                            <div>
+                                <div class="indicator-disk-name">/boot</div>
+                                <div class="indicator-disk-free">剩余 <strong>{{ diskInfo.boot.free || '—' }}</strong> 可用</div>
+                            </div>
+                            <div ref="disk2" class="indicator-disk-chart"></div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="indicator-network-grid">
+            <article class="indicator-panel indicator-network-panel">
+                <div class="indicator-panel__head">
+                    <div class="indicator-panel__identity">
+                        <span class="indicator-panel__mark"><el-icon><Download /></el-icon></span>
+                        <div>
+                            <h2 class="indicator-panel__title">网络接收</h2>
+                            <div class="indicator-panel__meta">RX RATE · LAST 20 SAMPLES</div>
+                        </div>
+                    </div>
+                    <el-select
+                        v-model="rxInterface"
+                        class="indicator-network-select"
+                        placeholder="选择网卡"
+                        popper-class="indicator-network-popper"
+                        @change="onRxInterfaceChange"
+                    >
+                        <el-option v-for="item in networkOptions" :key="item.value" :label="item.label" :value="item.value" />
+                    </el-select>
+                </div>
+                <div ref="networkRxRef" class="indicator-network-chart"></div>
+            </article>
+
+            <article class="indicator-panel indicator-network-panel indicator-network-panel--tx">
+                <div class="indicator-panel__head">
+                    <div class="indicator-panel__identity">
+                        <span class="indicator-panel__mark"><el-icon><Upload /></el-icon></span>
+                        <div>
+                            <h2 class="indicator-panel__title">网络发送</h2>
+                            <div class="indicator-panel__meta">TX RATE · LAST 20 SAMPLES</div>
+                        </div>
+                    </div>
+                    <el-select
+                        v-model="txInterface"
+                        class="indicator-network-select"
+                        placeholder="选择网卡"
+                        popper-class="indicator-network-popper"
+                        @change="onTxInterfaceChange"
+                    >
+                        <el-option v-for="item in networkOptions" :key="item.value" :label="item.label" :value="item.value" />
+                    </el-select>
+                </div>
+                <div ref="networkTxRef" class="indicator-network-chart"></div>
+            </article>
+        </section>
+    </div>
+</template>
+
+<script lang="ts" setup name="indicatorIndex">
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import * as echarts from 'echarts';
-import { monitorStatus, hardInfo } from '/@/api/run/run';
+import { Cpu, DataAnalysis, Download, Memo, PieChart, Refresh, Upload, WarningFilled } from '@element-plus/icons-vue';
+import { storeToRefs } from 'pinia';
 import { debounce } from 'lodash';
+import { hardInfo, monitorStatus } from '/@/api/run/run';
+import { useThemeConfig } from '/@/stores/themeConfig';
+
 interface DiskData {
     free: string;
     used: string;
@@ -14,816 +204,400 @@ interface DiskInfo {
     boot: DiskData;
 }
 
-const diskInfo = ref<DiskInfo>({
-    total: {
-        free: '',
-        used: '',
-        total: ''
-    },
-    boot: {
-        free: '',
-        used: '',
-        total: ''
-    }
-});
-// DOM引用
+interface CpuSection {
+    cpu: {
+        total_utilization_percent: string;
+        load_average: string;
+    };
+}
+
+interface MemorySection {
+    memory: {
+        total_mb: number;
+        used_mb: number;
+        available_mb: number;
+        swap_total_mb: number;
+        swap_used_mb: number;
+        swap_free_mb: number;
+    };
+}
+
+interface ServiceMemorySection {
+    service_memory: Record<string, string>;
+}
+
+interface DiskSection {
+    total_disk: DiskData;
+    boot_disk: {
+        boot_total: string;
+        boot_used: string;
+        boot_free: string;
+    };
+}
+
+interface NetworkInterface {
+    interface_name: string;
+    rx: string | number;
+    tx: string | number;
+}
+
+interface NetworkSection {
+    network_interfaces: NetworkInterface[];
+}
+
+interface LoadItem {
+    label: string;
+    value: string;
+}
+
+interface ServiceMemoryItem {
+    name: string;
+    size: string;
+}
+
+interface NetworkOption {
+    value: string;
+    label: string;
+}
+
+interface NetworkSeries {
+    rx: number[];
+    tx: number[];
+}
+
+const themeStore = useThemeConfig();
+const { themeConfig } = storeToRefs(themeStore);
 const cpuRef = ref<HTMLDivElement>();
 const memoryRef = ref<HTMLDivElement>();
 const swapRef = ref<HTMLDivElement>();
 const disk1 = ref<HTMLDivElement>();
 const disk2 = ref<HTMLDivElement>();
-const diskIoRef = ref<HTMLDivElement>();
-const diskIoRefs = ref<HTMLDivElement>();
-
-// 数据响应式变量
-const loadArray: Array<string> = reactive([]);
-const cpuCores = ref();
-const availableGB = ref();
-const swapFreeGB = ref();
-const serviceTableData = reactive([]);
-const networkXAxis: Array<string> = reactive([]);
-const networkXAxis2: Array<string> = reactive([]);
+const networkRxRef = ref<HTMLDivElement>();
+const networkTxRef = ref<HTMLDivElement>();
 const loading = ref(false);
-const options = reactive<Array<{ value: string; label: string }>>([]);
-const optVal = ref();
-const optVal2 = ref();
+const loadError = ref('');
+const cpuCores = ref(0);
+const cpuPercent = ref(0);
+const availableGB = ref(0);
+const swapFreeGB = ref(0);
+const networkInterfaceCount = ref(0);
+const loadArray = ref<LoadItem[]>([]);
+const serviceTableData = ref<ServiceMemoryItem[]>([]);
+const networkOptions = ref<NetworkOption[]>([{ value: 'all', label: '所有网卡' }]);
+const rxInterface = ref('all');
+const txInterface = ref('all');
+const rxTimes = ref<string[]>([]);
+const txTimes = ref<string[]>([]);
+const diskInfo = ref<DiskInfo>({
+    total: { free: '', used: '', total: '' },
+    boot: { free: '', used: '', total: '' },
+});
+const networkData = new Map<string, NetworkSeries>();
+let timer: number | null = null;
+let requestPending = false;
+let cpuChart: echarts.ECharts | null = null;
+let memoryChart: echarts.ECharts | null = null;
+let swapChart: echarts.ECharts | null = null;
+let rootDiskChart: echarts.ECharts | null = null;
+let bootDiskChart: echarts.ECharts | null = null;
+let rxChart: echarts.ECharts | null = null;
+let txChart: echarts.ECharts | null = null;
 
-// ECharts实例
-let cpuDom:echarts.ECharts | null;
-let memoryDom: echarts.ECharts | null;
-let swapDom: echarts.ECharts | null;
-let disk1Dom: echarts.ECharts | null;
-let disk2Dom: echarts.ECharts | null;
-let diskIoDom: echarts.ECharts | null;
-let diskIoDom2: echarts.ECharts | null;
+const summaryItems = computed(() => [
+    { label: 'CPU 使用率', value: cpuPercent.value.toFixed(1), unit: '%', icon: Cpu, color: metricColor(cpuPercent.value) },
+    { label: 'RAM 可用', value: availableGB.value.toFixed(2), unit: 'GB', icon: Memo, color: '#a855f7' },
+    { label: '根目录可用', value: diskInfo.value.total.free || '—', unit: '', icon: PieChart, color: '#10f5a0' },
+    { label: '网络接口', value: networkInterfaceCount.value, unit: '个', icon: DataAnalysis, color: '#22d3ee' },
+]);
 
-// 数据存储
-const diskData = new Map();
- 
+const metricColor = (value: number) => {
+    if (value >= 80) return '#ff4d6d';
+    if (value >= 50) return '#ffb020';
+    return '#22d3ee';
+};
 
-// 定时器
-const lineTimer = ref<number | null>(null);
+const percent = (used: number, total: number) => (total > 0 ? Math.round((used / total) * 1000) / 10 : 0);
+const parseNumber = (value: string | number) => Number.parseFloat(String(value).replace(/[^\d.]/g, '')) || 0;
+const currentTime = () => new Date().toLocaleTimeString('zh-CN', { hour12: false });
 
-// 生命周期钩子
-onMounted(() => {
-    loading.value = true;
-    hardInfo('cpu').then(res => {
-        cpuCores.value = res.cpu.cores;
+const gaugeOption = (label: string, value: number, color: string) => ({
+    title: {
+        text: `${value.toFixed(1)}%`,
+        subtext: label,
+        left: 'center',
+        top: '34%',
+        textStyle: { color: '#e8f2ff', fontSize: 23, fontWeight: 800 },
+        subtextStyle: { color: '#8fa2c2', fontSize: 11, lineHeight: 22 },
+    },
+    polar: { radius: ['69%', '82%'], center: ['50%', '50%'] },
+    angleAxis: { max: 100, show: false },
+    radiusAxis: { type: 'category', show: false },
+    series: [
+        {
+            type: 'bar',
+            coordinateSystem: 'polar',
+            roundCap: true,
+            barWidth: 18,
+            showBackground: true,
+            backgroundStyle: { color: 'rgba(90, 165, 255, 0.09)' },
+            itemStyle: { color, shadowColor: color, shadowBlur: 12 },
+            data: [value],
+        },
+    ],
+});
+
+const networkOption = (name: string, color: string, times: string[], values: number[]) => ({
+    animationDuration: 360,
+    tooltip: {
+        trigger: 'axis',
+        backgroundColor: 'rgba(10, 18, 34, 0.94)',
+        borderColor: `${color}66`,
+        textStyle: { color: '#dce9fa' },
+        valueFormatter: (value: number) => `${value} kB/s`,
+    },
+    grid: { left: 64, right: 28, top: 32, bottom: 58 },
+    xAxis: {
+        type: 'category',
+        data: times,
+        boundaryGap: false,
+        axisLabel: { color: '#74849f', hideOverlap: true },
+        axisLine: { lineStyle: { color: 'rgba(90, 165, 255, 0.18)' } },
+        axisTick: { show: false },
+    },
+    yAxis: {
+        type: 'value',
+        name: 'kB/s',
+        nameTextStyle: { color: '#74849f' },
+        axisLabel: { color: '#8fa2c2' },
+        splitLine: { lineStyle: { type: 'dashed', color: 'rgba(90, 165, 255, 0.1)' } },
+    },
+    dataZoom: [
+        {
+            type: 'inside',
+            start: Math.max(0, 100 - (20 / Math.max(times.length, 20)) * 100),
+            end: 100,
+        },
+        {
+            height: 15,
+            bottom: 14,
+            borderColor: 'rgba(90, 165, 255, 0.13)',
+            backgroundColor: 'rgba(10, 18, 34, 0.5)',
+            fillerColor: `${color}26`,
+            handleStyle: { color },
+            textStyle: { color: '#74849f' },
+        },
+    ],
+    series: [
+        {
+            name,
+            type: 'line',
+            smooth: true,
+            showSymbol: false,
+            lineStyle: { width: 2.5, color, shadowColor: color, shadowBlur: 10 },
+            itemStyle: { color },
+            areaStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                    { offset: 0, color: `${color}50` },
+                    { offset: 1, color: `${color}05` },
+                ]),
+            },
+            data: values,
+        },
+    ],
+});
+
+const diskOption = (value: number, color: string) => ({
+    ...gaugeOption('使用率', value, color),
+    polar: { radius: ['72%', '86%'], center: ['50%', '50%'] },
+});
+
+const ensureCharts = () => {
+    if (cpuRef.value && !cpuChart) cpuChart = echarts.init(cpuRef.value);
+    if (memoryRef.value && !memoryChart) memoryChart = echarts.init(memoryRef.value);
+    if (swapRef.value && !swapChart) swapChart = echarts.init(swapRef.value);
+    if (disk1.value && !rootDiskChart) rootDiskChart = echarts.init(disk1.value);
+    if (disk2.value && !bootDiskChart) bootDiskChart = echarts.init(disk2.value);
+    if (networkRxRef.value && !rxChart) rxChart = echarts.init(networkRxRef.value);
+    if (networkTxRef.value && !txChart) txChart = echarts.init(networkTxRef.value);
+};
+
+const processCpu = (section: CpuSection) => {
+    const cpu = section?.cpu;
+    if (!cpu) return;
+    cpuPercent.value = parseNumber(cpu.total_utilization_percent);
+    const loads: LoadItem[] = [];
+    const loadPattern = /([^:]+):\s*([\d.]+)/g;
+    let loadMatch = loadPattern.exec(cpu.load_average);
+    while (loadMatch) {
+        loads.push({ label: loadMatch[1].trim(), value: loadMatch[2] });
+        loadMatch = loadPattern.exec(cpu.load_average);
+    }
+    loadArray.value = loads;
+    cpuChart?.setOption(gaugeOption('CPU 使用率', cpuPercent.value, metricColor(cpuPercent.value)), true);
+};
+
+const processMemory = (section: MemorySection) => {
+    const memory = section?.memory;
+    if (!memory) return;
+    const ramPercent = percent(memory.used_mb, memory.total_mb);
+    const swapPercent = percent(memory.swap_used_mb, memory.swap_total_mb);
+    availableGB.value = Math.round((memory.available_mb / 1024) * 100) / 100;
+    swapFreeGB.value = Math.round((memory.swap_free_mb / 1024) * 100) / 100;
+    memoryChart?.setOption(gaugeOption('RAM', ramPercent, '#a855f7'), true);
+    swapChart?.setOption(gaugeOption('交换空间', swapPercent, '#3b82f6'), true);
+};
+
+const processServiceMemory = (section: ServiceMemorySection) => {
+    serviceTableData.value = Object.entries(section?.service_memory || {}).map(([name, size]) => ({ name, size }));
+};
+
+const processDisk = (section: DiskSection) => {
+    if (!section?.total_disk || !section?.boot_disk) return;
+    diskInfo.value.total = { ...section.total_disk };
+    diskInfo.value.boot = {
+        total: section.boot_disk.boot_total,
+        used: section.boot_disk.boot_used,
+        free: section.boot_disk.boot_free,
+    };
+    const rootPercent = percent(parseNumber(section.total_disk.used), parseNumber(section.total_disk.total));
+    const bootPercent = percent(parseNumber(section.boot_disk.boot_used), parseNumber(section.boot_disk.boot_total));
+    rootDiskChart?.setOption(diskOption(rootPercent, metricColor(rootPercent)), true);
+    bootDiskChart?.setOption(diskOption(bootPercent, metricColor(bootPercent)), true);
+};
+
+const appendNetworkPoint = (name: string, rx: number, tx: number) => {
+    const series = networkData.get(name) || { rx: [], tx: [] };
+    series.rx.push(rx);
+    series.tx.push(tx);
+    if (series.rx.length > 20) series.rx.shift();
+    if (series.tx.length > 20) series.tx.shift();
+    networkData.set(name, series);
+};
+
+const processNetwork = (section: NetworkSection) => {
+    const interfaces = section?.network_interfaces || [];
+    networkInterfaceCount.value = interfaces.length;
+    let allRx = 0;
+    let allTx = 0;
+    interfaces.forEach((item) => {
+        const rx = Math.round((parseNumber(item.rx) / 1024) * 100) / 100;
+        const tx = Math.round((parseNumber(item.tx) / 1024) * 100) / 100;
+        allRx += rx;
+        allTx += tx;
+        appendNetworkPoint(item.interface_name, rx, tx);
     });
-    getAllData();
-    handleTimer();
-    window.addEventListener('resize', handleResize);
+    appendNetworkPoint('all', Math.round(allRx * 100) / 100, Math.round(allTx * 100) / 100);
+    networkOptions.value = [
+        { value: 'all', label: '所有网卡' },
+        ...interfaces.map((item) => ({ value: item.interface_name, label: item.interface_name })),
+    ];
+    if (!networkData.has(rxInterface.value)) rxInterface.value = 'all';
+    if (!networkData.has(txInterface.value)) txInterface.value = 'all';
+    const sampledAt = currentTime();
+    rxTimes.value.push(sampledAt);
+    txTimes.value.push(sampledAt);
+    if (rxTimes.value.length > 20) rxTimes.value.shift();
+    if (txTimes.value.length > 20) txTimes.value.shift();
+    updateNetworkCharts();
+};
+
+const updateNetworkCharts = () => {
+    const rxValues = networkData.get(rxInterface.value)?.rx || [];
+    const txValues = networkData.get(txInterface.value)?.tx || [];
+    rxChart?.setOption(networkOption('接收', '#22d3ee', rxTimes.value, rxValues), true);
+    txChart?.setOption(networkOption('发送', '#a855f7', txTimes.value, txValues), true);
+};
+
+const getAllData = async () => {
+    if (requestPending) return;
+    requestPending = true;
+    if (!cpuChart) loading.value = true;
+    loadError.value = '';
+    try {
+        const response = await monitorStatus('all');
+        ensureCharts();
+        processCpu(response?.[0]);
+        processMemory(response?.[1]);
+        processServiceMemory(response?.[2]);
+        processDisk(response?.[3]);
+        processNetwork(response?.[4]);
+    } catch (error) {
+        loadError.value = '实时指标同步失败，已保留上次成功数据。';
+        console.error('获取实时指标失败:', error);
+    } finally {
+        loading.value = false;
+        requestPending = false;
+    }
+};
+
+const getCpuCores = async () => {
+    try {
+        const response = await hardInfo('cpu');
+        cpuCores.value = Number(response?.cpu?.cores) || 0;
+    } catch (error) {
+        console.error('获取 CPU 核心数失败:', error);
+    }
+};
+
+const restartTimer = () => {
+    if (timer) window.clearInterval(timer);
+    timer = window.setInterval(getAllData, 5000);
+};
+
+const refreshMetrics = async () => {
+    await getAllData();
+    restartTimer();
+};
+
+const onRxInterfaceChange = () => {
+    const series = networkData.get(rxInterface.value);
+    if (series) series.rx = [];
+    rxTimes.value = [];
+    updateNetworkCharts();
+    restartTimer();
+};
+
+const onTxInterfaceChange = () => {
+    const series = networkData.get(txInterface.value);
+    if (series) series.tx = [];
+    txTimes.value = [];
+    updateNetworkCharts();
+    restartTimer();
+};
+
+const resizeCharts = debounce(() => {
+    [cpuChart, memoryChart, swapChart, rootDiskChart, bootDiskChart, rxChart, txChart].forEach((chart) => chart?.resize());
+}, 250);
+
+const mountIndicatorTechShell = () => document.documentElement.classList.add('theme-tech-dark');
+const restoreIndicatorTechShell = () => {
+    if (!themeConfig.value.isTechTheme) document.documentElement.classList.remove('theme-tech-dark');
+};
+const resetMainScroll = async () => {
+    await nextTick();
+    const scrollContainer = document.querySelector<HTMLElement>('.layout-main-scroll.el-scrollbar__wrap');
+    if (scrollContainer) scrollContainer.scrollTop = 0;
+};
+
+onMounted(async () => {
+    mountIndicatorTechShell();
+    await resetMainScroll();
+    window.addEventListener('resize', resizeCharts);
+    await nextTick();
+    ensureCharts();
+    await Promise.all([getCpuCores(), getAllData()]);
+    restartTimer();
 });
 
 onUnmounted(() => {
-    if (lineTimer.value) clearInterval(lineTimer.value);
-    window.removeEventListener('resize', handleResize);
+    if (timer) window.clearInterval(timer);
+    window.removeEventListener('resize', resizeCharts);
+    resizeCharts.cancel();
+    [cpuChart, memoryChart, swapChart, rootDiskChart, bootDiskChart, rxChart, txChart].forEach((chart) => chart?.dispose());
+    restoreIndicatorTechShell();
 });
-
-// 主要数据获取函数
-const getAllData = () => {
-    monitorStatus('all').then(res => {
-        processCpuData(res[0]);
-        processMemoryData(res[1]);
-        processServiceMemoryData(res[2]);
-        processDiskData(res[3]);
-        processNetworkData(res[4]);
-        loading.value = false;
-    });
-};
-
-// CPU数据处理
-const processCpuData = (cpuData:{cpu:{[key:string]:string}}) => {
-    if (!cpuData) return;
-
-    const cpu = cpuData.cpu;
-    const cpuTitleText = parsePercentTitle(cpu.total_utilization_percent);
-    const cpuPercent = parseFloat((cpu.total_utilization_percent.split("%"))[0]);
-    const seriesColor = setSeriesColor(cpuPercent);
-
-    // 负载数据处理
-    const cpuTmpArray = cpu.load_average.split(" ");
-    const cpuTmp: string[] = [];
-    for (let index = 0; index < cpuTmpArray.length; index += 2) {
-        cpuTmp.push(`最近 ${(cpuTmpArray[index].split(':'))[0]}负载:${cpuTmpArray[index + 1]}`);
-    }
-    Object.assign(loadArray, cpuTmp);
-
-    if (!cpuDom) {
-        cpuDom = echarts.init(cpuRef.value);
-        barPolarEchart(cpuDom, 'CPU使用率', cpuPercent, cpuTitleText, seriesColor);
-    } else {
-        cpuDom.setOption({
-            title: [{
-                text: `{a|${cpuTitleText[0]}.}{b|${cpuTitleText[1] ? cpuTitleText[1] : '0%'}}`,
-            }],
-            series: [{
-                color: seriesColor,
-                data: [cpuPercent],
-            }]
-        });
-    }
-};
-
-// 内存数据处理
-const processMemoryData = (memoryDataRes:{memory: { [key: string]: number }}) => {
-    if (!memoryDataRes) return;
-
-    const memoryData = memoryDataRes.memory;
-
-    // 内存使用率计算
-    const memoryPercent = Math.round(memoryData.used_mb / memoryData.total_mb * 10000) / 100;
-    const titleText = (memoryPercent + '%').split('.');
-    const memorySeriesColor = setSeriesColor(memoryPercent);
-    availableGB.value = Math.round(memoryData.available_mb / 1024 * 100) / 100;
-
-    // Swap使用率计算
-    const swapPercent = Math.round(memoryData.swap_used_mb / memoryData.swap_total_mb * 10000) / 100;
-    const swapTitleText = (swapPercent == 0 ? "0.00%" : swapPercent + '%').split('.');
-    const swapSeriesColor = setSeriesColor(swapPercent);
-    swapFreeGB.value = Math.round(memoryData.swap_free_mb / 1024 * 100) / 100;
-
-    if (!memoryDom && !swapDom) {
-        memoryDom = echarts.init(memoryRef.value);
-        barPolarEchart(memoryDom, 'RAM', memoryPercent, titleText, memorySeriesColor);
-
-        swapDom = echarts.init(swapRef.value);
-        barPolarEchart(swapDom, '交换空间', swapPercent, swapTitleText, swapSeriesColor);
-    } else {
-        memoryDom?.setOption({
-            title: [{
-                text: `{a|${titleText[0]}.}{b|${titleText[1] ? titleText[1] : '0%'}}`,
-            }],
-            series: [{
-                color: memorySeriesColor,
-                data: [memoryPercent],
-            }]
-        });
-
-        swapDom?.setOption({
-            title: [{
-                text: `{a|${swapTitleText[0]}.}{b|${swapTitleText[1] ? swapTitleText[1] : '0%'}}`,
-            }],
-            series: [{
-                color: swapSeriesColor,
-                data: [swapPercent],
-            }]
-        });
-    }
-};
-
-// 服务内存数据处理
-const processServiceMemoryData = (serviceData: {service_memory: { [key: string]: string }}) => {
-    if (!serviceData) return;
-    const service_memory: { name: string; size: string }[] = [];
-    const tmp = serviceData.service_memory;
-
-    for (const key in tmp) {
-        service_memory.push({
-            "name": key,
-            "size": tmp[key]
-        });
-    }
-
-    Object.assign(serviceTableData, service_memory);
-};
-
-// 磁盘数据处理
-const processDiskData = (diskDataRes: {[key: string]:{[key: string]:string}}) => {
-    if (!diskDataRes) return;
-
-    // 根目录数据
-    const total_used = parseFloat((diskDataRes.total_disk.used.split("G"))[0]);
-    const total_total = parseFloat((diskDataRes.total_disk.total.split("G"))[0]);
-    const total_percent = Math.round(total_used / total_total * 10000) / 100;
-    const total_percent_array = (total_percent + '%').split(".");
-
-    diskInfo.value.total.free = diskDataRes?.total_disk?.free ?? '';
-    diskInfo.value.total.used = diskDataRes?.total_disk?.used ?? '';
-    diskInfo.value.total.total = diskDataRes?.total_disk?.total ?? '';
-
-    // Boot分区数据
-    const boot_used = parseFloat((diskDataRes.boot_disk.boot_used.split("M"))[0]);
-    const boot_total = parseFloat((diskDataRes.boot_disk.boot_total.split("M"))[0]);
-    const boot_percent = Math.round(boot_used / boot_total * 10000) / 100;
-    const bootl_percent_array = (boot_percent + '%').split(".");
-    diskInfo.value.boot.free = diskDataRes?.boot_disk?.boot_free ?? '';
-    diskInfo.value.boot.used = diskDataRes?.boot_disk?.boot_used ?? '';
-    diskInfo.value.boot.total = diskDataRes?.boot_disk?.boot_total ?? '';
-
-    if (!disk1Dom && !disk2Dom) {
-        disk1Dom = echarts.init(disk1.value);
-        disk2Dom = echarts.init(disk2.value);
-        diskEchart(disk1Dom, total_percent, total_percent_array);
-        diskEchart(disk2Dom, boot_percent, bootl_percent_array);
-    } else {
-        disk1Dom?.setOption({
-            title: [{
-                text: `{a|${total_percent_array[0]}.}{b|${total_percent_array[1] ? total_percent_array[1] : '0%'}}`,
-            }],
-            series: [{
-                data: [total_percent],
-            }]
-        });
-
-        disk2Dom?.setOption({
-            title: [{
-                text: `{a|${bootl_percent_array[0]}.}{b|${bootl_percent_array[1] ? bootl_percent_array[1] : '0%'}}`,
-            }],
-            series: [{
-                data: [boot_percent],
-            }]
-        });
-    }
-};
-
-// 网络数据处理
-const processNetworkData = (networkDataRes:{network_interfaces: Array<{interface_name: string, rx: string|number, tx: string|number}>}) => {
-    if (!networkDataRes) return;
-
-    const network_interfaces = networkDataRes.network_interfaces;
-    const opsTmp = [{
-        value: "all",
-        label: "所有"
-    }];
-
-    let tmpRx = 0;
-    let tmpTx = 0;
-
-    for (let i = 0; i < network_interfaces.length; i++) {
-        const rx = Math.round(parseFloat((network_interfaces[i].rx?.split(' B/S'))[0]) / 1024 * 100) / 100;
-        const tx = Math.round(parseFloat((network_interfaces[i].tx?.split(' B/s'))[0]) / 1024 * 100) / 100;
-
-        tmpRx += Number(rx);
-        tmpTx += Number(tx);
-
-        if (diskData.has(network_interfaces[i].interface_name)) {
-            const rxArray = diskData.get(network_interfaces[i].interface_name)['rx'];
-            const txArray = diskData.get(network_interfaces[i].interface_name)['tx'];
-            rxArray.push(rx);
-            txArray.push(tx);
-        } else {
-            diskData.set(network_interfaces[i].interface_name, {
-                rx: [rx],
-                tx: [tx]
-            });
-        }
-
-        opsTmp.push({
-            value: network_interfaces[i].interface_name,
-            label: network_interfaces[i].interface_name
-        });
-    }
-
-    if (diskData.has('all')) {
-        const rx = diskData.get('all')['rx'];
-        const tx = diskData.get('all')['tx'];
-        rx.push(tmpRx);
-        tx.push(tmpTx);
-    } else {
-        diskData.set('all', {
-            rx: [tmpRx],
-            tx: [tmpTx]
-        });
-    }
-
-    networkXAxis2.push(currentTime());
-    networkXAxis.push(currentTime());
-
-    if (networkXAxis.length > 20) {
-        networkXAxis.shift();
-    }
-
-    if (networkXAxis2.length > 20) {
-        networkXAxis2.shift();
-    }
-
-    if (!diskIoDom) {
-        Object.assign(options, opsTmp);
-        optVal.value = options[0].value;
-        optVal2.value = options[0].value;
-        diskIoDom = echarts.init(diskIoRef.value);
-        diskIoDom2 = echarts.init(diskIoRefs.value);
-
-        const seriesRx = createSeriesData('rx', diskData.get(optVal.value)['rx']);
-        const seriesTx = createSeriesData('tx', diskData.get(optVal2.value)['tx']);
-
-        diskIoEchart(diskIoDom2, networkXAxis2, seriesTx);
-        diskIoEchart(diskIoDom, networkXAxis, seriesRx);
-    } else {
-        if (diskData.get(optVal.value)['rx'].length > 20) {
-            diskData.get(optVal.value)['rx'].shift();
-        }
-
-        if (diskData.get(optVal2.value)['tx'].length > 20) {
-            diskData.get(optVal2.value)['tx'].shift();
-        }
-
-        diskIoDom.setOption({
-            xAxis: { data: networkXAxis },
-            series: [{
-                data: diskData.get(optVal.value)['rx']
-            }],
-        });
-
-        diskIoDom2?.setOption({
-            xAxis: { data: networkXAxis2 },
-            series: [{
-                data: diskData.get(optVal2.value)['tx']
-            }],
-        });
-    }
-};
-
-// 创建图表系列数据
-const createSeriesData = (name: string, data:Array<number|string>) => {
-    const colors = {
-        rx: {
-            areaStart: 'rgba(0, 94, 235, .1)',
-            areaEnd: 'rgba(0, 94, 235, .2)',
-            lineStart: 'rgba(27, 143, 60)',
-            lineEnd: 'rgba(27, 143, 60)'
-        },
-        tx: {
-            areaStart: 'rgba(0, 94, 235, .1)',
-            areaEnd: 'rgba(0, 94, 235, .2)',
-            lineStart: 'rgba(249, 199, 79)',
-            lineEnd: 'rgba(249, 199, 79)'
-        }
-    };
-
-    return {
-        name: name,
-        type: 'line',
-        itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: colors[name as keyof typeof colors].lineStart },
-                { offset: 1, color: colors[name as keyof typeof colors].lineEnd },
-            ]),
-        },
-        areaStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: colors[name as keyof typeof colors].areaStart },
-                { offset: 1, color: colors[name as keyof typeof colors].areaEnd },
-            ]),
-        },
-        data: data,
-        // showSymbol: false,
-         symbolSize: 6,
-    };
-};
-
-// ECharts配置函数
-const barPolarEchart = (dom: echarts.ECharts | null, subtext: string, data: number, titleArray: string[], seriesColor?: object|null) => {
-    const option = {
-        title: [
-            {
-                text: `{a|${titleArray[0]}.}{b|${titleArray[1] ? titleArray[1] : '0%'}}`,
-                textStyle: {
-                    rich: {
-                        a: { fontSize: '22' },
-                        b: { fontSize: '14', padding: [5, 0, 0, 0] },
-                    },
-                    color: '#06c',
-                    lineHeight: 25,
-                    fontWeight: 500,
-                },
-                left: '49%',
-                top: '32%',
-                subtext,
-                subtextStyle: {
-                    color: '#BBBFC4',
-                    fontSize: 12,
-                },
-                textAlign: 'center',
-            },
-        ],
-        polar: {
-            radius: ['68%', '80%'],
-            center: ['50%', '50%'],
-        },
-        angleAxis: {
-            max: 100,
-            show: false,
-        },
-        radiusAxis: {
-            type: 'category',
-            show: true,
-            axisLabel: { show: false },
-            axisLine: { show: false },
-            axisTick: { show: false },
-        },
-        series: [
-            {
-                type: 'bar',
-                roundCap: true,
-                barWidth: 30,
-                showBackground: true,
-                coordinateSystem: 'polar',
-                backgroundStyle: {
-                    color: 'rgb(242 245 249)',
-                },
-                color: seriesColor || [
-                    new echarts.graphic.LinearGradient(0, 1, 0, 0, [
-                        { offset: 0, color: '#06c' },
-                        { offset: 1, color: '#06c' },
-                    ]),
-                ],
-                label: { show: false },
-                data: [data],
-            },
-        ],
-    };
-    dom?.setOption(option);
-};
-
-const diskEchart = (diskDom:echarts.ECharts | null, data: number, titleArray: Array<string>) => {
-    const option = {
-        title: [
-            {
-                text: `{a|${titleArray[0]}.}{b|${titleArray[1] ? titleArray[1] : '0%'}}`,
-                textStyle: {
-                    rich: {
-                        a: { fontSize: '22', fontWeight: 900 },
-                        b: { fontSize: '16', padding: [5, 0, 0, 0] },
-                    },
-                    color: '#06c',
-                    lineHeight: 25,
-                    fontWeight: 900,
-                },
-                subtext: '磁盘使用率',
-                subtextStyle: {
-                    color: '#BBBFC4',
-                    fontSize: 12,
-                },
-                left: '49%',
-                top: '30%',
-                textAlign: 'center',
-            },
-        ],
-        polar: {
-            radius: ['84%', '96%'],
-            center: ['50%', '50%'],
-        },
-        angleAxis: {
-            max: 100,
-            show: false,
-        },
-        radiusAxis: {
-            type: 'category',
-            show: true,
-            axisLabel: { show: false },
-            axisLine: { show: false },
-            axisTick: { show: false },
-        },
-        series: [
-            {
-                type: 'bar',
-                roundCap: true,
-                barWidth: 30,
-                showBackground: true,
-                coordinateSystem: 'polar',
-                backgroundStyle: {
-                    color: 'rgb(242 245 249)',
-                },
-                color: [
-                    new echarts.graphic.LinearGradient(0, 1, 0, 0, [
-                        { offset: 0, color: '#06c' },
-                        { offset: 1, color: '#06c' },
-                    ]),
-                ],
-                label: { show: false },
-                data: [data],
-            },
-        ],
-    };
-    diskDom?.setOption(option);
-};
-
-const diskIoEchart = (diskIoDom: echarts.ECharts | null, xAxis: string[], seriesData: object) => { 
-    const option = {
-        title: [{ left: 'center', text: ' ', show: true }],
-        zlevel: 1,
-        z: 1,
-        tooltip: {
-            trigger: 'axis',
-            formatter: params => {
-                let res = params[0]?.name + '<br/>';
-                for (const item of params) {
-                    res += item.marker + ' ' + item.seriesName + ' : ' + item.data + '<br/>';
-                }
-                return res;
-            },
-        },
-        grid: { left: '7%', right: '7%', bottom: '20%', top: '20%' },
-        legend: {
-            top: '5%',
-            right: '4%',
-            itemWidth: 16,
-            textStyle: { color: '#646A73' },
-            icon: 'circle',
-        },
-        xAxis: {
-            name: '时间',
-            data: xAxis,
-            boundaryGap: false
-        },
-        yAxis: {
-            name: '速率(kB/S)',
-            splitLine: {
-                lineStyle: {
-                    type: 'dashed',
-                    opacity: 1,
-                },
-            },
-        },
-        series: [seriesData],
-        dataZoom: [{ startValue: 0, show: true }],
-    };
-    diskIoDom?.setOption(option);
-};
-
-// 工具函数
-const parsePercentTitle = (percentStr: string): string[] => {
-    let title = percentStr.split(".");
-    if (title.length == 1) {
-        title = [(title[0].split("%"))[0]];
-    }
-    return title;
-};
-
-
-const handleTimer = () => {
-    lineTimer.value = window.setInterval(() => {
-        getAllData();
-    }, 5000);
-};
-
-const setSeriesColor = (percent: number) => {
-    if (percent > 50 && percent < 80) {
-        return [new echarts.graphic.LinearGradient(0, 1, 0, 0, [
-            { offset: 0, color: '#ffe927' },
-            { offset: 1, color: '#ffe927' },
-        ])];
-    } else if (percent > 80) {
-        return [new echarts.graphic.LinearGradient(0, 1, 0, 0, [
-            { offset: 0, color: 'red' },
-            { offset: 1, color: 'red' },
-        ])];
-    }
-    return null;
-};
-
-const currentTime = () => {
-    const time = new Date();
-    const hour = time.getHours();
-    const minute = time.getMinutes();
-    const second = time.getSeconds();
-    return (hour < 10 ? '0' + hour : hour) + ':' +
-        (minute < 10 ? '0' + minute : minute) + ':' +
-        (second < 10 ? '0' + second : second);
-};
-
-const netChange = async (value: string | number) => {
-    if (lineTimer.value) clearInterval(lineTimer.value);
-    diskData.get(value)['rx'] = [];
-    networkXAxis.splice(0, networkXAxis.length);
-    getAllData();
-    handleTimer();
-};
-
-const netChange2 = async (value: string | number) => { 
-    if (lineTimer.value) clearInterval(lineTimer.value);
-    diskData.get(value)['tx'] = [];
-    networkXAxis2.splice(0, networkXAxis2.length);
-    getAllData();
-    handleTimer();
-};
-
-const handleResize = debounce(() => {
-    cpuDom?.resize();
-    memoryDom?.resize();
-    swapDom?.resize();
-    disk1Dom?.resize();
-    disk2Dom?.resize();
-    diskIoDom?.resize();
-    diskIoDom2?.resize();
-}, 300);
 </script>
-<style lang="scss" scoped>
-.indicator {
-    padding: 10px;
-    min-height: calc(100vh - 105px);
-}
 
-.indicator-card {
-    width: 100%;
-    background: var(--el-color-white);
-    color: var(--el-text-color-primary);
-    border-radius: 8px;
-    // box-shadow: 2px 2px 7px 1px #f0f0f0;
-    box-shadow: var(--el-box-shadow-light);
-
-    .indicator-card-title {
-        padding-left: 20px;
-        padding-top: 12px;
-        font-size: 14px;
-        line-height: 1.5;
-        position: relative;
-    }
-}
-
-.cpu,
-.load,
-.memory,
-.swap {
-    text-align: center;
-    padding-bottom: 8px;
-    font-size: 12px;
-
-    .echarts-div {
-        height: 140px;
-    }
-}
-
-
-.indicator-card-disk {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 165px;
-
-    .disk-echarts {
-        margin-top: 22px;
-        width: 50%;
-        height: 120px;
-    }
-
-    .title {
-        width: 50%;
-        color: #06c;
-        font-size: 18px;
-
-        .title-text,
-        .capacity {
-            padding-left: 20px;
-            word-wrap: break-word;
-            word-break: normal;
-        }
-
-        .capacity {
-            font-size: 12px;
-            margin-top: 4px;
-            color: #303133
-        }
-    }
-}
-
-.network-card {
-    margin-top: 20px;
-}
-
-.monitor-title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-right: 20px;
-}
+<style lang="scss">
+@use './tech-indicator.scss';
 </style>
-<template>
-    <div class="indicator" v-loading="loading">
-        <el-row :gutter="20">
-            <el-col :span="4">
-                <div class="indicator-card">
-                    <div class="indicator-card-title">cpu</div>
-                    <el-popover placement="bottom" :width="170">
-                        <el-tag type="primary" effect="plain" v-for="(val, index) in loadArray" :key="index" style="margin-bottom: 6px;">
-                            {{ val }}
-                        </el-tag>
-                        <template #reference>
-                            <div class="cpu">
-                                <div ref="cpuRef" class="echarts-div"></div>
-                                CPU {{ cpuCores }}核
-                            </div>
-                        </template>
-                    </el-popover>
-                </div>
-            </el-col>
-            <el-col :span="8">
-                <div class="indicator-card">
-                    <div class="indicator-card-title ">内存</div>
-                    <el-popover placement="bottom" :width="460">
-                        <el-table :data="serviceTableData">
-                            <el-table-column prop="name" label="服务" width="310">
-                                <template #default="scope">
-                                    <div style="color:#0066CC" class="table-col">{{ scope.row.name }}</div>
-                                </template>
-                            </el-table-column>
-                            <el-table-column prop="size" label="已使用" />
-                        </el-table>
-                        <template #reference>
-                            <el-row>
-                                <el-col :span="12">
-                                    <div class="memory">
-                                        <div ref="memoryRef" class="echarts-div"></div>
-                                        内存 {{ availableGB }}GB可用
-                                    </div>
-                                </el-col>
-                                <el-col :span="12">
-                                    <div class="swap">
-                                        <div ref="swapRef" class="echarts-div"></div>
-                                        交换空间 {{ swapFreeGB }}GB 可用
-                                    </div>
-                                </el-col>
-                            </el-row>
-                        </template>
-                    </el-popover>
-                </div>
-            </el-col>
-            <el-col :span="12">
-                <div class="indicator-card">
-                    <div class="indicator-card-title ">磁盘</div>
-                    <el-row :gutter="10">
-                        <el-col :span='12'>
-                            <el-popover placement="bottom" :width="160">
-                                <el-tag type="primary" effect="plain" style="margin-top: 4px;">根目录总容量{{diskInfo.total.total}}</el-tag>
-                                <el-tag type="primary" effect="plain" style="margin-top: 4px;">根目录已使用{{diskInfo.total.used}}</el-tag>
-                                <el-tag type="primary" effect="plain" style="margin-top: 4px;">根目录剩余{{diskInfo.total.free }}</el-tag>
-                                <template #reference>
-                                    <div class="indicator-card-disk">
-                                        <div class="title">
-                                            <div class="title-text"> / </div>
-                                            <div class="capacity">根目录剩余{{ diskInfo.total.free }}可用</div>
-                                        </div>
-                                        <div class="disk-echarts">
-                                            <div ref='disk1' style="height: 100%;">
-
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                </template>
-
-                            </el-popover>
-                        </el-col>
-                        <el-col :span='12'>
-                            <el-popover placement="bottom" :width="160">
-                                <el-tag type="primary" effect="plain" style="margin-top: 4px;">/boot总容量{{diskInfo.boot.total}}</el-tag>
-                                <el-tag type="primary" effect="plain" style="margin-top: 4px;">/boot已使用{{diskInfo.boot.used}}</el-tag>
-                                <el-tag type="primary" effect="plain" style="margin-top: 4px;">/boot剩余{{diskInfo.boot.free}}</el-tag>
-                                <template #reference>
-                                    <div class="indicator-card-disk">
-                                        <div class="title">
-                                            <div class="title-text"> /boot </div>
-                                            <div class="capacity">/boot剩余{{ diskInfo.boot.free }}可用</div>
-                                        </div>
-                                        <div class="disk-echarts">
-                                            <div ref='disk2' style="height: 100%;">
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                </template>
-                            </el-popover>
-                        </el-col>
-                    </el-row>
-                </div>
-            </el-col>
-            <el-col :span="12">
-                <div class="indicator-card network-card">
-                    <div class="indicator-card-title monitor-title">
-                        <div class="title"> 网络接收</div>
-                        <div class="monitor-sift">网卡：
-                            <el-select v-model="optVal" placeholder="Select" style="width: 180px" @change="netChange">
-                                <el-option v-for="item in options" :key="item.value" :label="item.label"
-                                    :value="item.value" />
-                            </el-select>
-                        </div>
-                    </div>
-                    <div style="height: 332px;" ref="diskIoRef">
-
-                    </div>
-                </div>
-            </el-col>
-            <el-col :span="12">
-                <div class="indicator-card network-card">
-                    <div class="indicator-card-title monitor-title">
-                        <div class="title">
-                            网络发送
-                        </div>
-                        <div class="monitor-sift">网卡：
-                            <el-select v-model="optVal2" placeholder="Select" style="width: 180px" @change="netChange2">
-                                <el-option v-for="item in options" :key="item.value" :label="item.label"
-                                    :value="item.value" />
-                            </el-select>
-                        </div>
-                    </div>
-                    <div style="height: 332px;" ref="diskIoRefs">
-
-                    </div>
-                </div>
-            </el-col>
-        </el-row>
-    </div>
-
-</template>
