@@ -78,13 +78,27 @@
                 </div>
                 <div class="indicator-panel__body">
                     <div class="indicator-memory-grid">
-                        <div class="indicator-gauge">
+                        <div class="indicator-gauge indicator-capacity-gauge">
                             <div ref="memoryRef" class="indicator-gauge__chart"></div>
                             <div class="indicator-gauge__caption">可用 <strong>{{ availableGB }}</strong> GB</div>
+                            <div class="indicator-capacity-track" aria-hidden="true">
+                                <span :style="{ width: `${Math.min(memoryInfo.ram.percent, 100)}%` }"></span>
+                            </div>
+                            <div class="indicator-capacity-facts">
+                                <span><small>已用</small><strong>{{ memoryInfo.ram.used.toFixed(2) }} GB</strong></span>
+                                <span><small>总量</small><strong>{{ memoryInfo.ram.total.toFixed(2) }} GB</strong></span>
+                            </div>
                         </div>
-                        <div class="indicator-gauge">
+                        <div class="indicator-gauge indicator-capacity-gauge indicator-capacity-gauge--swap">
                             <div ref="swapRef" class="indicator-gauge__chart"></div>
                             <div class="indicator-gauge__caption">可用 <strong>{{ swapFreeGB }}</strong> GB</div>
+                            <div class="indicator-capacity-track" aria-hidden="true">
+                                <span :style="{ width: `${Math.min(memoryInfo.swap.percent, 100)}%` }"></span>
+                            </div>
+                            <div class="indicator-capacity-facts">
+                                <span><small>已用</small><strong>{{ memoryInfo.swap.used.toFixed(2) }} GB</strong></span>
+                                <span><small>总量</small><strong>{{ memoryInfo.swap.total.toFixed(2) }} GB</strong></span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -103,16 +117,26 @@
                 <div class="indicator-panel__body">
                     <div class="indicator-disk-grid">
                         <div class="indicator-disk-item">
-                            <div>
+                            <div class="indicator-disk-copy">
                                 <div class="indicator-disk-name">/</div>
-                                <div class="indicator-disk-free">剩余 <strong>{{ diskInfo.total.free || '—' }}</strong> 可用</div>
+                                <div class="indicator-disk-kind">ROOT FS</div>
+                                <div class="indicator-disk-facts">
+                                    <span><small>总量</small><strong>{{ diskInfo.total.total || '—' }}</strong></span>
+                                    <span><small>已用</small><strong>{{ diskInfo.total.used || '—' }}</strong></span>
+                                    <span class="indicator-disk-facts__free"><small>可用</small><strong>{{ diskInfo.total.free || '—' }}</strong></span>
+                                </div>
                             </div>
                             <div ref="disk1" class="indicator-disk-chart"></div>
                         </div>
                         <div class="indicator-disk-item">
-                            <div>
+                            <div class="indicator-disk-copy">
                                 <div class="indicator-disk-name">/boot</div>
-                                <div class="indicator-disk-free">剩余 <strong>{{ diskInfo.boot.free || '—' }}</strong> 可用</div>
+                                <div class="indicator-disk-kind">BOOT FS</div>
+                                <div class="indicator-disk-facts">
+                                    <span><small>总量</small><strong>{{ diskInfo.boot.total || '—' }}</strong></span>
+                                    <span><small>已用</small><strong>{{ diskInfo.boot.used || '—' }}</strong></span>
+                                    <span class="indicator-disk-facts__free"><small>可用</small><strong>{{ diskInfo.boot.free || '—' }}</strong></span>
+                                </div>
                             </div>
                             <div ref="disk2" class="indicator-disk-chart"></div>
                         </div>
@@ -275,6 +299,12 @@ interface LoadItem {
     value: string;
 }
 
+interface CapacityInfo {
+    total: number;
+    used: number;
+    percent: number;
+}
+
 interface ServiceMemoryItem {
     name: string;
     size: string;
@@ -305,6 +335,10 @@ const cpuCores = ref(0);
 const cpuPercent = ref(0);
 const availableGB = ref(0);
 const swapFreeGB = ref(0);
+const memoryInfo = ref<{ ram: CapacityInfo; swap: CapacityInfo }>({
+    ram: { total: 0, used: 0, percent: 0 },
+    swap: { total: 0, used: 0, percent: 0 },
+});
 const networkInterfaceCount = ref(0);
 const loadArray = ref<LoadItem[]>([]);
 const serviceTableData = ref<ServiceMemoryItem[]>([]);
@@ -475,6 +509,18 @@ const processMemory = (section: MemorySection) => {
     const swapPercent = percent(memory.swap_used_mb, memory.swap_total_mb);
     availableGB.value = Math.round((memory.available_mb / 1024) * 100) / 100;
     swapFreeGB.value = Math.round((memory.swap_free_mb / 1024) * 100) / 100;
+    memoryInfo.value = {
+        ram: {
+            total: Math.round((memory.total_mb / 1024) * 100) / 100,
+            used: Math.round((memory.used_mb / 1024) * 100) / 100,
+            percent: ramPercent,
+        },
+        swap: {
+            total: Math.round((memory.swap_total_mb / 1024) * 100) / 100,
+            used: Math.round((memory.swap_used_mb / 1024) * 100) / 100,
+            percent: swapPercent,
+        },
+    };
     memoryChart?.setOption(gaugeOption('RAM', ramPercent, '#a855f7'), true);
     swapChart?.setOption(gaugeOption('交换空间', swapPercent, '#3b82f6'), true);
 };
