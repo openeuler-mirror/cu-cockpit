@@ -154,14 +154,29 @@
                         <div class="indicator-panel__meta">SERVICE MEMORY · LIVE PROCESS FOOTPRINT</div>
                     </div>
                 </div>
-                <span class="indicator-service-count"><strong>{{ serviceTableData.length }}</strong> 项服务</span>
+                <div class="indicator-service-tools">
+                    <el-input
+                        v-model="serviceSearch"
+                        class="indicator-service-search"
+                        :prefix-icon="Search"
+                        placeholder="搜索服务名称"
+                        aria-label="搜索服务名称"
+                        clearable
+                        @input="onServiceSearch"
+                    />
+                    <span class="indicator-service-count">
+                        <strong>{{ filteredServiceMemory.length }}</strong>
+                        <template v-if="serviceSearchActive"> / {{ serviceTableData.length }}</template>
+                        项服务
+                    </span>
+                </div>
             </div>
             <el-table
                 :data="pagedServiceMemory"
                 :default-sort="serviceDefaultSort"
                 class="indicator-service-table"
                 size="large"
-                empty-text="未检测到服务内存数据"
+                :empty-text="serviceEmptyText"
                 @sort-change="onServiceSortChange"
             >
                 <el-table-column prop="name" label="服务名称" min-width="360">
@@ -180,13 +195,13 @@
                     <template #default="{ row }"><strong class="indicator-service-size">{{ row.size }}</strong></template>
                 </el-table-column>
             </el-table>
-            <div v-if="serviceTableData.length" class="indicator-pagination">
+            <div v-if="filteredServiceMemory.length" class="indicator-pagination">
                 <el-pagination
                     :current-page="servicePage"
                     :page-size="servicePageSize"
                     :page-sizes="servicePageSizes"
                     :pager-count="5"
-                    :total="serviceTableData.length"
+                    :total="filteredServiceMemory.length"
                     layout="total, sizes, prev, pager, next"
                     @size-change="onServicePageSizeChange"
                     @current-change="servicePage = $event"
@@ -245,7 +260,7 @@
 <script lang="ts" setup name="indicatorIndex">
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import * as echarts from 'echarts';
-import { Cpu, DataAnalysis, Download, Memo, PieChart, Refresh, Service, Upload, WarningFilled } from '@element-plus/icons-vue';
+import { Cpu, DataAnalysis, Download, Memo, PieChart, Refresh, Search, Service, Upload, WarningFilled } from '@element-plus/icons-vue';
 import { storeToRefs } from 'pinia';
 import { debounce } from 'lodash';
 import { hardInfo, monitorStatus } from '/@/api/run/run';
@@ -359,6 +374,7 @@ const servicePageSize = ref(5);
 const servicePageSizes = [5, 10, 20];
 const serviceSortOrder = ref<ServiceSortOrder>('descending');
 const serviceDefaultSort = { prop: 'bytes', order: 'descending' as const };
+const serviceSearch = ref('');
 const networkOptions = ref<NetworkOption[]>([{ value: 'all', label: '所有网卡' }]);
 const rxInterface = ref('all');
 const txInterface = ref('all');
@@ -385,10 +401,17 @@ const summaryItems = computed(() => [
     { label: '根目录可用', value: diskInfo.value.total.free || '—', unit: '', icon: PieChart, color: '#10f5a0' },
     { label: '网络接口', value: networkInterfaceCount.value, unit: '个', icon: DataAnalysis, color: '#22d3ee' },
 ]);
+const serviceSearchActive = computed(() => Boolean(serviceSearch.value.trim()));
+const serviceEmptyText = computed(() => (serviceSearchActive.value ? '未找到匹配服务' : '未检测到服务内存数据'));
+const filteredServiceMemory = computed(() => {
+    const query = serviceSearch.value.trim().toLocaleLowerCase();
+    if (!query) return serviceTableData.value;
+    return serviceTableData.value.filter((item) => item.name.toLocaleLowerCase().includes(query));
+});
 const sortedServiceMemory = computed(() => {
-    if (!serviceSortOrder.value) return serviceTableData.value;
+    if (!serviceSortOrder.value) return filteredServiceMemory.value;
     const direction = serviceSortOrder.value === 'ascending' ? 1 : -1;
-    return [...serviceTableData.value].sort((left, right) => (left.bytes - right.bytes) * direction);
+    return [...filteredServiceMemory.value].sort((left, right) => (left.bytes - right.bytes) * direction);
 });
 const pagedServiceMemory = computed(() => {
     const start = (servicePage.value - 1) * servicePageSize.value;
@@ -557,8 +580,12 @@ const processServiceMemory = (section: ServiceMemorySection) => {
         size,
         bytes: memorySizeToBytes(size),
     }));
-    const lastPage = Math.max(1, Math.ceil(serviceTableData.value.length / servicePageSize.value));
+    const lastPage = Math.max(1, Math.ceil(filteredServiceMemory.value.length / servicePageSize.value));
     if (servicePage.value > lastPage) servicePage.value = lastPage;
+};
+
+const onServiceSearch = () => {
+    servicePage.value = 1;
 };
 
 const onServiceSortChange = ({ order }: { order: ServiceSortOrder }) => {
