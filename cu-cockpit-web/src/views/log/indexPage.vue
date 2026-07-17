@@ -407,6 +407,9 @@ onUnmounted(() => {
                             :teleported="true"
                             popper-class="log-filter-popper log-filter-popper--priority"
                         >
+                            <template #label="{ label }">
+                                <span class="log-select-value">{{ label }}</span>
+                            </template>
                             <el-option v-for="item in priorityOps" :key="item.value" :label="item.label" :value="item.value" />
                         </el-select>
                     </el-form-item>
@@ -438,6 +441,9 @@ onUnmounted(() => {
                             placeholder="默认行数"
                             popper-class="log-filter-popper log-filter-popper--limit"
                         >
+                            <template #label="{ label }">
+                                <span class="log-select-value">{{ label }}</span>
+                            </template>
                             <el-option v-for="item in limits" :key="item.value" :label="item.label" :value="item.value" />
                         </el-select>
                     </el-form-item>
@@ -483,6 +489,9 @@ onUnmounted(() => {
                             :teleported="true"
                             popper-class="log-filter-popper log-filter-popper--boot"
                         >
+                            <template #label="{ label }">
+                                <span class="log-select-value">{{ label }}</span>
+                            </template>
                             <el-option v-for="item in bootOps" :key="item.value" :label="item.label" :value="item.value" />
                         </el-select>
                     </el-form-item>
