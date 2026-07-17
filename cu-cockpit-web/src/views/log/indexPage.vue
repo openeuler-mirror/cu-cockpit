@@ -1,7 +1,6 @@
 <script lang="ts" setup name="logs">
 import { reactive, ref, computed, onMounted, h, onActivated, onUnmounted, nextTick } from 'vue';
 import { ArrowDown, ArrowUp, Connection, Document, Filter, Monitor, Refresh, Search, WarningFilled } from '@element-plus/icons-vue';
-import inputSelect from '/@/components/inputSelect/index.vue';
 import { logs, getBoot } from '/@/api/log';
 import { useRouter } from 'vue-router';
 import { Local } from '/@/utils/storage';
@@ -322,8 +321,8 @@ onMounted(() => {
             return;
         }
         const tmp = res.boots.map(item => ({
-            value: item,
-            label: item
+            value: String(item),
+            label: String(item)
         }));
         bootOps.value = tmp;
     }).catch(() => {
@@ -401,24 +400,46 @@ onUnmounted(() => {
             <el-form :model="state.ruleForm" class="log-filter-form" label-position="top" @submit.prevent="searchLogs">
                 <div class="log-filter-grid log-filter-grid--primary">
                     <el-form-item label="日志优先级">
-                        <el-select v-model="ruleForm.priority" class="log-control" placeholder="日志优先级" clearable>
+                        <el-select
+                            v-model="ruleForm.priority"
+                            class="log-control log-control--select log-control--priority"
+                            placeholder="日志优先级"
+                            :teleported="true"
+                            popper-class="log-filter-popper log-filter-popper--priority"
+                        >
                             <el-option v-for="item in priorityOps" :key="item.value" :label="item.label" :value="item.value" />
                         </el-select>
                     </el-form-item>
                     <el-form-item label="服务名称">
-                        <el-input v-model="ruleForm.service" class="log-control" placeholder="输入 systemd 服务名称" clearable />
+                        <el-input
+                            v-model="ruleForm.service"
+                            class="log-control log-control--search log-control--service"
+                            :prefix-icon="Search"
+                            placeholder="输入 systemd 服务名称"
+                            clearable
+                        />
                     </el-form-item>
                     <el-form-item label="关键字 / 正则">
-                        <el-input v-model="ruleForm.keyword" class="log-control" placeholder="匹配日志消息" clearable />
+                        <el-input
+                            v-model="ruleForm.keyword"
+                            class="log-control log-control--search log-control--keyword"
+                            :prefix-icon="Search"
+                            placeholder="匹配日志消息"
+                            clearable
+                        />
                     </el-form-item>
                     <el-form-item label="显示行数">
-                        <inputSelect
-                            v-model:value="ruleForm.limit"
-                            :options="limits"
-                            class="log-control log-limit-control"
+                        <el-select
+                            v-model="ruleForm.limit"
+                            class="log-control log-control--select log-control--limit"
                             filterable
+                            allow-create
+                            default-first-option
                             placeholder="默认行数"
-                        />
+                            popper-class="log-filter-popper log-filter-popper--limit"
+                        >
+                            <el-option v-for="item in limits" :key="item.value" :label="item.label" :value="item.value" />
+                        </el-select>
                     </el-form-item>
                 </div>
 
@@ -429,7 +450,7 @@ onUnmounted(() => {
                             type="datetime"
                             placeholder="开始时间"
                             :disabled-date="sinceDisabledDate"
-                            class="log-control"
+                            class="log-control log-control--date"
                             format="YYYY-MM-DD HH:mm:ss"
                             value-format="YYYY-MM-DD HH:mm:ss"
                         />
@@ -440,16 +461,28 @@ onUnmounted(() => {
                             type="datetime"
                             placeholder="结束时间"
                             :disabled-date="untilDisabledDate"
-                            class="log-control"
+                            class="log-control log-control--date"
                             format="YYYY-MM-DD HH:mm:ss"
                             value-format="YYYY-MM-DD HH:mm:ss"
                         />
                     </el-form-item>
                     <el-form-item label="日志标识符">
-                        <el-input v-model="ruleForm.identifier" class="log-control" placeholder="例如 sshd / kernel" clearable />
+                        <el-input
+                            v-model="ruleForm.identifier"
+                            class="log-control log-control--search log-control--identifier"
+                            :prefix-icon="Search"
+                            placeholder="例如 sshd / kernel"
+                            clearable
+                        />
                     </el-form-item>
                     <el-form-item label="启动批次">
-                        <el-select v-model="ruleForm.boot" class="log-control" placeholder="选择 boot" clearable>
+                        <el-select
+                            v-model="ruleForm.boot"
+                            class="log-control log-control--select log-control--boot"
+                            placeholder="选择 boot"
+                            :teleported="true"
+                            popper-class="log-filter-popper log-filter-popper--boot"
+                        >
                             <el-option v-for="item in bootOps" :key="item.value" :label="item.label" :value="item.value" />
                         </el-select>
                     </el-form-item>
