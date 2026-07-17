@@ -444,6 +444,19 @@
 		white-space: nowrap;
 	}
 
+	.log-select-value {
+		display: block;
+		overflow: hidden;
+		color: color-mix(in srgb, var(--filter-accent) 22%, #f5f8ff);
+		font-size: 13px;
+		font-weight: 700;
+		letter-spacing: 0.35px;
+		text-overflow: ellipsis;
+		text-shadow: 0 0 12px color-mix(in srgb, var(--filter-accent) 28%, transparent);
+		white-space: nowrap;
+		-webkit-text-fill-color: color-mix(in srgb, var(--filter-accent) 22%, #f5f8ff);
+	}
+
 	.log-control--priority .el-select__placeholder,
 	.log-control--boot .el-select__placeholder {
 		z-index: 1;
