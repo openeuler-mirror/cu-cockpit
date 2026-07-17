@@ -1,12 +1,17 @@
 <script lang="ts" setup name="logs">
-import { reactive, ref, computed, onMounted, h, onActivated, onUnmounted, nextTick, watch } from 'vue';
+import { reactive, ref, computed, onMounted, h, onActivated, onUnmounted, nextTick } from 'vue';
+import { ArrowDown, ArrowUp, Connection, Document, Filter, Monitor, Refresh, Search, WarningFilled } from '@element-plus/icons-vue';
 import inputSelect from '/@/components/inputSelect/index.vue';
 import { logs, getBoot } from '/@/api/log';
 import { useRouter } from 'vue-router';
 import { Local } from '/@/utils/storage';
 import { ElPopover, RowEventHandlerParams } from 'element-plus';
+import { storeToRefs } from 'pinia';
+import { useThemeConfig } from '/@/stores/themeConfig';
 
 const router = useRouter();
+const themeStore = useThemeConfig();
+const { themeConfig } = storeToRefs(themeStore);
 
 //日志每行的key
 interface LogItem {
@@ -19,7 +24,8 @@ interface LogItem {
 }
 //定义 boot
 interface BootItem {
-    [key: string]: string| number;
+    value: string;
+    label: string;
 }
 
 // 
@@ -62,17 +68,32 @@ const { ruleForm } = state;
 const logData = ref<LogItem[]>([]);
 //boot
 const bootOps = ref<BootItem[]>([]);
+const loadError = ref('');
+const bootError = ref('');
+const lastUpdated = ref('');
+let activationCount = 0;
 //获取DOM
 const logsMiddleRef = ref();
-const logsHeadRef = ref();
-const logsContentRef = ref();
 // 添加响应式宽度变量
 const containerWidth = ref(window.innerWidth);
 const containeHeight = ref(window.innerHeight);
-// 添加头部高度响应式变量
-const headHeight = ref(60);
 //控制展示隐藏
 const showAdvancedSearch = ref(false);
+
+const activeFilterCount = computed(() =>
+    Object.entries(ruleForm).filter(([key, value]) => key !== 'output_format' && value !== '').length
+);
+const serviceCount = computed(() => new Set(logData.value.map((item) => item.service).filter(Boolean)).size);
+const hostCount = computed(() => new Set(logData.value.map((item) => item.hostname).filter(Boolean)).size);
+const summaryItems = computed(() => [
+    { label: '当前结果', value: `${logData.value.length} 条`, icon: Document, color: '#22d3ee' },
+    { label: '涉及服务', value: `${serviceCount.value} 项`, icon: Connection, color: '#a855f7' },
+    { label: '涉及主机', value: `${hostCount.value} 台`, icon: Monitor, color: '#10f5a0' },
+    { label: '启用筛选', value: `${activeFilterCount.value} 项`, icon: Filter, color: '#ffb020' },
+]);
+const currentPriorityLabel = computed(
+    () => priorityOps.find((item) => item.value === ruleForm.priority)?.label || '全部优先级'
+);
 // 重置表单
 const resetForm = () => {
     Object.assign(state.ruleForm, {
@@ -99,13 +120,17 @@ const handleResize = () => {
 //获取 日志列表
 const searchLogs = async () => {
     state.loading = true;
+    loadError.value = '';
     try {
         const res = await logs({
             ...state.ruleForm,
         });
         logData.value = res?.logs || [];
+        lastUpdated.value = new Date().toLocaleTimeString('zh-CN', { hour12: false });
     } catch (error) {
         logData.value = [];
+        loadError.value = '系统日志查询失败，请检查日志服务或调整条件后重试。';
+        console.error('查询系统日志失败:', error);
     } finally {
         state.loading = false;
     }
@@ -158,7 +183,7 @@ const untilDisabledDate = (time: Date) => {
 const toggleAdvancedSearch = () => {
     showAdvancedSearch.value = !showAdvancedSearch.value;
     nextTick(() => {
-        updateHeadHeight();
+        handleResize();
     });
 };
 const toDetail = (row: {[key:string]:string}) => {
@@ -170,32 +195,24 @@ const toDetail = (row: {[key:string]:string}) => {
     router.push({ name: 'logsDetail' });
 };
 
-// 更新头部高度的函数
-const updateHeadHeight = () => {
-    if (logsHeadRef.value) {
-        headHeight.value = logsHeadRef.value.clientHeight;
-    }
-};
 // 计算表格宽度 - 依赖 containerWidth 确保响应式更新
 const tableWidth = computed(() => {
     const widthRef = containerWidth.value;
-    return (logsMiddleRef.value?.clientWidth || 1200 )+ (widthRef*0);
+    return Math.max(logsMiddleRef.value?.clientWidth || widthRef - 72, 280);
 });
 const tableHeightValue = computed(() => {
-    if (!logsContentRef.value) return 600;
-    const Tableheight= containeHeight.value
-    const contentHeight = logsContentRef.value.clientHeight;
-    return contentHeight - headHeight.value - 4 + (Tableheight * 0);
+    const reservedHeight = showAdvancedSearch.value ? 520 : 430;
+    return Math.max(440, Math.min(620, containeHeight.value - reservedHeight));
 });
 // 定义 el-table-v2 列配置 - 依赖 containerWidth 确保响应式更新
 const tableColumns = computed(() => {
-    const widthRef = containerWidth.value;
+    const contentWidth = Math.max(tableWidth.value, 1040);
     return [
         {
             key: 'timestamp',
             title: '时间',
             dataKey: 'timestamp',
-            width: 160,
+            width: 170,
             align: 'center',
             cellRenderer: ({ rowData }) => formatTimestamp(rowData.timestamp)
         },
@@ -203,8 +220,7 @@ const tableColumns = computed(() => {
             key: 'service',
             title: '服务名称',
             dataKey: 'service',
-            width: 240,
-            align: 'center',
+            width: 230,
             class: 'overflow-ellipsis-column',
             cellRenderer: ({ rowData }) => {
                 if (!rowData.service) {
@@ -217,7 +233,7 @@ const tableColumns = computed(() => {
                         width: 240,
                         trigger: 'hover',
                         content: rowData.service,
-                        popperClass: 'text-center-popover',
+                        popperClass: 'log-tech-popover',
                     },
                     {
                         reference: () => h(
@@ -235,7 +251,7 @@ const tableColumns = computed(() => {
             key: 'hostname',
             title: '主机名称',
             dataKey: 'hostname',
-            width: 120,
+            width: 160,
             align: 'center'
         },
         {
@@ -243,7 +259,7 @@ const tableColumns = computed(() => {
             title: '日志信息',
             dataKey: 'message',
             class: 'overflow-ellipsis-column',
-            width: (logsMiddleRef.value?.clientWidth || 1200) - 670 + (widthRef*0),
+            width: Math.max(340, contentWidth - 710),
             cellRenderer: ({ rowData }) => {
                 // 处理空值情况
                 if (!rowData.message) {
@@ -256,7 +272,7 @@ const tableColumns = computed(() => {
                         width: 400,
                         trigger: 'hover',
                         content: rowData.message,
-                        popperClass: 'text-center-popover',
+                        popperClass: 'log-tech-popover',
                     },
                     {
                         reference: () => h(
@@ -286,7 +302,20 @@ const rowEventHandlers = {
     }
 };
 
+const mountLogTechShell = () => document.documentElement.classList.add('theme-tech-dark');
+const restoreLogTechShell = () => {
+    if (!themeConfig.value.isTechTheme) document.documentElement.classList.remove('theme-tech-dark');
+};
+const resetMainScroll = async () => {
+    await nextTick();
+    const scrollContainer = document.querySelector<HTMLElement>('.layout-main-scroll.el-scrollbar__wrap');
+    if (scrollContainer) scrollContainer.scrollTop = 0;
+};
+
 onMounted(() => {
+    mountLogTechShell();
+    resetMainScroll();
+    bootError.value = '';
     getBoot().then(res => {
         if (!res || !Array.isArray(res.boots)) {
             bootOps.value = [];
@@ -299,6 +328,7 @@ onMounted(() => {
         bootOps.value = tmp;
     }).catch(() => {
         bootOps.value = [];
+        bootError.value = 'boot 数据不可用';
     });
 
     // 添加窗口大小变化监听器
@@ -307,265 +337,190 @@ onMounted(() => {
 });
 //组件缓存的生命周期
 onActivated(() => {
-    searchLogs();
+    if (activationCount > 0) searchLogs();
+    activationCount += 1;
 });
 
 // 移除窗口大小监听器
 onUnmounted(() => {
     window.removeEventListener('resize', handleResize);
+    restoreLogTechShell();
 });
 
-// 监听 showAdvancedSearch 变化，更新头部高度
-watch(showAdvancedSearch, () => {
-    nextTick(() => {
-        updateHeadHeight();
-    });
-});
-
-// 监听窗口大小变化，更新头部高度
-watch(containerWidth, () => {
-    nextTick(() => {
-        updateHeadHeight();
-    });
-});
 </script>
 
-<style scoped lang="scss">
-.logs-box {
-    padding: 15px 20px;
-
-    .logs-content {
-        height: calc(100vh - 115px);
-        overflow: auto;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: var(--el-box-shadow-light);
-
-        .logs-head {
-            background-color: #fff;
-            display: flex;
-            align-items: flex-start;
-        }
-    }
-}
-
-.logs-head-l {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    width: calc(100% - 240px);
-    background-color: #fff;
-    height: 60px;
-    font-size: 16px;
-    padding-top: 15px;
-    transition: height 0.3s ease;
-
-    .time {
-        :deep(.el-input__prefix) {
-            display: none;
-        }
-    }
-
-    :deep(.el-form-item__label) {
-        font-weight: 700;
-    }
-
-    .logs-head-l-item {
-        width: 264px;
-    }
-}
-
-.logs-head-show {
-    height: auto;
-}
-
-.logs-head-r {
-    display: flex;
-    align-items: center;
-    min-width: 220px;
-}
-
-.logs-middle {
-    :deep(.table_row .cell) {
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-    }
-
-    :deep(.el-table--fit .el-table__inner-wrapper:before) {
-        width: 0%;
-    }
-
-    // 添加 el-table-v2 表头样式
-    :deep(.table-v2-header) {
-        display: flex;
-        background-color: #f5f7fa;
-
-        .table-v2-header-cell {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px 0;
-            font-weight: bold;
-            color: #606266;
-            box-sizing: border-box;
-        }
-    }
-
-    // 优化 description 样式
-    :deep(.description) {
-        word-wrap: break-word;
-        white-space: pre-wrap;
-    }
-
-    :deep(.table_row_class .cell) {
-        cursor: default;
-    }
-
-    :deep(.overflow-ellipsis-column) {
-        height: 48px;
-        line-height: 48px;
-        word-break: break-all;
-        overflow: hidden;
-        display: -webkit-box;
-        -webkit-line-clamp: 1;
-        -webkit-box-orient: vertical;
-    }
-
-    :deep(.table_v_row_class) {
-        padding: 12px 0;
-    }
-}
-
-.form_content {
-    display: flex;
-    align-items: center;
-    width: 100%
-}
-
-@media (max-width: 1820px) {
-    .logs-head-l {
-        .logs-head-l-item {
-            width: 258px;
-        }
-    }
-}
-
-@media (max-width: 1798px) {
-    .logs-head-l {
-        .logs-head-l-item {
-            width: 240px;
-        }
-    }
-}
-
-@media (max-width: 1710px) {
-    .logs-head-l {
-        .logs-head-l-item {
-            width: 280px;
-        }
-    }
-}
-
-@media (max-width: 1630px) {
-    .logs-head-l {
-        .logs-head-l-item {
-            width: 250px;
-        }
-    }
-}
-
-@media (max-width: 1508px) {
-    .logs-head-l {
-        .logs-head-l-item {
-            width: 250px;
-        }
-    }
-}
-
-.overflow-ellipsis {
-    height: 48px;
-    line-height: 48px;
-    word-break: break-all;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-}
-</style>
-<style>
-.text-center-popover {
-    text-align: center;
-}
+<style lang="scss">
+@use './tech-log.scss';
 </style>
 <template>
-    <div class="logs-box">
-        <div class="logs-content" ref="logsContentRef">
-            <div class="logs-head" ref="logsHeadRef">
-                <el-form :model="state.ruleForm" label-width="auto" class="form_content">
-                    <div class="logs-head-l" :class="{ 'logs-head-show': showAdvancedSearch }">
-                        <el-form-item label="开始时间" class="logs-head-l-item time">
-                            <el-date-picker v-model="ruleForm.since" type="datetime" placeholder="开始时间"
-                                :disabled-date="sinceDisabledDate" class="logs-comm-item" format="YYYY-MM-DD HH:mm:ss"
-                                value-format="YYYY-MM-DD HH:mm:ss">
-                            </el-date-picker>
-                        </el-form-item>
-                        <el-form-item label="结束时间" class="logs-head-l-item time">
-                            <el-date-picker v-model="ruleForm.until" type="datetime" placeholder="结束时间"
-                                :disabled-date="untilDisabledDate" class="logs-comm-item" format="YYYY-MM-DD HH:mm:ss"
-                                value-format="YYYY-MM-DD HH:mm:ss">
-                            </el-date-picker>
-                        </el-form-item>
-                        <el-form-item label="&nbsp;&nbsp;&nbsp;日志优先级" class="logs-head-l-item logs-h-priority">
-                            <el-select v-model="ruleForm.priority" placeholder="日志优先级" clearable class="logs-comm-item">
-                                <el-option v-for="item in priorityOps" :key="item.value" :label="item.label"
-                                    :value="item.value" />
-                            </el-select>
-                        </el-form-item>
-                        <el-form-item label="服务名称" class="logs-head-l-item">
-                            <el-input v-model="ruleForm.service" placeholder="服务名称" clearable class="logs-comm-item" />
-                        </el-form-item>
-                        <el-form-item label="标识符 " class="logs-head-l-item logs-head-">
-                            <el-input v-model="ruleForm.identifier" placeholder="标识符" clearable
-                                class="logs-comm-item" />
-                        </el-form-item>
-                        <el-form-item label="关键字 " class="logs-head-l-item">
-                            <el-input v-model="ruleForm.keyword" placeholder="关键字或正则表达式" clearable
-                                class="logs-comm-item" />
-                        </el-form-item>
-                        <el-form-item label="显示行数" class="logs-head-l-item">
-                            <inputSelect v-model:value="ruleForm.limit" :options="limits" filterable
-                                placeholder="显示的行数"></inputSelect>
-                        </el-form-item>
-                        <el-form-item label="boot" class="logs-head-l-item">
-                            <el-select v-model="ruleForm.boot" placeholder="boot" clearable class="logs-comm-item">
-                                <el-option v-for="item in bootOps" :key="item.value" :label="item.label"
-                                    :value="item.value" />
-                            </el-select>
-                        </el-form-item>
-                    </div>
-                    <div class="logs-head-r">
-                        <el-button type="primary" @click="searchLogs" class="btn btn_one">搜索</el-button>
-                        <el-button @click="resetForm" class="btn">重置</el-button>
-                        <el-button class="btn" @click="toggleAdvancedSearch">
-                            {{ showAdvancedSearch ? '收起' : '更多' }}
-                        </el-button>
-                    </div>
-                </el-form>
+    <div class="tech-log log-overview">
+        <header class="log-hud">
+            <div class="log-identity">
+                <span class="log-identity__mark"><el-icon><Document /></el-icon></span>
+                <div>
+                    <h1 class="log-title">系统日志</h1>
+                    <div class="log-kicker">SYSTEM JOURNAL · QUERY / TRACE / INSPECT</div>
+                </div>
             </div>
-            <div class="logs-middle" ref="logsMiddleRef">
-                <el-table-v2 :columns="tableColumns" :data="logData" :width="tableWidth" :height="tableHeightValue"
-                    fixed :row-event-handlers="rowEventHandlers" :estimated-row-height="73" :row-height="73"
-                    scrollbar-always-on v-loading="state.loading" row-class="table_v_row_class">
+            <div class="log-hud__actions">
+                <div v-if="!loadError" class="log-status">
+                    <span class="log-status__dot"></span>
+                    <span>{{ state.loading ? '查询中' : '日志在线' }}</span>
+                </div>
+                <el-button class="log-action" :icon="Refresh" :loading="state.loading" @click="searchLogs">刷新</el-button>
+            </div>
+        </header>
+
+        <section class="log-summary" aria-label="日志查询摘要">
+            <div
+                v-for="item in summaryItems"
+                :key="item.label"
+                class="log-summary__item"
+                :style="{ '--summary-accent': item.color }"
+            >
+                <span class="log-summary__icon"><el-icon><component :is="item.icon" /></el-icon></span>
+                <div>
+                    <div class="log-summary__label">{{ item.label }}</div>
+                    <div class="log-summary__value">{{ item.value }}</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="log-filter-panel">
+            <div class="log-panel__head">
+                <div>
+                    <h2 class="log-panel__title">日志检索</h2>
+                    <div class="log-panel__meta">PRIORITY THRESHOLD · FIELD MATCH · TIME WINDOW</div>
+                </div>
+                <div class="log-filter-state">
+                    <span>{{ currentPriorityLabel }}</span>
+                    <span v-if="bootError" class="is-warning">boot 数据不可用</span>
+                </div>
+            </div>
+
+            <el-form :model="state.ruleForm" class="log-filter-form" label-position="top" @submit.prevent="searchLogs">
+                <div class="log-filter-grid log-filter-grid--primary">
+                    <el-form-item label="日志优先级">
+                        <el-select v-model="ruleForm.priority" class="log-control" placeholder="日志优先级" clearable>
+                            <el-option v-for="item in priorityOps" :key="item.value" :label="item.label" :value="item.value" />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="服务名称">
+                        <el-input v-model="ruleForm.service" class="log-control" placeholder="输入 systemd 服务名称" clearable />
+                    </el-form-item>
+                    <el-form-item label="关键字 / 正则">
+                        <el-input v-model="ruleForm.keyword" class="log-control" placeholder="匹配日志消息" clearable />
+                    </el-form-item>
+                    <el-form-item label="显示行数">
+                        <inputSelect
+                            v-model:value="ruleForm.limit"
+                            :options="limits"
+                            class="log-control log-limit-control"
+                            filterable
+                            placeholder="默认行数"
+                        />
+                    </el-form-item>
+                </div>
+
+                <div v-show="showAdvancedSearch" class="log-filter-grid log-filter-grid--advanced">
+                    <el-form-item label="开始时间">
+                        <el-date-picker
+                            v-model="ruleForm.since"
+                            type="datetime"
+                            placeholder="开始时间"
+                            :disabled-date="sinceDisabledDate"
+                            class="log-control"
+                            format="YYYY-MM-DD HH:mm:ss"
+                            value-format="YYYY-MM-DD HH:mm:ss"
+                        />
+                    </el-form-item>
+                    <el-form-item label="结束时间">
+                        <el-date-picker
+                            v-model="ruleForm.until"
+                            type="datetime"
+                            placeholder="结束时间"
+                            :disabled-date="untilDisabledDate"
+                            class="log-control"
+                            format="YYYY-MM-DD HH:mm:ss"
+                            value-format="YYYY-MM-DD HH:mm:ss"
+                        />
+                    </el-form-item>
+                    <el-form-item label="日志标识符">
+                        <el-input v-model="ruleForm.identifier" class="log-control" placeholder="例如 sshd / kernel" clearable />
+                    </el-form-item>
+                    <el-form-item label="启动批次">
+                        <el-select v-model="ruleForm.boot" class="log-control" placeholder="选择 boot" clearable>
+                            <el-option v-for="item in bootOps" :key="item.value" :label="item.label" :value="item.value" />
+                        </el-select>
+                    </el-form-item>
+                </div>
+
+                <div class="log-filter-actions">
+                    <el-button class="log-action log-action--ghost" :icon="showAdvancedSearch ? ArrowUp : ArrowDown" @click="toggleAdvancedSearch">
+                        {{ showAdvancedSearch ? '收起高级筛选' : '展开高级筛选' }}
+                    </el-button>
+                    <span class="log-filter-actions__spacer"></span>
+                    <el-button class="log-action" @click="resetForm">重置条件</el-button>
+                    <el-button class="log-action log-action--primary" :icon="Search" :loading="state.loading" native-type="submit">
+                        查询日志
+                    </el-button>
+                </div>
+            </el-form>
+        </section>
+
+        <section v-if="loadError && !state.loading" class="log-error">
+            <el-icon><WarningFilled /></el-icon>
+            <p>{{ loadError }}</p>
+            <el-button class="log-action" :icon="Refresh" @click="searchLogs">重新查询</el-button>
+        </section>
+
+        <section class="log-results-panel">
+            <div class="log-panel__head">
+                <div>
+                    <h2 class="log-panel__title">日志事件流</h2>
+                    <div class="log-panel__meta">VIRTUALIZED JOURNAL VIEW · CLICK ROW FOR FULL CONTEXT</div>
+                </div>
+                <div class="log-results-meta">
+                    <span><strong>{{ logData.length }}</strong> 条当前结果</span>
+                    <span v-if="lastUpdated">更新于 {{ lastUpdated }}</span>
+                </div>
+            </div>
+
+            <div ref="logsMiddleRef" class="log-table-viewport">
+                <el-table-v2
+                    :columns="tableColumns"
+                    :data="logData"
+                    :width="tableWidth"
+                    :height="tableHeightValue"
+                    :row-event-handlers="rowEventHandlers"
+                    :estimated-row-height="68"
+                    :row-height="68"
+                    fixed
+                    scrollbar-always-on
+                    v-loading="state.loading"
+                    row-class="log-table-row"
+                >
                     <template #header="{ columns }">
-                        <div class="table-v2-header">
-                            <div v-for="column in columns" :key="column.key" class="table-v2-header-cell"
-                                :style="{ width: column.width + 'px' }">
+                        <div class="log-table-header">
+                            <div
+                                v-for="column in columns"
+                                :key="column.key"
+                                class="log-table-header__cell"
+                                :style="{ width: `${column.width}px` }"
+                            >
                                 {{ column.title }}
                             </div>
                         </div>
                     </template>
+                    <template #empty>
+                        <div class="log-empty">
+                            <el-icon><Document /></el-icon>
+                            <strong>当前条件下无匹配日志</strong>
+                            <span>调整优先级、时间范围或关键字后重新查询</span>
+                        </div>
+                    </template>
                 </el-table-v2>
             </div>
-        </div>
+        </section>
     </div>
 </template>
