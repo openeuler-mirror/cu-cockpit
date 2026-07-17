@@ -85,14 +85,30 @@
                 </span>
             </div>
             <div class="config-file-toolbar">
-                <el-select v-model="fileName" class="config-file-select" placeholder="请选择配置文件">
+                <el-select
+                    v-model="fileName"
+                    class="config-file-select"
+                    placeholder="请选择配置文件"
+                    :disabled="updateFile || fileLoading || fileSaving"
+                >
                     <el-option v-for="item in options" :key="item.value" :label="item.value" :value="item.value" />
                 </el-select>
                 <div class="config-file-actions">
-                    <el-button class="config-action" :icon="View" :loading="fileLoading" :disabled="!fileName" @click="changeFile(false)">
+                    <el-button
+                        class="config-action"
+                        :icon="View"
+                        :loading="fileLoading"
+                        :disabled="!fileName || updateFile || fileSaving"
+                        @click="changeFile(false)"
+                    >
                         查看文件
                     </el-button>
-                    <el-button class="config-action config-action--edit" :icon="Edit" :disabled="!fileName" @click="changeFile(true)">
+                    <el-button
+                        class="config-action config-action--edit"
+                        :icon="Edit"
+                        :disabled="!fileName || updateFile || fileLoading || fileSaving"
+                        @click="changeFile(true)"
+                    >
                         编辑文件
                     </el-button>
                 </div>
@@ -118,7 +134,7 @@
             <div v-if="updateFile && isAdmin" class="config-save-bar">
                 <div class="config-save-note"><el-icon><WarningFilled /></el-icon>保存前请确认配置语法正确</div>
                 <div>
-                    <el-button class="config-action" @click="cancelFile">取消编辑</el-button>
+                    <el-button class="config-action" :disabled="fileSaving" @click="cancelFile">取消编辑</el-button>
                     <el-button class="config-action config-action--save" :loading="fileSaving" @click="saveFile">保存配置</el-button>
                 </div>
             </div>
