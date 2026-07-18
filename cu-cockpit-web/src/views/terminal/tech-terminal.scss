@@ -381,6 +381,24 @@
 		-webkit-text-fill-color: #d7e7f8;
 	}
 
+	.terminal-connect-form .terminal-control .el-input__inner,
+	.terminal-connect-form .terminal-port-control .el-input__inner {
+		color: #f4f8ff;
+		font-size: 13px;
+		font-weight: 700;
+		letter-spacing: 0.2px;
+		text-shadow: 0 0 12px rgba(34, 211, 238, 0.16);
+		-webkit-text-fill-color: #f4f8ff;
+	}
+
+	.terminal-connect-form .terminal-control .el-input__inner::placeholder {
+		color: #8fa2c2;
+		font-weight: 500;
+		opacity: 1;
+		text-shadow: none;
+		-webkit-text-fill-color: #8fa2c2;
+	}
+
 	.terminal-control .el-input__suffix,
 	.terminal-control .el-select__caret {
 		color: #7188a9;
