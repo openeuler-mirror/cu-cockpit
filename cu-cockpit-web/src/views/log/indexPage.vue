@@ -4,7 +4,7 @@ import { ArrowDown, ArrowUp, Connection, Document, Filter, Monitor, Refresh, Sea
 import { logs, getBoot } from '/@/api/log';
 import { useRouter } from 'vue-router';
 import { Local } from '/@/utils/storage';
-import { ElPopover, RowEventHandlerParams } from 'element-plus';
+import { ElPopover, RowEventHandlerParams, TableV2Instance } from 'element-plus';
 import { storeToRefs } from 'pinia';
 import { useThemeConfig } from '/@/stores/themeConfig';
 
@@ -65,6 +65,9 @@ const state = reactive({
 const { ruleForm } = state;
 //日志数据
 const logData = ref<LogItem[]>([]);
+const logPage = ref(1);
+const logPageSize = ref(10);
+const logPageSizes = [5, 10, 20, 50];
 //boot
 const bootOps = ref<BootItem[]>([]);
 const loadError = ref('');
@@ -73,6 +76,7 @@ const lastUpdated = ref('');
 let activationCount = 0;
 //获取DOM
 const logsMiddleRef = ref();
+const logTableRef = ref<TableV2Instance>();
 // 添加响应式宽度变量
 const containerWidth = ref(window.innerWidth);
 const containeHeight = ref(window.innerHeight);
@@ -84,6 +88,10 @@ const activeFilterCount = computed(() =>
 );
 const serviceCount = computed(() => new Set(logData.value.map((item) => item.service).filter(Boolean)).size);
 const hostCount = computed(() => new Set(logData.value.map((item) => item.hostname).filter(Boolean)).size);
+const pagedLogData = computed(() => {
+    const start = (logPage.value - 1) * logPageSize.value;
+    return logData.value.slice(start, start + logPageSize.value);
+});
 const summaryItems = computed(() => [
     { label: '当前结果', value: `${logData.value.length} 条`, icon: Document, color: '#22d3ee' },
     { label: '涉及服务', value: `${serviceCount.value} 项`, icon: Connection, color: '#a855f7' },
@@ -116,6 +124,21 @@ const handleResize = () => {
     containeHeight.value = window.innerHeight;
 };
 
+const resetLogTableScroll = () => {
+    nextTick(() => logTableRef.value?.scrollToTop(0));
+};
+
+const onLogPageChange = (page: number) => {
+    logPage.value = page;
+    resetLogTableScroll();
+};
+
+const onLogPageSizeChange = (size: number) => {
+    logPageSize.value = size;
+    logPage.value = 1;
+    resetLogTableScroll();
+};
+
 //获取 日志列表
 const searchLogs = async () => {
     state.loading = true;
@@ -125,9 +148,12 @@ const searchLogs = async () => {
             ...state.ruleForm,
         });
         logData.value = res?.logs || [];
+        logPage.value = 1;
+        resetLogTableScroll();
         lastUpdated.value = new Date().toLocaleTimeString('zh-CN', { hour12: false });
     } catch (error) {
         logData.value = [];
+        logPage.value = 1;
         loadError.value = '系统日志查询失败，请检查日志服务或调整条件后重试。';
         console.error('查询系统日志失败:', error);
     } finally {
@@ -530,8 +556,9 @@ onUnmounted(() => {
 
             <div ref="logsMiddleRef" class="log-table-viewport">
                 <el-table-v2
+                    ref="logTableRef"
                     :columns="tableColumns"
-                    :data="logData"
+                    :data="pagedLogData"
                     :width="tableWidth"
                     :height="tableHeightValue"
                     :row-event-handlers="rowEventHandlers"
@@ -562,6 +589,19 @@ onUnmounted(() => {
                         </div>
                     </template>
                 </el-table-v2>
+            </div>
+            <div v-if="logData.length" class="log-pagination">
+                <el-pagination
+                    :current-page="logPage"
+                    :page-size="logPageSize"
+                    :page-sizes="logPageSizes"
+                    :pager-count="5"
+                    :total="logData.length"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    popper-class="log-pagination-popper"
+                    @size-change="onLogPageSizeChange"
+                    @current-change="onLogPageChange"
+                />
             </div>
         </section>
     </div>
