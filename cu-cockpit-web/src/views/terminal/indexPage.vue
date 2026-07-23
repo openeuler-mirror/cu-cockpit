@@ -316,14 +316,21 @@ const disconnectTerminal = () => {
     term.writeln('Connection closed.');
 };
 
+const LEGACY_TERMINAL_FONT_SIZE = 18;
+const DEFAULT_TERMINAL_FONT_SIZE = 20;
+const fontSizeOption = [8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48];
 const { fontSize, background, foreground } = Local.get('terminalConfig') || {};
+const storedFontSize = Number(fontSize);
+const initialFontSize = storedFontSize === LEGACY_TERMINAL_FONT_SIZE || !fontSizeOption.includes(storedFontSize)
+    ? DEFAULT_TERMINAL_FONT_SIZE
+    : storedFontSize;
 const form = ref({
-    fontSize: fontSize || 18,
+    fontSize: initialFontSize,
     background: background || '#000000',
     foreground: foreground || '#ffffff'
 });
+if (storedFontSize !== initialFontSize) Local.set('terminalConfig', form.value);
 
-const fontSizeOption = [8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48];
 const backgroundOption = [
     {
         lable: '黑色',
@@ -419,6 +426,9 @@ const initTerm = () => {
         cursorInactiveStyle: 'underline',
         fontSize: form.value.fontSize,
         fontFamily: 'Menlo, Monaco, Consolas, Courier New, monospace',
+        fontWeight: '500',
+        fontWeightBold: '700',
+        lineHeight: 1.1,
         theme: {
             background: form.value.background,
             foreground: form.value.foreground,
