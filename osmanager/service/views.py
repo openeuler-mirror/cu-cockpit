@@ -11,6 +11,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from osmanager.auth.decorators import login_required_api
+from osmanager.system_management.command import run_safe
+from osmanager.system_management.permissions import audited_admin_api
 
 # 服务状态查询接口
 @swagger_auto_schema(
@@ -120,7 +122,7 @@ def get_service_status_api(request):
     ),
     responses={200: 'OK', 404: 'not found manager_script', 400: '缺少必需参数', 401: '参数错误', 402: '脚本执行错误', 500: '操作异常'}
 )
-@login_required_api
+@audited_admin_api('service', 'manage_service')
 @api_view(['POST'])
 def manage_service_api(request):
     """
@@ -175,17 +177,15 @@ def manage_service_api(request):
             "error": "参数错误",
             "message": f"operation 只允许为 {allowed_operations}，你传入的是: {operation}"
         }, status=401, json_dumps_params={'ensure_ascii': False})
+    if len(service_name) > 128 or not all(char.isalnum() or char in '@_.:-' for char in service_name):
+        return JsonResponse({
+            "error": "参数错误",
+            "message": "service_name 格式不合法"
+        }, status=400, json_dumps_params={'ensure_ascii': False})
 
 
     try:
-        result = subprocess.run(
-            ['bash', script_path, service_name, operation],
-            check=False,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            timeout=30
-        )
+        result = run_safe(['bash', script_path, service_name, operation], {'bash'}, timeout=30)
 
 
         return_code = result.returncode
