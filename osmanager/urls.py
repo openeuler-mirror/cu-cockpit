@@ -44,6 +44,7 @@ urlpatterns = [
     path('api/logs/', include('osmanager.system_log.urls')),
     path('api/terminal/', include('osmanager.web_terminal.urls')),
     path('api/service/', include('osmanager.service.urls')),
+    path('api/system/', include('osmanager.system_management.urls')),
     # Swagger 相关 UI 页面
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     re_path(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
