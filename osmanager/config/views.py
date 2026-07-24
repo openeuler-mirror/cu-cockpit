@@ -2,6 +2,7 @@
 import subprocess
 import json
 import os
+from datetime import datetime
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.http import JsonResponse
@@ -15,6 +16,13 @@ from pathlib import Path
 from rest_framework.decorators import api_view, parser_classes
 from django.http import HttpResponse
 from osmanager.auth.decorators import login_required_api
+from osmanager.system_management.command import run_safe
+from osmanager.system_management.permissions import audited_admin_api, get_session_identity
+from osmanager.system_management.snapshots import create_snapshot, register_snapshot_target, write_registered_text
+
+
+BASHRC_SNAPSHOT_TARGET = 'root-bashrc'
+register_snapshot_target(BASHRC_SNAPSHOT_TARGET, '/root/.bashrc')
 
 class AnyBinaryParser(BaseParser):
     media_type = '*/*'  # 接受所有类型
@@ -186,6 +194,10 @@ def build_args_settime(script_path, data):
     if TYPE == 'settime' and not TIME:
         raise ValueError("当type为settime时,time为必填")
     if TYPE == 'settime':
+        try:
+            datetime.strptime(TIME, '%Y-%m-%d %H:%M:%S %z')
+        except (TypeError, ValueError) as error:
+            raise ValueError('time格式必须为 YYYY-MM-DD HH:MM:SS +0800') from error
         return ['sh', script_path, TYPE, TIME]  # TIME作为单独参数，不会被拆分
     else:
         return ['sh', script_path, TYPE]
@@ -194,13 +206,19 @@ def build_args_hostname(script_path, data):
     hostname = data.get('hostname')
     if not hostname:
         raise ValueError("hostname必填")
+    if len(hostname) > 253 or any(
+        not label or len(label) > 63 or label[0] == '-' or label[-1] == '-'
+        or not all(char.isalnum() or char == '-' for char in label)
+        for label in hostname.split('.')
+    ):
+        raise ValueError('hostname格式不合法')
     return ['sh', script_path, 'sethostname', hostname]
 
 SCRIPT_REGISTRY = {
     'set_time.sh': build_args_settime,
     'config.sh': build_args_hostname,
 }
-@login_required_api
+@audited_admin_api('config', 'set_system_config')
 @swagger_auto_schema(
     method='post',
     manual_parameters=[
@@ -252,14 +270,7 @@ def set_time_hostname_api(request, script_name):
     try:
         build_args = SCRIPT_REGISTRY[script_name]
         args = build_args(script_path, request.data)
-        result = subprocess.run(
-            args,
-            check=False,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            timeout=30
-        )
+        result = run_safe(args, {'sh'}, timeout=30)
 
         return_code = result.returncode
         stdout = (result.stdout or '').strip()
@@ -290,7 +301,7 @@ def set_time_hostname_api(request, script_name):
         }, status=500, json_dumps_params={'ensure_ascii': False})
 
 
-@login_required_api
+@audited_admin_api('config', 'write_managed_file')
 @swagger_auto_schema(
     method='post',
     operation_description="文件修改",
@@ -349,21 +360,24 @@ def write_bytes_to_file(request):
         if not file_path:
             return Response({"error": "缺少必要参数", "message": "请在URL查询参数提供 file_path"}, status=400)
 
-        base_dir = request.query_params.get('dir_path')  # 只从URL取，避免触发body解析
-        if not base_dir:
-            base_dir = os.path.expanduser('~')
-        safe_path = os.path.join(base_dir, file_path.lstrip('/'))
+        base_dir = request.query_params.get('dir_path')
+        if file_path != '.bashrc' or base_dir not in (None, ''):
+            return Response({"error": "不支持的配置目标", "message": "仅允许修改已注册的 .bashrc"}, status=400)
+        safe_path = '/root/.bashrc'
         p = Path(safe_path)
-        # 创建目录（如果不存在）
-        if p.parent and not p.parent.exists():
-            p.parent.mkdir(parents=True, exist_ok=True)
 
         data = request.data
         if not isinstance(data, (bytes, bytearray)):
             return Response({"error": "数据错误", "message": "未接收到二进制数据"}, status=400)
 
-        with p.open("wb") as f:
-            f.write(data)
+        try:
+            content = bytes(data).decode('utf-8')
+        except UnicodeDecodeError:
+            return Response({"error": "数据错误", "message": "配置内容必须为 UTF-8 文本"}, status=400)
+
+        identity = get_session_identity(request)
+        create_snapshot(identity.username, 'config', BASHRC_SNAPSHOT_TARGET, '配置文件写入前快照')
+        write_registered_text(BASHRC_SNAPSHOT_TARGET, content)
 
         file_size = p.stat().st_size if p.exists() else 0
         return JsonResponse({
