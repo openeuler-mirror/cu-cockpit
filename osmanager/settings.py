@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',       # swagger需要的包
     'drf_yasg',             # swagger需要的包,pip install drf-yasg
+    'osmanager.system_management',
 ]
 
 MIDDLEWARE = [
