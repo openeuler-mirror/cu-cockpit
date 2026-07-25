@@ -1,0 +1,24 @@
+[Unit]
+Description=CU Cockpit WebSSH Proxy
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+DynamicUser=true
+WorkingDirectory=/opt/cu-cockpit
+ExecStart=/opt/cu-cockpit/venv/bin/wssh --address=127.0.0.1 --port=8002 --origin=http://172.16.141.253:8008 --xsrf=True --delay=30 --timeout=10 --maxconn=20
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
