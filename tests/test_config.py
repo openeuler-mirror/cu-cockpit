@@ -7,6 +7,7 @@ import sys
 import django
 from pathlib import Path
 import json
+from types import SimpleNamespace
 
 # 设置Django环境
 project_root = Path(__file__).parent.parent
@@ -18,12 +19,19 @@ from unittest.mock import patch, MagicMock
 from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
+from osmanager.system_management.command import CommandResult
 
 
 
 class ConfigViewsTest(TestCase):
     def setUp(self):
         """测试初始化设置"""
+        self.identity_patcher = patch(
+            'osmanager.system_management.permissions.pwd.getpwnam',
+            return_value=SimpleNamespace(pw_uid=0),
+        )
+        self.identity_patcher.start()
+        self.addCleanup(self.identity_patcher.stop)
         self.client = APIClient()
 
         # 模拟已登录用户
@@ -161,13 +169,14 @@ class ConfigViewsTest(TestCase):
         for script_name, data in test_cases:
             with self.subTest(script_name=script_name):
                 with patch('os.path.isfile', return_value=True), \
-                     patch('subprocess.run') as mock_subprocess:
-
-                    mock_result = MagicMock()
-                    mock_result.returncode = 0
-                    mock_result.stdout = 'success'
-                    mock_result.stderr = ''
-                    mock_subprocess.return_value = mock_result
+                     patch('osmanager.config.views.run_safe', return_value=CommandResult(
+                         returncode=0,
+                         stdout='success',
+                         stderr='',
+                         duration_ms=1,
+                         stdout_truncated=False,
+                         stderr_truncated=False,
+                     )):
 
                     response = self.client.post(
                         f'/api/config/set/{script_name}',
@@ -231,13 +240,14 @@ class ConfigViewsTest(TestCase):
     def test_set_time_hostname_api_script_failure(self):
         """测试脚本执行失败的情况"""
         with patch('os.path.isfile', return_value=True), \
-             patch('subprocess.run') as mock_subprocess:
-
-            mock_result = MagicMock()
-            mock_result.returncode = 1
-            mock_result.stdout = ''
-            mock_result.stderr = 'Command failed'
-            mock_subprocess.return_value = mock_result
+             patch('osmanager.config.views.run_safe', return_value=CommandResult(
+                 returncode=1,
+                 stdout='',
+                 stderr='Command failed',
+                 duration_ms=1,
+                 stdout_truncated=False,
+                 stderr_truncated=False,
+             )):
 
             response = self.client.post(
                 '/api/config/set/config.sh',
