@@ -16,6 +16,7 @@ django.setup()
 
 import json
 from unittest.mock import patch, MagicMock
+from types import SimpleNamespace
 from django.test import TestCase, Client
 from django.urls import reverse
 from rest_framework.test import APIClient
@@ -25,6 +26,12 @@ from rest_framework import status
 class WebTerminalViewsTest(TestCase):
     def setUp(self):
         """测试初始化设置"""
+        self.identity_patcher = patch(
+            'osmanager.system_management.permissions.pwd.getpwnam',
+            return_value=SimpleNamespace(pw_uid=0),
+        )
+        self.identity_patcher.start()
+        self.addCleanup(self.identity_patcher.stop)
         self.client = APIClient()
 
         # 模拟已登录用户（根据你的认证系统）
@@ -257,8 +264,8 @@ class WebTerminalViewsTest(TestCase):
             mock_post_response.json.side_effect = ValueError('Invalid JSON')
             mock_session.post.return_value = mock_post_response
 
-            with self.assertRaises(ValueError):
-                self.client.post('/api/terminal/connect', self.valid_terminal_data)
+            response = self.client.post('/api/terminal/connect', self.valid_terminal_data)
+            self.assertEqual(response.status_code, status.HTTP_502_BAD_GATEWAY)
 
     def test_terminal_connect_empty_data(self):
         """测试空数据的终端连接"""
@@ -277,7 +284,8 @@ class WebTerminalViewsTest(TestCase):
 
             response = self.client.post('/api/terminal/connect', {})
 
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            mock_session_class.assert_not_called()
 
     def test_terminal_connect_with_remote_addr(self):
         """测试使用REMOTE_ADDR的情况"""
@@ -306,18 +314,8 @@ class WebTerminalViewsTest(TestCase):
 
     def test_terminal_connect_get_method(self):
         """测试使用GET方法请求终端连接的情况"""
-        with patch('requests.Session') as mock_session_class:
-            mock_session = MagicMock()
-            mock_session_class.return_value = mock_session
-
-            # 模拟GET请求超时或连接错误
-            mock_session.get.side_effect = Exception('Connection error')
-
-            # 由于异常没有被处理，异常会直接抛出
-            with self.assertRaises(Exception) as context:
-                self.client.get('/api/terminal/connect')
-
-            self.assertEqual(str(context.exception), 'Connection error')
+        response = self.client.get('/api/terminal/connect')
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_auth_check_get_method(self):
         """测试使用GET方法请求认证检查的情况"""
