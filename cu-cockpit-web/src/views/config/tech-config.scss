@@ -252,7 +252,8 @@
 	}
 
 	.config-control-panel,
-	.config-file-panel {
+	.config-file-panel,
+	.config-management-panel {
 		border: 1px solid var(--tech-border);
 		border-radius: 8px;
 		background: rgba(11, 20, 37, 0.76);
@@ -263,6 +264,271 @@
 
 	.config-file-panel {
 		margin-top: 18px;
+	}
+
+	.config-management {
+		display: grid;
+		gap: 18px;
+		margin-top: 18px;
+	}
+
+	.config-management-panel {
+		overflow: hidden;
+	}
+
+	.config-system-grid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 14px;
+		padding: 16px;
+	}
+
+	.config-system-unit {
+		min-width: 0;
+		padding: 16px;
+		border: 1px solid rgba(90, 165, 255, 0.14);
+		border-radius: 7px;
+		background: rgba(8, 16, 30, 0.72);
+	}
+
+	.config-system-unit__head {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+
+		> div {
+			min-width: 0;
+			margin-right: auto;
+		}
+
+		h3 {
+			margin: 0;
+			color: var(--tech-text-strong);
+			font-size: 14px;
+			letter-spacing: 0.5px;
+		}
+
+		span:not(.config-state-chip) {
+			display: block;
+			margin-top: 4px;
+			color: var(--tech-text-dim);
+			font-size: 10px;
+		}
+	}
+
+	.config-system-unit__icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 38px;
+		height: 38px;
+		flex: none;
+		border: 1px solid rgba(34, 211, 238, 0.28);
+		border-radius: 7px;
+		color: var(--tech-cyan);
+		background: rgba(34, 211, 238, 0.07);
+
+		&.is-security {
+			border-color: rgba(168, 85, 247, 0.28);
+			color: #c084fc;
+			background: rgba(168, 85, 247, 0.07);
+		}
+	}
+
+	.config-state-chip {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 24px;
+		padding: 0 8px;
+		border: 1px solid rgba(90, 165, 255, 0.18);
+		border-radius: 4px;
+		color: #91a4c0;
+		background: rgba(90, 165, 255, 0.05);
+		font-size: 10px;
+		font-weight: 700;
+		white-space: nowrap;
+
+		&.is-active {
+			border-color: rgba(16, 245, 160, 0.25);
+			color: var(--tech-green);
+			background: rgba(16, 245, 160, 0.06);
+		}
+
+		&.is-warning {
+			border-color: rgba(255, 176, 32, 0.26);
+			color: var(--tech-amber);
+			background: rgba(255, 176, 32, 0.06);
+		}
+	}
+
+	.config-fact-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		margin-top: 18px;
+		padding: 10px 0;
+		border-top: 1px solid rgba(90, 165, 255, 0.09);
+		color: var(--tech-text-dim);
+		font-size: 11px;
+
+		strong {
+			overflow: hidden;
+			color: #d8e8fa;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+	}
+
+	.config-source-list {
+		display: flex;
+		gap: 7px;
+		min-height: 30px;
+		flex-wrap: wrap;
+
+		span {
+			display: inline-flex;
+			align-items: center;
+			min-height: 26px;
+			padding: 0 8px;
+			border: 1px solid rgba(34, 211, 238, 0.15);
+			border-radius: 4px;
+			color: #9fc7d2;
+			background: rgba(34, 211, 238, 0.04);
+			font-size: 10px;
+		}
+	}
+
+	.config-selinux-state {
+		display: grid;
+		gap: 8px;
+		margin-top: 18px;
+		padding: 14px;
+		border: 1px solid rgba(255, 176, 32, 0.16);
+		border-radius: 6px;
+		background: rgba(255, 176, 32, 0.035);
+
+		strong {
+			color: var(--tech-amber);
+			font-size: 18px;
+		}
+
+		span {
+			color: #9a8c72;
+			font-size: 10px;
+		}
+	}
+
+	.config-system-unit__actions {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		margin-top: 16px;
+
+		small {
+			color: var(--tech-text-dim);
+			font-size: 10px;
+		}
+	}
+
+	.config-management-head {
+		align-items: flex-start;
+	}
+
+	.config-management-tools {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 8px;
+		flex-wrap: wrap;
+
+		.el-input {
+			width: 210px;
+		}
+
+		.el-input__wrapper {
+			background: rgba(8, 16, 30, 0.78);
+			box-shadow: inset 0 0 0 1px rgba(90, 165, 255, 0.16);
+		}
+	}
+
+	.config-management-tabs {
+		.el-tabs__header {
+			margin: 0;
+			padding: 0 16px;
+			background: rgba(8, 16, 30, 0.45);
+		}
+
+		.el-tabs__nav-wrap::after {
+			height: 1px;
+			background: rgba(90, 165, 255, 0.12);
+		}
+
+		.el-tabs__item {
+			color: #8294ae;
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.el-tabs__item.is-active,
+		.el-tabs__item:hover {
+			color: var(--tech-cyan);
+		}
+
+		.el-tabs__active-bar {
+			background: var(--tech-cyan);
+			box-shadow: 0 0 8px rgba(34, 211, 238, 0.45);
+		}
+	}
+
+	.config-table-wrap {
+		overflow-x: auto;
+	}
+
+	.config-management-table.el-table {
+		--el-table-bg-color: transparent;
+		--el-table-tr-bg-color: transparent;
+		--el-table-header-bg-color: rgba(17, 30, 52, 0.9);
+		--el-table-row-hover-bg-color: rgba(34, 211, 238, 0.055);
+		--el-table-border-color: rgba(90, 165, 255, 0.1);
+		--el-table-header-text-color: #a8c3d8;
+		--el-table-text-color: #bac9dc;
+		background: transparent;
+
+		&::before,
+		.el-table__inner-wrapper::before {
+			display: none;
+		}
+
+		th.el-table__cell {
+			background: rgba(17, 30, 52, 0.9) !important;
+			font-size: 10px;
+			letter-spacing: 0.8px;
+		}
+
+		td.el-table__cell {
+			border-bottom-color: rgba(90, 165, 255, 0.09);
+			background: transparent;
+			font-size: 11px;
+		}
+	}
+
+	.config-diff-view {
+		min-height: 100%;
+		padding: 16px;
+		background: #050b16;
+
+		pre {
+			margin: 0;
+			color: #b6c9dd;
+			font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+			font-size: 11px;
+			line-height: 1.65;
+			white-space: pre-wrap;
+			word-break: break-all;
+		}
 	}
 
 	.config-panel__head {
@@ -775,6 +1041,19 @@
 		.config-control-card {
 			min-height: 188px;
 		}
+
+		.config-system-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.config-management-head {
+			align-items: stretch;
+			flex-direction: column;
+		}
+
+		.config-management-tools {
+			justify-content: flex-start;
+		}
 	}
 }
 
@@ -843,6 +1122,37 @@
 			align-items: stretch;
 			padding: 12px;
 			flex-direction: column;
+		}
+
+		.config-system-grid {
+			gap: 10px;
+			padding: 12px;
+		}
+
+		.config-system-unit {
+			padding: 14px;
+		}
+
+		.config-management-tools {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			width: 100%;
+
+			.el-input {
+				grid-column: 1 / -1;
+				width: 100%;
+			}
+
+			.el-button {
+				width: 100%;
+				margin: 0;
+			}
+		}
+
+		.config-management-table {
+			.config-col-secondary {
+				display: none;
+			}
 		}
 
 		.config-file-select {
