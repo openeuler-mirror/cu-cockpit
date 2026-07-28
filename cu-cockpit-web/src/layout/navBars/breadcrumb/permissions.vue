@@ -132,20 +132,22 @@ const openPermissions = () => {
         btnName.value = "限制访问";
     }
 };
-const setPermissiom = () => {
+const setPermissiom = async () => {
     if (u_Permission.value == 'other') {
         if (!inputPassword.value || loading.value) return;
         loading.value = true;
         login({
             'username': userInfos.value.username,
             'password': inputPassword.value
-        }).then((res: LoginResponse) => {
+        }).then(async (res: LoginResponse) => {
             if (res.code == 200) {
-                //登录成功
-                state.isShowSearch = false;
-                userPermissiom().setUserPermissionStore(Local.get('username'),'root');
-                Local.set("u_Permission", "root");
+                const permission = await userPermissiom().setUserPermissionStore(Local.get('username'), 'root');
                 loading.value = false;
+                if (permission !== 'root') {
+                    errloading.value = true;
+                    return;
+                }
+                state.isShowSearch = false;
             } else {
                 errloading.value = true;
                 loading.value = false;
@@ -157,8 +159,7 @@ const setPermissiom = () => {
         });
     } else {
         //限制访问
-        userPermissiom().setUserPermissionStore(Local.get('username'),'other');
-        Local.set("u_Permission", "other");
+        await userPermissiom().setUserPermissionStore(Local.get('username'), 'other');
         loading.value = false;
         state.isShowSearch = false;
     }
