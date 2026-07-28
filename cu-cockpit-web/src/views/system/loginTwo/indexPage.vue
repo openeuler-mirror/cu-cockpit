@@ -96,7 +96,7 @@ const loginClick = async () => {
                     Session.set('token', res.user);
                     Local.set("username", res.user);
                     useUserInfo().setUserName(res.user);
-                    userPermissiom().getUserPermissionStore(res.user);
+                    userPermissiom().getUserPermissionStore();
                     initFrontEndControlRoutes();
                     if (route.query?.redirect) {
                         router.push({
