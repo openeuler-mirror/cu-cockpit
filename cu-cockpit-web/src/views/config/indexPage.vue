@@ -74,6 +74,8 @@
             </div>
         </section>
 
+        <ManagementCenter />
+
         <section class="config-file-panel">
             <div class="config-panel__head config-file-head">
                 <div>
@@ -197,6 +199,7 @@ import dayjs from 'dayjs';
 import { storeToRefs } from 'pinia';
 import { useThemeConfig } from '/@/stores/themeConfig';
 import { userPermissiom } from '/@/stores/userPermissiom';
+import ManagementCenter from './components/managementCenter.vue';
 
 const storeUserPermissiom = userPermissiom();
 const { u_Permission } = storeToRefs(storeUserPermissiom);
