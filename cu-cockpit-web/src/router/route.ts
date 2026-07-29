@@ -131,6 +131,48 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
         }
       },
       {
+        path: '/network',
+        component: () => import('/@/views/network/indexPage.vue'),
+        name: 'network',
+        meta: {
+          title: 'message.router.network',
+          isLink: '',
+          isHide: false,
+          isKeepAlive: false,
+          isAffix: false,
+          isIframe: false,
+          icon: 'fa fa-sitemap',
+        }
+      },
+      {
+        path: '/process',
+        component: () => import('/@/views/process/indexPage.vue'),
+        name: 'process',
+        meta: {
+          title: 'message.router.process',
+          isLink: '',
+          isHide: false,
+          isKeepAlive: false,
+          isAffix: false,
+          isIframe: false,
+          icon: 'fa fa-tasks',
+        }
+      },
+      {
+        path: '/cron',
+        component: () => import('/@/views/cron/indexPage.vue'),
+        name: 'cron',
+        meta: {
+          title: 'message.router.cron',
+          isLink: '',
+          isHide: false,
+          isKeepAlive: false,
+          isAffix: false,
+          isIframe: false,
+          icon: 'fa fa-clock-o',
+        }
+      },
+      {
         path: '/log',
         component: () => import('/@/views/log/indexPage.vue'),
         name: 'logs',
