@@ -15,6 +15,9 @@ export default {
         limitsBackEnd: 'BackEnd',
         limitsBackEndEndPage: 'BackEndEndPage',
         personal: 'personal',
+        cron: 'Scheduled Tasks',
+        process: 'Processes',
+        network: 'Network & Firewall',
     },
     staticRoutes: {
         signIn: 'signIn',
