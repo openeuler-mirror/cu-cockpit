@@ -20,7 +20,20 @@
 				</el-tab-pane>
 				<el-tab-pane label="路由与 DNS" name="routes">
 					<div class="network-dns-bar"><div><small>DNS 服务器</small><strong>{{ overview.dns.nameservers.join(' · ') || '未配置' }}</strong></div><div><small>默认网关</small><strong>{{ defaultRoute.gateway || '—' }} · {{ defaultRoute.dev || '—' }}</strong></div><code>{{ overview.dns.path }}</code></div>
-					<div class="network-table-wrap"><el-table :data="overview.routes" class="network-table"><el-table-column prop="dst" label="目标" min-width="160"><template #default="{ row }"><code>{{ row.dst || 'default' }}</code></template></el-table-column><el-table-column prop="gateway" label="网关" min-width="150"><template #default="{ row }">{{ row.gateway || '直连' }}</template></el-table-column><el-table-column prop="dev" label="接口" min-width="110" /><el-table-column prop="protocol" label="协议" min-width="110" class-name="network-col-secondary" /><el-table-column prop="prefsrc" label="源地址" min-width="150" class-name="network-col-secondary" /><el-table-column prop="metric" label="Metric" width="90" align="right" /></el-table></div>
+					<div class="network-table-wrap"><el-table :data="pagedRoutes" class="network-table network-route-table"><el-table-column prop="dst" label="目标" min-width="130"><template #default="{ row }"><code>{{ row.dst || 'default' }}</code></template></el-table-column><el-table-column prop="gateway" label="网关" min-width="100"><template #default="{ row }">{{ row.gateway || '直连' }}</template></el-table-column><el-table-column prop="dev" label="接口" min-width="115" /><el-table-column prop="protocol" label="协议" min-width="110" class-name="network-col-secondary" /><el-table-column prop="prefsrc" label="源地址" min-width="150" class-name="network-col-secondary" /><el-table-column prop="metric" label="Metric" width="80" align="right" class-name="network-col-metric" /></el-table></div>
+					<div v-if="overview.routes.length" class="network-pagination">
+						<el-pagination
+							:current-page="routePage"
+							:page-size="routePageSize"
+							:page-sizes="routePageSizeOptions"
+							:pager-count="5"
+							:total="overview.routes.length"
+							layout="total, sizes, prev, pager, next"
+							@size-change="onRoutePageSizeChange"
+							@current-change="routePage = $event"
+						/>
+						<span class="network-pagination__page">{{ routePage }} / {{ Math.ceil(overview.routes.length / routePageSize) }}</span>
+					</div>
 				</el-tab-pane>
 				<el-tab-pane label="监听端口" name="listeners">
 					<div class="network-tab-toolbar"><el-input v-model="listenerSearch" :prefix-icon="Search" clearable placeholder="端口 / 地址 / 进程" /></div>
@@ -53,9 +66,11 @@ import { useThemeConfig } from '/@/stores/themeConfig';
 const permissionStore = userPermissiom(); const { u_Permission } = storeToRefs(permissionStore); const isAdmin = computed(() => u_Permission.value === 'root');
 const themeStore = useThemeConfig(); const { themeConfig } = storeToRefs(themeStore);
 const loading = ref(false); const saving = ref(false); const activeTab = ref('interfaces'); const listenerSearch = ref(''); const firewallDialog = ref(false);
+const routePage = ref(1); const routePageSize = ref(10); const routePageSizeOptions = [10, 20, 50];
 const overview = reactive<NetworkOverview>({ interfaces: [], routes: [], default_routes: [], dns: { nameservers: [], search: [], options: [], path: '', symlink: false }, listeners: [], firewall: { installed: false, active: false, writable: false, reason: '', default_zone: '', zones: [], available_services: [] }, summary: { interfaces: 0, interfaces_up: 0, addresses: 0, routes: 0, listeners: 0 } });
 const ruleForm = reactive<{ zone: string; rule_type: 'service' | 'port'; value: string; protocol: 'tcp' | 'udp' }>({ zone: '', rule_type: 'service', value: '', protocol: 'tcp' });
 const defaultRoute = computed(() => overview.default_routes[0] || {});
+const pagedRoutes = computed(() => { const start = (routePage.value - 1) * routePageSize.value; return overview.routes.slice(start, start + routePageSize.value); });
 const summaryItems = computed(() => [
 	{ label: '网络接口', value: `${overview.summary.interfaces_up}/${overview.summary.interfaces} UP`, icon: Connection, color: '#22d3ee' },
 	{ label: 'IP 地址', value: overview.summary.addresses, icon: Monitor, color: '#10f5a0' },
@@ -63,7 +78,8 @@ const summaryItems = computed(() => [
 	{ label: '监听端口', value: overview.summary.listeners, icon: Lock, color: '#ffb020' },
 ]);
 const filteredListeners = computed(() => { const keyword = listenerSearch.value.trim().toLowerCase(); return overview.listeners.filter((item) => !keyword || `${item.protocol} ${item.local_address} ${item.local_port} ${item.processes.map((process) => process.name).join(' ')}`.toLowerCase().includes(keyword)); });
-const loadData = async () => { loading.value = true; try { await permissionStore.refreshUserPermission(); Object.assign(overview, await getNetworkOverview()); } catch (error) { ElMessage.error('网络数据加载失败'); console.error(error); } finally { loading.value = false; } };
+const loadData = async () => { loading.value = true; try { await permissionStore.refreshUserPermission(); Object.assign(overview, await getNetworkOverview()); routePage.value = Math.min(routePage.value, Math.max(1, Math.ceil(overview.routes.length / routePageSize.value))); } catch (error) { ElMessage.error('网络数据加载失败'); console.error(error); } finally { loading.value = false; } };
+const onRoutePageSizeChange = (size: number) => { routePageSize.value = size; routePage.value = 1; };
 const openFirewallDialog = () => { ruleForm.zone = overview.firewall.default_zone || overview.firewall.zones[0]?.name || ''; ruleForm.rule_type = 'service'; ruleForm.value = ''; ruleForm.protocol = 'tcp'; firewallDialog.value = true; };
 const addRule = async () => { saving.value = true; try { await updateFirewallRule({ action: 'add', ...ruleForm }); firewallDialog.value = false; ElMessage.success('规则已添加'); await loadData(); } catch (error) { console.error(error); } finally { saving.value = false; } };
 const removeRule = async (zone: string, ruleType: 'service' | 'port', value: string, protocol?: 'tcp' | 'udp') => { await ElMessageBox.confirm(`从 ${zone} 删除 ${value}？`, '删除防火墙规则', { type: 'warning' }); await updateFirewallRule({ action: 'remove', zone, rule_type: ruleType, value, protocol }); ElMessage.success('规则已删除'); await loadData(); };
