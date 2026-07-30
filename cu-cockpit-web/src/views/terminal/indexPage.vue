@@ -26,29 +26,33 @@
 			</button>
 		</nav>
 
-		<section class="terminal-connect-panel">
-			<div class="terminal-panel__head"><div><h2 class="terminal-panel__title">建立 SSH 会话</h2><div class="terminal-panel__meta">SECRETS STAY IN MEMORY · NEVER SAVED TO HISTORY</div></div><span class="terminal-connection-detail">{{ activeSession.error || connectionHint }}</span></div>
-			<div class="terminal-auth-mode"><el-segmented v-model="activeSession.authType" :options="[{ label: '密码认证', value: 'password' }, { label: 'SSH 私钥', value: 'key' }]" :disabled="connectionLocked" /></div>
-			<div class="terminal-connect-form">
+		<div class="terminal-control-layout">
+			<section class="terminal-connect-panel">
+				<div class="terminal-panel__head">
+					<div><h2 class="terminal-panel__title">建立 SSH 会话</h2><div class="terminal-panel__meta">SECRETS STAY IN MEMORY · NEVER SAVED TO HISTORY</div></div>
+					<div class="terminal-connect-head"><el-segmented v-model="activeSession.authType" :options="[{ label: '密码认证', value: 'password' }, { label: 'SSH 私钥', value: 'key' }]" :disabled="connectionLocked" /><span class="terminal-connection-detail">{{ activeSession.error || connectionHint }}</span></div>
+				</div>
+				<el-form class="terminal-connect-form" label-position="top" @submit.prevent>
 				<div class="terminal-connect-grid">
 					<el-form-item label="目标 IP / 主机名"><el-input v-model="activeSession.hostname" class="terminal-control" placeholder="例如 172.16.141.253" :disabled="connectionLocked" /></el-form-item>
 					<el-form-item label="端口"><el-input-number v-model="activeSession.port" class="terminal-control terminal-port-control" :min="1" :max="65535" controls-position="right" :disabled="connectionLocked" /></el-form-item>
 					<el-form-item label="用户名"><el-input v-model="activeSession.username" class="terminal-control" placeholder="SSH 用户名" :disabled="connectionLocked" /></el-form-item>
 					<el-form-item v-if="activeSession.authType === 'password'" label="密码"><el-input v-model="activeSession.password" class="terminal-control" type="password" show-password autocomplete="new-password" :disabled="connectionLocked" /></el-form-item>
-					<el-form-item v-else label="私钥" class="terminal-key-field"><el-input v-model="activeSession.privatekey" class="terminal-control terminal-key-input" type="textarea" :rows="5" placeholder="-----BEGIN OPENSSH PRIVATE KEY-----" :disabled="connectionLocked" /></el-form-item>
 					<el-form-item v-if="activeSession.authType === 'key'" label="私钥口令（可选）"><el-input v-model="activeSession.passphrase" class="terminal-control" type="password" show-password autocomplete="new-password" :disabled="connectionLocked" /></el-form-item>
+					<el-form-item v-if="activeSession.authType === 'key'" label="私钥" class="terminal-key-field"><el-input v-model="activeSession.privatekey" class="terminal-control terminal-key-input" type="textarea" :rows="4" placeholder="-----BEGIN OPENSSH PRIVATE KEY-----" :disabled="connectionLocked" /></el-form-item>
 				</div>
 				<div class="terminal-connect-actions"><span class="terminal-security-note">密码、私钥、口令不会写入浏览器存储或历史</span><el-button class="terminal-action terminal-action--primary" :icon="Connection" :loading="isConnecting" :disabled="!canConnect" @click="activePane?.connect()">{{ activeSession.state === 'failed' || activeSession.state === 'closed' ? '重新连接' : '连接终端' }}</el-button></div>
-			</div>
-		</section>
+				</el-form>
+			</section>
 
-		<section class="terminal-history-panel">
-			<div class="terminal-panel__head"><div><h2 class="terminal-panel__title">连接历史</h2><div class="terminal-panel__meta">NON-SENSITIVE PROFILE · QUICK RECONNECT</div></div><span>{{ history.length }}/20</span></div>
-			<div class="terminal-history-list">
-				<article v-for="item in history" :key="historyKey(item)"><span><el-icon><Clock /></el-icon></span><div><strong>{{ item.username }}@{{ item.hostname }}:{{ item.port }}</strong><small>{{ item.authType === 'key' ? 'SSH 私钥' : '密码认证' }} · {{ formatTime(item.connectedAt) }}</small></div><el-button class="terminal-action" @click="reconnectHistory(item)">快速重连</el-button><el-button :icon="Delete" circle text @click="removeHistory(item)" /></article>
-				<div v-if="!history.length" class="terminal-history-empty">成功连接后将在此保存非敏感目标信息</div>
-			</div>
-		</section>
+			<section class="terminal-history-panel">
+				<div class="terminal-panel__head"><div><h2 class="terminal-panel__title">连接历史</h2><div class="terminal-panel__meta">NON-SENSITIVE PROFILE · QUICK RECONNECT</div></div><span>{{ history.length }}/20</span></div>
+				<div class="terminal-history-list">
+					<article v-for="item in history" :key="historyKey(item)"><span><el-icon><Clock /></el-icon></span><div><strong>{{ item.username }}@{{ item.hostname }}:{{ item.port }}</strong><small>{{ item.authType === 'key' ? 'SSH 私钥' : '密码认证' }} · {{ formatTime(item.connectedAt) }}</small></div><el-button class="terminal-action" @click="reconnectHistory(item)">快速重连</el-button><el-button :icon="Delete" circle text @click="removeHistory(item)" /></article>
+					<div v-if="!history.length" class="terminal-history-empty">成功连接后将在此保存非敏感目标信息</div>
+				</div>
+			</section>
+		</div>
 
 		<section class="terminal-session-panel">
 			<div class="terminal-panel__head"><div><h2 class="terminal-panel__title">交互式终端</h2><div class="terminal-panel__meta">{{ activeSession.title }} · {{ activeSession.cols || 0 }} COLS × {{ activeSession.rows || 0 }} ROWS</div></div><div class="terminal-session-actions"><el-button class="terminal-action" :icon="Delete" @click="activePane?.clear()">清屏</el-button></div></div>
