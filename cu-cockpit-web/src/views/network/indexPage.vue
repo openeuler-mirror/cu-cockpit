@@ -25,7 +25,7 @@
 						<el-pagination
 							:current-page="routePage"
 							:page-size="routePageSize"
-							:page-sizes="routePageSizeOptions"
+							:page-sizes="pageSizeOptions"
 							:pager-count="5"
 							:total="overview.routes.length"
 							layout="total, sizes, prev, pager, next"
@@ -36,8 +36,21 @@
 					</div>
 				</el-tab-pane>
 				<el-tab-pane label="监听端口" name="listeners">
-					<div class="network-tab-toolbar"><el-input v-model="listenerSearch" :prefix-icon="Search" clearable placeholder="端口 / 地址 / 进程" /></div>
-					<div class="network-table-wrap"><el-table :data="filteredListeners" class="network-table"><el-table-column prop="protocol" label="协议" width="90"><template #default="{ row }"><span class="network-protocol">{{ row.protocol }}</span></template></el-table-column><el-table-column label="监听地址" min-width="210"><template #default="{ row }"><code>{{ row.local_address }}:{{ row.local_port }}</code></template></el-table-column><el-table-column prop="state" label="状态" width="100" class-name="network-col-secondary" /><el-table-column label="进程" min-width="230"><template #default="{ row }">{{ row.processes.map((item) => `${item.name}(${item.pid})`).join(', ') || '未公开' }}</template></el-table-column><el-table-column label="Peer" min-width="170" class-name="network-col-secondary"><template #default="{ row }"><code>{{ row.peer_address }}:{{ row.peer_port }}</code></template></el-table-column></el-table></div>
+					<div class="network-tab-toolbar"><el-input v-model="listenerSearch" :prefix-icon="Search" clearable placeholder="端口 / 地址 / 进程" @input="listenerPage = 1" /></div>
+					<div class="network-table-wrap"><el-table :data="pagedListeners" class="network-table network-listener-table"><el-table-column prop="protocol" label="协议" width="90"><template #default="{ row }"><span class="network-protocol">{{ row.protocol }}</span></template></el-table-column><el-table-column label="监听地址" min-width="210"><template #default="{ row }"><code>{{ row.local_address }}:{{ row.local_port }}</code></template></el-table-column><el-table-column prop="state" label="状态" width="100" class-name="network-col-secondary" /><el-table-column label="进程" min-width="230" class-name="network-col-secondary"><template #default="{ row }">{{ row.processes.map((item) => `${item.name}(${item.pid})`).join(', ') || '未公开' }}</template></el-table-column><el-table-column label="Peer" min-width="170" class-name="network-col-secondary"><template #default="{ row }"><code>{{ row.peer_address }}:{{ row.peer_port }}</code></template></el-table-column></el-table></div>
+					<div v-if="filteredListeners.length" class="network-pagination">
+						<el-pagination
+							:current-page="listenerPage"
+							:page-size="listenerPageSize"
+							:page-sizes="pageSizeOptions"
+							:pager-count="5"
+							:total="filteredListeners.length"
+							layout="total, sizes, prev, pager, next"
+							@size-change="onListenerPageSizeChange"
+							@current-change="listenerPage = $event"
+						/>
+						<span class="network-pagination__page">{{ listenerPage }} / {{ Math.ceil(filteredListeners.length / listenerPageSize) }}</span>
+					</div>
 				</el-tab-pane>
 				<el-tab-pane label="Firewalld" name="firewall">
 					<div class="network-firewall-status" :class="{ 'is-active': overview.firewall.active }"><span><el-icon><Lock /></el-icon></span><div><h3>{{ overview.firewall.active ? 'Firewalld 正在运行' : 'Firewalld 未运行' }}</h3><p>{{ overview.firewall.reason || `默认区域：${overview.firewall.default_zone}` }}</p></div><el-button class="network-action" :icon="Plus" :disabled="!isAdmin || !overview.firewall.writable" @click="openFirewallDialog">添加规则</el-button></div>
@@ -66,7 +79,7 @@ import { useThemeConfig } from '/@/stores/themeConfig';
 const permissionStore = userPermissiom(); const { u_Permission } = storeToRefs(permissionStore); const isAdmin = computed(() => u_Permission.value === 'root');
 const themeStore = useThemeConfig(); const { themeConfig } = storeToRefs(themeStore);
 const loading = ref(false); const saving = ref(false); const activeTab = ref('interfaces'); const listenerSearch = ref(''); const firewallDialog = ref(false);
-const routePage = ref(1); const routePageSize = ref(10); const routePageSizeOptions = [10, 20, 50];
+const routePage = ref(1); const routePageSize = ref(10); const listenerPage = ref(1); const listenerPageSize = ref(10); const pageSizeOptions = [10, 20, 50];
 const overview = reactive<NetworkOverview>({ interfaces: [], routes: [], default_routes: [], dns: { nameservers: [], search: [], options: [], path: '', symlink: false }, listeners: [], firewall: { installed: false, active: false, writable: false, reason: '', default_zone: '', zones: [], available_services: [] }, summary: { interfaces: 0, interfaces_up: 0, addresses: 0, routes: 0, listeners: 0 } });
 const ruleForm = reactive<{ zone: string; rule_type: 'service' | 'port'; value: string; protocol: 'tcp' | 'udp' }>({ zone: '', rule_type: 'service', value: '', protocol: 'tcp' });
 const defaultRoute = computed(() => overview.default_routes[0] || {});
@@ -78,8 +91,10 @@ const summaryItems = computed(() => [
 	{ label: '监听端口', value: overview.summary.listeners, icon: Lock, color: '#ffb020' },
 ]);
 const filteredListeners = computed(() => { const keyword = listenerSearch.value.trim().toLowerCase(); return overview.listeners.filter((item) => !keyword || `${item.protocol} ${item.local_address} ${item.local_port} ${item.processes.map((process) => process.name).join(' ')}`.toLowerCase().includes(keyword)); });
-const loadData = async () => { loading.value = true; try { await permissionStore.refreshUserPermission(); Object.assign(overview, await getNetworkOverview()); routePage.value = Math.min(routePage.value, Math.max(1, Math.ceil(overview.routes.length / routePageSize.value))); } catch (error) { ElMessage.error('网络数据加载失败'); console.error(error); } finally { loading.value = false; } };
+const pagedListeners = computed(() => { const start = (listenerPage.value - 1) * listenerPageSize.value; return filteredListeners.value.slice(start, start + listenerPageSize.value); });
+const loadData = async () => { loading.value = true; try { await permissionStore.refreshUserPermission(); Object.assign(overview, await getNetworkOverview()); routePage.value = Math.min(routePage.value, Math.max(1, Math.ceil(overview.routes.length / routePageSize.value))); listenerPage.value = Math.min(listenerPage.value, Math.max(1, Math.ceil(filteredListeners.value.length / listenerPageSize.value))); } catch (error) { ElMessage.error('网络数据加载失败'); console.error(error); } finally { loading.value = false; } };
 const onRoutePageSizeChange = (size: number) => { routePageSize.value = size; routePage.value = 1; };
+const onListenerPageSizeChange = (size: number) => { listenerPageSize.value = size; listenerPage.value = 1; };
 const openFirewallDialog = () => { ruleForm.zone = overview.firewall.default_zone || overview.firewall.zones[0]?.name || ''; ruleForm.rule_type = 'service'; ruleForm.value = ''; ruleForm.protocol = 'tcp'; firewallDialog.value = true; };
 const addRule = async () => { saving.value = true; try { await updateFirewallRule({ action: 'add', ...ruleForm }); firewallDialog.value = false; ElMessage.success('规则已添加'); await loadData(); } catch (error) { console.error(error); } finally { saving.value = false; } };
 const removeRule = async (zone: string, ruleType: 'service' | 'port', value: string, protocol?: 'tcp' | 'udp') => { await ElMessageBox.confirm(`从 ${zone} 删除 ${value}？`, '删除防火墙规则', { type: 'warning' }); await updateFirewallRule({ action: 'remove', zone, rule_type: ruleType, value, protocol }); ElMessage.success('规则已删除'); await loadData(); };
