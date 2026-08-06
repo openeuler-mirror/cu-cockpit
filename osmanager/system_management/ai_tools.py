@@ -68,6 +68,17 @@ def normalize_listener_search(arguments):
     return {'port': port}
 
 
+def execute_listener_search(arguments, _context=None):
+    result = run_safe(['ss', '-H', '-lntup'], {'ss'}, timeout=8)
+    port = str(arguments['port'])
+    lines = []
+    for line in result.stdout.splitlines():
+        fields = line.split(None, 6)
+        if len(fields) >= 5 and fields[4].rsplit(':', 1)[-1] == port:
+            lines.append(line)
+    return {'port': arguments['port'], 'listening': bool(lines), 'lines': lines}
+
+
 AI_TOOLS = {
     'service.status': AIToolSpec(
         name='service.status', description='查询 systemd 服务运行状态', risk='readonly',
