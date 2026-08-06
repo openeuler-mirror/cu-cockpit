@@ -65,6 +65,9 @@ def chat_completion(messages, config=None):
         },
         method='POST',
     )
-    with urllib.request.urlopen(request, timeout=current.timeout_seconds) as response:
-        data = json.loads(response.read().decode('utf-8'))
+    try:
+        with urllib.request.urlopen(request, timeout=current.timeout_seconds) as response:
+            data = json.loads(response.read().decode('utf-8'))
+    except (OSError, TimeoutError) as error:
+        raise AIProviderError('AI Provider 请求失败') from error
     return data['choices'][0]['message']['content']
