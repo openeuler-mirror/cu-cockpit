@@ -95,6 +95,14 @@ def execute_storage_usage(arguments, _context=None):
     return {'mount': arguments['mount'], 'output': result.stdout.strip()}
 
 
+def normalize_log_query(arguments):
+    return {
+        'priority': str(arguments.get('priority') or 'err').strip().lower(),
+        'service': str(arguments.get('service') or '').strip(),
+        'limit': int(arguments.get('limit', 50)),
+    }
+
+
 AI_TOOLS = {
     'service.status': AIToolSpec(
         name='service.status', description='查询 systemd 服务运行状态', risk='readonly',
