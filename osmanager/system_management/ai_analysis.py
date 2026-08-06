@@ -1,4 +1,7 @@
+import json
+
 from .ai_context import prepare_context, wrap_untrusted_context
+from .ai_provider import chat_completion
 
 
 ANALYSIS_PROMPTS = {
@@ -27,3 +30,9 @@ def build_analysis_messages(kind, content):
         {'role': 'system', 'content': system},
         {'role': 'user', 'content': wrap_untrusted_context(kind, prepared)},
     ], prepared.truncated
+
+
+def analyze_context(kind, content):
+    messages, truncated = build_analysis_messages(kind, content)
+    analysis = json.loads(chat_completion(messages))
+    return {'analysis': analysis, 'truncated': truncated}
