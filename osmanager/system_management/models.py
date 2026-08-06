@@ -68,3 +68,26 @@ class CronExecution(models.Model):
 
     class Meta:
         ordering = ['-started_at', '-id']
+
+
+class AIOperationPlan(models.Model):
+    STATUS_CHOICES = (
+        ('draft', 'Draft'),
+        ('executed', 'Executed'),
+        ('failed', 'Failed'),
+    )
+
+    actor = models.CharField(max_length=150, db_index=True)
+    request_text = models.TextField()
+    intent = models.CharField(max_length=256)
+    summary = models.TextField(blank=True)
+    risk = models.CharField(max_length=16, default='readonly', db_index=True)
+    tool_calls = models.JSONField(default=list)
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default='draft', db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    executed_at = models.DateTimeField(null=True, blank=True)
+    result = models.JSONField(default=dict, blank=True)
+    error = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-created_at', '-id']
