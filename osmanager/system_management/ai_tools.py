@@ -90,6 +90,8 @@ def normalize_storage_usage(arguments):
 
 def execute_storage_usage(arguments, _context=None):
     result = run_safe(['df', '-P', '-T', '--', arguments['mount']], {'df'}, timeout=5)
+    if not result.success:
+        raise RuntimeError('无法读取存储使用率')
     return {'mount': arguments['mount'], 'output': result.stdout.strip()}
 
 
