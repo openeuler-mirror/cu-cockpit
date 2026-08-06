@@ -20,3 +20,7 @@ def build_plan_messages(request_text):
         {'role': 'system', 'content': system},
         {'role': 'user', 'content': str(request_text)},
     ]
+
+
+def parse_plan_response(content):
+    return json.loads(content)
