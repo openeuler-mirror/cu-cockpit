@@ -199,6 +199,12 @@ AI_TOOLS = {
         normalize=normalize_log_query, execute=execute_log_query,
         allowed_arguments=('priority', 'service', 'limit'),
     ),
+    'cron.create': AIToolSpec(
+        name='cron.create', description='创建经过白名单校验的 Cron 任务', risk='change',
+        requires_admin=True, requires_confirmation=True,
+        normalize=normalize_cron_create, execute=execute_cron_create,
+        allowed_arguments=('name', 'schedule', 'command', 'enabled'),
+    ),
 }
 
 
