@@ -15,3 +15,7 @@ class AIToolSpec:
 
 class AIToolValidationError(ValueError):
     pass
+
+
+def normalize_service_status(arguments):
+    return {'service': str(arguments['service']).strip()}
