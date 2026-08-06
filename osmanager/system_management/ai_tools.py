@@ -139,6 +139,15 @@ def execute_log_query(arguments, _context=None):
     return {'logs': logs, 'count': len(logs)}
 
 
+def normalize_cron_create(arguments):
+    return {
+        'name': str(arguments.get('name') or '').strip(),
+        'schedule': str(arguments.get('schedule') or '').strip(),
+        'command': str(arguments.get('command') or '').strip(),
+        'enabled': arguments.get('enabled', True),
+    }
+
+
 AI_TOOLS = {
     'service.status': AIToolSpec(
         name='service.status', description='查询 systemd 服务运行状态', risk='readonly',
