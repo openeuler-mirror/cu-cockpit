@@ -53,3 +53,11 @@ def threshold_recovered(rule, value):
     if rule.operator == 'gte':
         return value <= rule.recovery_threshold
     return value >= rule.recovery_threshold
+
+
+def recent_rule_values(rule):
+    if rule.metric not in ALERT_METRICS:
+        raise AlertRuleValidationError('告警指标不在允许列表')
+    from .models import MetricSample
+    queryset = MetricSample.objects.exclude(**{f'{rule.metric}__isnull': True})
+    return list(queryset.values_list(rule.metric, flat=True)[:rule.consecutive_hits])
