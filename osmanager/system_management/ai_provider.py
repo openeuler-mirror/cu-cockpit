@@ -10,6 +10,10 @@ class AIProviderConfig:
     timeout_seconds: float
 
 
+class AIProviderError(RuntimeError):
+    pass
+
+
 def get_provider_config():
     return AIProviderConfig(
         base_url=os.environ.get('AI_BASE_URL', '').strip().rstrip('/'),
