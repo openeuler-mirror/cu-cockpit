@@ -103,3 +103,18 @@ def update_alert_event_value(event, value):
     event.last_value = value
     event.save(update_fields=['last_value'])
     return event
+
+
+def evaluate_alert_rule(rule, sample):
+    value = getattr(sample, rule.metric)
+    if not rule.enabled or value is None:
+        return None
+    from .models import AlertEvent
+    active = AlertEvent.objects.filter(rule=rule, status='active').first()
+    if active:
+        return active
+    values = recent_rule_values(rule)
+    if not consecutive_triggered(rule, values):
+        return None
+    event, _created = open_alert_event(rule, sample, values)
+    return event
