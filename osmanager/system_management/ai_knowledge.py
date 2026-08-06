@@ -44,3 +44,17 @@ def query_terms(query):
         if len(token) > 2 and all('\u4e00' <= char <= '\u9fff' for char in token):
             terms.update(token[index:index + 2] for index in range(len(token) - 1))
     return sorted(terms)
+
+
+def document_chunks(path):
+    resolved = validate_document_path(path)
+    try:
+        source = str(resolved.relative_to(PROJECT_ROOT))
+    except ValueError:
+        source = resolved.name
+    chunks = []
+    for paragraph in re.split(r'\n\s*\n', read_document(resolved)):
+        text = paragraph.strip()
+        chunks.extend({'source': source, 'text': text[index:index + 2000]}
+                      for index in range(0, len(text), 2000) if text[index:index + 2000])
+    return chunks
