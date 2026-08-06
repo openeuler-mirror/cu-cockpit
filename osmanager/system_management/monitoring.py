@@ -4,6 +4,9 @@ from pathlib import Path
 from .command import run_safe
 
 
+MONITORED_SERVICES = ('cu-cockpit', 'crond', 'chronyd', 'firewalld')
+
+
 class MetricCollectionError(RuntimeError):
     pass
 
