@@ -1,0 +1,12 @@
+[Unit]
+Description=Run cu-cockpit metric collection every minute
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+RandomizedDelaySec=5s
+Persistent=true
+Unit=cu-cockpit-metrics.service
+
+[Install]
+WantedBy=timers.target
