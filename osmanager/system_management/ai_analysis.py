@@ -49,3 +49,8 @@ def analyze_logs(logs):
 
 def explain_command_output(output):
     return analyze_context('command_output', output)
+
+
+def review_config_diff(target, difference):
+    content = json.dumps({'target': target, 'diff': difference}, ensure_ascii=False)
+    return analyze_context('config_diff', content)
