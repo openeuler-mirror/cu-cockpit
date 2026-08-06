@@ -26,3 +26,7 @@ def redact_context(value):
         redacted,
         flags=re.DOTALL,
     )
+
+
+def prepare_context(value, limit=12000):
+    return limit_context(redact_context(value), limit)
