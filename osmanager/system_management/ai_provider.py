@@ -21,6 +21,16 @@ def get_provider_config():
 
 def provider_status(config=None):
     current = config or get_provider_config()
+    missing = [
+        name for name, value in (
+            ('AI_BASE_URL', current.base_url),
+            ('AI_API_KEY', current.api_key),
+            ('AI_MODEL', current.model),
+        ) if not value
+    ]
+    if missing:
+        return {'available': False, 'base_url': current.base_url, 'model': current.model,
+                'reason': f'缺少配置: {", ".join(missing)}'}
     return {
         'available': True,
         'base_url': current.base_url,
