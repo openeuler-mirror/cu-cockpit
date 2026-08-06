@@ -67,3 +67,9 @@ def consecutive_triggered(rule, values):
     return len(values) >= rule.consecutive_hits and all(
         threshold_triggered(rule, value) for value in values[:rule.consecutive_hits]
     )
+
+
+def consecutive_recovered(rule, values):
+    return len(values) >= rule.consecutive_hits and all(
+        threshold_recovered(rule, value) for value in values[:rule.consecutive_hits]
+    )
