@@ -97,7 +97,15 @@ def execute_operation_plan(plan, context):
     if plan.actor != context.actor:
         raise AIPlanValidationError('无权执行其他用户的 AI 计划')
     from django.utils import timezone
-    result = execute_tool_call(plan.tool_calls[0], context)
+    try:
+        result = execute_tool_call(plan.tool_calls[0], context)
+    except Exception as error:
+        plan.status = 'failed'
+        plan.executed_at = timezone.now()
+        plan.result = {}
+        plan.error = redact_context(str(error))[:2000]
+        plan.save(update_fields=['status', 'executed_at', 'result', 'error'])
+        raise
     plan.status = 'executed'
     plan.executed_at = timezone.now()
     plan.result = result
