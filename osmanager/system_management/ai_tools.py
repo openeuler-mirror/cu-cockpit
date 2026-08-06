@@ -114,6 +114,12 @@ AI_TOOLS = {
         normalize=normalize_listener_search, execute=execute_listener_search,
         allowed_arguments=('port',),
     ),
+    'storage.usage': AIToolSpec(
+        name='storage.usage', description='查询挂载点的文件系统容量和使用率', risk='readonly',
+        requires_admin=False, requires_confirmation=True,
+        normalize=normalize_storage_usage, execute=execute_storage_usage,
+        allowed_arguments=('mount',),
+    ),
 }
 
 
