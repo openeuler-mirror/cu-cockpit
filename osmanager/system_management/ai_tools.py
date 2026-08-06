@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Callable
 
 from .command import run_safe
+from .processes import list_processes
 
 
 @dataclass(frozen=True)
@@ -49,6 +50,12 @@ def normalize_process_search(arguments):
     if len(search) > 128 or not 1 <= limit <= 100:
         raise AIToolValidationError('进程搜索词最多 128 字符且条数范围为 1-100')
     return {'search': search, 'limit': limit}
+
+
+def execute_process_search(arguments, _context=None):
+    return list_processes(
+        search=arguments['search'], sort='cpu', order='desc', limit=arguments['limit']
+    )
 
 
 AI_TOOLS = {
