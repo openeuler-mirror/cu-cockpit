@@ -13,6 +13,7 @@ class AIToolSpec:
     requires_confirmation: bool
     normalize: Callable
     execute: Callable
+    allowed_arguments: tuple[str, ...] = ()
 
 
 class AIToolValidationError(ValueError):
