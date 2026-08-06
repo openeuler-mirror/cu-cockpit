@@ -70,6 +70,8 @@ def normalize_listener_search(arguments):
 
 def execute_listener_search(arguments, _context=None):
     result = run_safe(['ss', '-H', '-lntup'], {'ss'}, timeout=8)
+    if not result.success:
+        raise RuntimeError('无法读取监听端口')
     port = str(arguments['port'])
     lines = []
     for line in result.stdout.splitlines():
