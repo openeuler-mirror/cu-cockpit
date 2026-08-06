@@ -115,7 +115,7 @@ def evaluate_alert_rule(rule, sample):
         values = recent_rule_values(rule)
         if consecutive_recovered(rule, values):
             return recover_alert_event(active, value)
-        return active
+        return update_alert_event_value(active, value)
     values = recent_rule_values(rule)
     if not consecutive_triggered(rule, values):
         return None
