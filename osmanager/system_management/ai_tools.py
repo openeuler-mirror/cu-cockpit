@@ -11,3 +11,7 @@ class AIToolSpec:
     requires_confirmation: bool
     normalize: Callable
     execute: Callable
+
+
+class AIToolValidationError(ValueError):
+    pass
