@@ -45,3 +45,11 @@ def threshold_triggered(rule, value):
     if rule.operator == 'gte':
         return value >= rule.threshold
     return value <= rule.threshold
+
+
+def threshold_recovered(rule, value):
+    if value is None:
+        return False
+    if rule.operator == 'gte':
+        return value <= rule.recovery_threshold
+    return value >= rule.recovery_threshold
