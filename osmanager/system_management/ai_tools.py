@@ -94,6 +94,12 @@ AI_TOOLS = {
         normalize=normalize_process_search, execute=execute_process_search,
         allowed_arguments=('search', 'limit'),
     ),
+    'network.listeners': AIToolSpec(
+        name='network.listeners', description='查询指定端口的监听进程', risk='readonly',
+        requires_admin=False, requires_confirmation=True,
+        normalize=normalize_listener_search, execute=execute_listener_search,
+        allowed_arguments=('port',),
+    ),
 }
 
 
