@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 
 from .command import run_safe
 
@@ -13,3 +14,16 @@ def collect_cpu_percent():
     if not result.success or not match:
         raise MetricCollectionError('无法采集 CPU 使用率')
     return round(max(0.0, min(100.0, 100.0 - float(match.group(1)))), 2)
+
+
+def collect_memory_percent(path=Path('/proc/meminfo')):
+    try:
+        values = {
+            line.split(':', 1)[0]: int(line.split()[1])
+            for line in path.read_text(encoding='utf-8').splitlines() if ':' in line
+        }
+        total = values['MemTotal']
+        available = values['MemAvailable']
+    except (OSError, KeyError, ValueError, IndexError) as error:
+        raise MetricCollectionError('无法采集内存使用率') from error
+    return round(max(0.0, min(100.0, (total - available) * 100.0 / total)), 2)
