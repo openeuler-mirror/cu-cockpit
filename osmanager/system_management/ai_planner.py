@@ -1,0 +1,2 @@
+class AIPlanValidationError(ValueError):
+    pass
