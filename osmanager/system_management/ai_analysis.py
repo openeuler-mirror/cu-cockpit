@@ -14,6 +14,10 @@ class AIAnalysisError(ValueError):
 
 
 def build_analysis_messages(kind, content):
+    if kind not in ANALYSIS_PROMPTS:
+        raise AIAnalysisError('不支持的 AI 分析类型')
+    if not str(content or '').strip():
+        raise AIAnalysisError('待分析内容不能为空')
     prepared = prepare_context(content)
     system = (
         ANALYSIS_PROMPTS[kind]
