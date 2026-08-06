@@ -18,4 +18,7 @@ class AIToolValidationError(ValueError):
 
 
 def normalize_service_status(arguments):
-    return {'service': str(arguments['service']).strip()}
+    service = str(arguments['service']).strip()
+    if not service or len(service) > 128 or not all(char.isalnum() or char in '@_.:-' for char in service):
+        raise AIToolValidationError('服务名称格式无效')
+    return {'service': service}
