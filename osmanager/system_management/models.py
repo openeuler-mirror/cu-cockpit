@@ -128,3 +128,26 @@ class AlertRule(models.Model):
 
     class Meta:
         ordering = ['name', 'id']
+
+
+class AlertEvent(models.Model):
+    STATUS_CHOICES = (('active', 'Active'), ('recovered', 'Recovered'))
+
+    rule = models.ForeignKey(AlertRule, on_delete=models.CASCADE, related_name='events')
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default='active', db_index=True)
+    started_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    recovered_at = models.DateTimeField(null=True, blank=True)
+    trigger_value = models.FloatField()
+    last_value = models.FloatField()
+    recovery_value = models.FloatField(null=True, blank=True)
+    acknowledged_by = models.CharField(max_length=150, blank=True)
+    acknowledged_at = models.DateTimeField(null=True, blank=True)
+    context = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ['-started_at', '-id']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['rule'], condition=models.Q(status='active'), name='one_active_event_per_rule'
+            ),
+        ]
