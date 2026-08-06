@@ -32,6 +32,9 @@ def parse_plan_response(content):
 def validate_plan_payload(payload):
     if not isinstance(payload, dict) or not isinstance(payload.get('tool_calls'), list):
         raise AIPlanValidationError('AI 计划必须为对象且 tool_calls 必须为数组')
+    unknown = sorted(set(payload) - {'intent', 'summary', 'tool_calls'})
+    if unknown:
+        raise AIPlanValidationError(f'AI 计划包含未知字段: {", ".join(unknown)}')
     if len(payload['tool_calls']) != 1:
         raise AIPlanValidationError('单次 AI 计划必须且只能包含一个工具调用')
     intent = str(payload.get('intent') or '').strip()
