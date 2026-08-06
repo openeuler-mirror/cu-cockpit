@@ -38,4 +38,6 @@ def analyze_context(kind, content):
         analysis = json.loads(chat_completion(messages))
     except (json.JSONDecodeError, TypeError) as error:
         raise AIAnalysisError('AI 分析响应不是有效 JSON') from error
+    if not isinstance(analysis, dict):
+        raise AIAnalysisError('AI 分析响应必须为 JSON 对象')
     return {'analysis': analysis, 'truncated': truncated}
