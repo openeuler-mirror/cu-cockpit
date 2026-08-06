@@ -177,3 +177,11 @@ def analyze_alert_event(event):
     from .ai_analysis import analyze_context
     context = json.dumps(build_alert_context(event), ensure_ascii=False, default=str)
     return analyze_context('alert_context', context)
+
+
+def set_alert_rule_enabled(rule, enabled):
+    if not isinstance(enabled, bool):
+        raise AlertRuleValidationError('enabled 必须为布尔值')
+    rule.enabled = enabled
+    rule.save(update_fields=['enabled', 'updated_at'])
+    return rule
