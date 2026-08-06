@@ -61,7 +61,16 @@ def document_chunks(path):
 
 
 def search_knowledge(query, limit=5):
-    terms = query_terms(query)
+    text = str(query or '').strip()
+    if not text or len(text) > 500:
+        raise AIKnowledgeError('知识问题不能为空且不能超过 500 字符')
+    try:
+        safe_limit = int(limit)
+    except (TypeError, ValueError) as error:
+        raise AIKnowledgeError('知识检索条数必须为整数') from error
+    if not 1 <= safe_limit <= 10:
+        raise AIKnowledgeError('知识检索条数范围为 1-10')
+    terms = query_terms(text)
     matches = []
     for path in allowed_document_paths():
         for chunk in document_chunks(path):
@@ -70,4 +79,4 @@ def search_knowledge(query, limit=5):
             if score:
                 matches.append({**chunk, 'score': score})
     matches.sort(key=lambda item: (-item['score'], item['source'], item['text']))
-    return matches[:limit]
+    return matches[:safe_limit]
