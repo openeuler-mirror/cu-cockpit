@@ -1,0 +1,2 @@
+class AIRunbookError(ValueError):
+    pass
