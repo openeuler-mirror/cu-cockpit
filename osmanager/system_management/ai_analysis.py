@@ -1,0 +1,2 @@
+class AIAnalysisError(ValueError):
+    pass
