@@ -121,3 +121,13 @@ def evaluate_alert_rule(rule, sample):
         return None
     event, _created = open_alert_event(rule, sample, values)
     return event
+
+
+def evaluate_alert_rules(sample):
+    from .models import AlertRule
+    events = []
+    for rule in AlertRule.objects.filter(enabled=True):
+        event = evaluate_alert_rule(rule, sample)
+        if event is not None:
+            events.append(event)
+    return events
