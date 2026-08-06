@@ -37,3 +37,10 @@ def parse_df_percent(output):
     if not match:
         raise MetricCollectionError('df 返回格式无效')
     return float(match.group(1))
+
+
+def collect_root_percent():
+    result = run_safe(['df', '-P', '--', '/'], {'df'}, timeout=5)
+    if not result.success:
+        raise MetricCollectionError('无法采集根文件系统使用率')
+    return parse_df_percent(result.stdout)
