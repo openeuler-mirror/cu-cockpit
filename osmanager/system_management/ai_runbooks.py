@@ -1,3 +1,4 @@
+from .ai_context import redact_context
 from .ai_tools import AIToolExecutionContext, AIToolValidationError, execute_tool_call, normalize_tool_call
 
 
@@ -89,7 +90,15 @@ def execute_runbook_step(step, actor, is_admin):
     step.started_at = timezone.now()
     step.save(update_fields=['status', 'started_at'])
     context = AIToolExecutionContext(actor=actor, is_admin=is_admin, confirmed=True)
-    result = execute_tool_call(step.tool_call, context)
+    try:
+        result = execute_tool_call(step.tool_call, context)
+    except Exception as error:
+        step.status = 'failed'
+        step.output = {}
+        step.error = redact_context(str(error))[:2000]
+        step.finished_at = timezone.now()
+        step.save(update_fields=['status', 'output', 'error', 'finished_at'])
+        raise
     step.status = 'succeeded'
     step.output = result
     step.error = ''
