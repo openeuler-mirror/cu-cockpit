@@ -55,5 +55,8 @@ def validate_plan_payload(payload):
 
 
 def generate_plan(request_text):
-    content = chat_completion(build_plan_messages(request_text))
+    text = str(request_text or '').strip()
+    if not text or len(text) > 2000:
+        raise AIPlanValidationError('运维请求不能为空且不能超过 2000 字符')
+    content = chat_completion(build_plan_messages(text))
     return validate_plan_payload(parse_plan_response(content))
