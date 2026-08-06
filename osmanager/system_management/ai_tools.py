@@ -5,6 +5,9 @@ from .command import run_safe
 from .processes import list_processes
 
 
+ALLOWED_LOG_PRIORITIES = {'emerg', 'alert', 'crit', 'err', 'warning', 'notice', 'info', 'debug'}
+
+
 @dataclass(frozen=True)
 class AIToolSpec:
     name: str
