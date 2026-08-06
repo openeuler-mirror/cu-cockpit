@@ -157,6 +157,11 @@ def normalize_cron_create(arguments):
     return payload
 
 
+def execute_cron_create(arguments, context):
+    from .cron import create_job, serialize_job
+    return serialize_job(create_job(arguments, context.actor))
+
+
 AI_TOOLS = {
     'service.status': AIToolSpec(
         name='service.status', description='查询 systemd 服务运行状态', risk='readonly',
