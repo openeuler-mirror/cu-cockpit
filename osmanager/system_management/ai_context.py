@@ -8,4 +8,7 @@ class PreparedContext:
 
 
 def limit_context(value, limit=12000):
-    return PreparedContext(text=str(value or ''), truncated=False)
+    text = str(value or '')
+    if len(text) > limit:
+        return PreparedContext(text=text[:limit], truncated=True)
+    return PreparedContext(text=text, truncated=False)
