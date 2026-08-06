@@ -1,4 +1,4 @@
-from .ai_tools import AIToolValidationError, normalize_tool_call
+from .ai_tools import AIToolExecutionContext, AIToolValidationError, execute_tool_call, normalize_tool_call
 
 
 class AIRunbookError(ValueError):
@@ -79,3 +79,20 @@ def consume_step_confirmation(step, token):
     step.confirmed_at = timezone.now()
     step.save(update_fields=['status', 'confirmation_token_hash', 'confirmed_at'])
     return step
+
+
+def execute_runbook_step(step, actor, is_admin):
+    if step.status != 'pending' or (step.risk != 'readonly' and step.confirmed_at is None):
+        raise AIRunbookError('步骤未处于可执行状态或尚未确认')
+    from django.utils import timezone
+    step.status = 'running'
+    step.started_at = timezone.now()
+    step.save(update_fields=['status', 'started_at'])
+    context = AIToolExecutionContext(actor=actor, is_admin=is_admin, confirmed=True)
+    result = execute_tool_call(step.tool_call, context)
+    step.status = 'succeeded'
+    step.output = result
+    step.error = ''
+    step.finished_at = timezone.now()
+    step.save(update_fields=['status', 'output', 'error', 'finished_at'])
+    return result
