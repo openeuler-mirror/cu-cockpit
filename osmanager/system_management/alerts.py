@@ -32,3 +32,8 @@ def normalize_alert_rule(payload):
     if rule['operator'] == 'lte' and rule['recovery_threshold'] <= rule['threshold']:
         raise AlertRuleValidationError('低阈值告警的恢复阈值必须高于触发阈值')
     return rule
+
+
+def create_alert_rule(payload):
+    from .models import AlertRule
+    return AlertRule.objects.create(**normalize_alert_rule(payload))
