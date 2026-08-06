@@ -5,3 +5,7 @@ from dataclasses import dataclass
 class PreparedContext:
     text: str
     truncated: bool
+
+
+def limit_context(value, limit=12000):
+    return PreparedContext(text=str(value or ''), truncated=False)
