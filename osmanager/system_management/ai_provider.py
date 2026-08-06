@@ -47,6 +47,9 @@ def provider_status(config=None):
 
 def chat_completion(messages, config=None):
     current = config or get_provider_config()
+    status = provider_status(current)
+    if not status['available']:
+        raise AIProviderError(status['reason'])
     payload = json.dumps({
         'model': current.model,
         'messages': messages,
