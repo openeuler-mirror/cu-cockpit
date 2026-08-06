@@ -1,5 +1,6 @@
 import json
 
+from .ai_provider import chat_completion
 from .ai_tools import AIToolValidationError, normalize_tool_call, tool_catalog
 
 
@@ -51,3 +52,8 @@ def validate_plan_payload(payload):
         'risk': spec.risk,
         'tool_calls': [{'tool': spec.name, 'arguments': arguments}],
     }
+
+
+def generate_plan(request_text):
+    content = chat_completion(build_plan_messages(request_text))
+    return validate_plan_payload(parse_plan_response(content))
