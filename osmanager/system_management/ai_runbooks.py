@@ -63,3 +63,19 @@ def issue_step_confirmation(step):
     step.confirmation_token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
     step.save(update_fields=['status', 'confirmation_token_hash'])
     return token
+
+
+def consume_step_confirmation(step, token):
+    import hashlib
+    import hmac
+    if step.status != 'awaiting_confirmation' or not step.confirmation_token_hash:
+        raise AIRunbookError('步骤当前不等待确认')
+    candidate = hashlib.sha256(str(token).encode('utf-8')).hexdigest()
+    if not hmac.compare_digest(candidate, step.confirmation_token_hash):
+        raise AIRunbookError('步骤确认令牌无效')
+    from django.utils import timezone
+    step.status = 'pending'
+    step.confirmation_token_hash = ''
+    step.confirmed_at = timezone.now()
+    step.save(update_fields=['status', 'confirmation_token_hash', 'confirmed_at'])
+    return step
