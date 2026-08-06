@@ -105,3 +105,10 @@ def execute_runbook_step(step, actor, is_admin):
     step.finished_at = timezone.now()
     step.save(update_fields=['status', 'output', 'error', 'finished_at'])
     return result
+
+
+def complete_runbook(runbook):
+    runbook.status = 'completed'
+    runbook.error = ''
+    runbook.save(update_fields=['status', 'error', 'updated_at'])
+    return runbook
