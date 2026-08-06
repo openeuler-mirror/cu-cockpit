@@ -141,3 +141,32 @@ def acknowledge_alert_event(event, actor):
     event.acknowledged_at = timezone.now()
     event.save(update_fields=['acknowledged_by', 'acknowledged_at'])
     return event
+
+
+def build_alert_context(event):
+    from datetime import timedelta
+    from .ai_tools import execute_log_query
+    from .models import MetricSample, OperationAudit
+    since = event.started_at - timedelta(minutes=30)
+    samples = list(MetricSample.objects.filter(collected_at__gte=since).values(
+        'collected_at', 'cpu_percent', 'memory_percent', 'root_percent', 'inode_percent',
+        'network_rx_bytes', 'network_tx_bytes', 'services',
+    )[:120])
+    audits = list(OperationAudit.objects.filter(created_at__gte=since).values(
+        'created_at', 'actor', 'module', 'action', 'target', 'success', 'message',
+    )[:50])
+    try:
+        logs = execute_log_query({'priority': 'err', 'service': '', 'limit': 50})['logs']
+    except RuntimeError:
+        logs = []
+    return {
+        'alert': {
+            'id': event.id, 'rule': event.rule.name, 'metric': event.rule.metric,
+            'started_at': event.started_at, 'trigger_value': event.trigger_value,
+            'last_value': event.last_value, 'status': event.status,
+        },
+        'samples': samples,
+        'services': samples[-1]['services'] if samples else {},
+        'audits': audits,
+        'logs': logs,
+    }
