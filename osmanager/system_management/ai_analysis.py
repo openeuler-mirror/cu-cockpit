@@ -45,3 +45,7 @@ def analyze_context(kind, content):
 
 def analyze_logs(logs):
     return analyze_context('logs', json.dumps(logs, ensure_ascii=False, default=str))
+
+
+def explain_command_output(output):
+    return analyze_context('command_output', output)
