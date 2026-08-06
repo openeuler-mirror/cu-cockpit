@@ -157,6 +157,12 @@ AI_TOOLS = {
         normalize=normalize_storage_usage, execute=execute_storage_usage,
         allowed_arguments=('mount',),
     ),
+    'logs.query': AIToolSpec(
+        name='logs.query', description='按优先级和服务查询最近系统日志', risk='readonly',
+        requires_admin=False, requires_confirmation=True,
+        normalize=normalize_log_query, execute=execute_log_query,
+        allowed_arguments=('priority', 'service', 'limit'),
+    ),
 }
 
 
