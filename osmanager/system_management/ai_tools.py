@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from typing import Callable
 
@@ -111,6 +112,16 @@ def normalize_log_query(arguments):
     if priority not in ALLOWED_LOG_PRIORITIES or not valid_service or not 1 <= limit <= 200:
         raise AIToolValidationError('日志优先级、服务名或条数无效')
     return {'priority': priority, 'service': service, 'limit': limit}
+
+
+def execute_log_query(arguments, _context=None):
+    command = [
+        'journalctl', '--no-pager', '-r', '-p', arguments['priority'],
+        '-n', str(arguments['limit']), '-o', 'json',
+    ]
+    result = run_safe(command, {'journalctl'}, timeout=15)
+    logs = [json.loads(line) for line in result.stdout.splitlines() if line.strip()]
+    return {'logs': logs, 'count': len(logs)}
 
 
 AI_TOOLS = {
