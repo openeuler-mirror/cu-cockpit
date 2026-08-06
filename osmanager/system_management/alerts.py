@@ -170,3 +170,10 @@ def build_alert_context(event):
         'audits': audits,
         'logs': logs,
     }
+
+
+def analyze_alert_event(event):
+    import json
+    from .ai_analysis import analyze_context
+    context = json.dumps(build_alert_context(event), ensure_ascii=False, default=str)
+    return analyze_context('alert_context', context)
