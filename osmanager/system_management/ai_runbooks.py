@@ -139,3 +139,20 @@ def advance_runbook_position(runbook):
     complete_runbook(runbook)
     runbook.save(update_fields=['current_step', 'updated_at'])
     return True
+
+
+def advance_runbook(runbook, actor, is_admin):
+    require_runbook_owner(runbook, actor)
+    step = current_runbook_step(runbook)
+    if step is None:
+        complete_runbook(runbook)
+        return {'action': 'completed', 'step': None, 'result': None}
+    if step.risk != 'readonly':
+        raise AIRunbookError('写步骤需要逐步确认')
+    result = execute_runbook_step(step, actor, is_admin)
+    completed = advance_runbook_position(runbook)
+    return {
+        'action': 'completed' if completed else 'executed',
+        'step': step,
+        'result': result,
+    }
