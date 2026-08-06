@@ -67,7 +67,10 @@ def chat_completion(messages, config=None):
     )
     try:
         with urllib.request.urlopen(request, timeout=current.timeout_seconds) as response:
-            data = json.loads(response.read().decode('utf-8'))
+            raw_response = response.read(1024 * 1024 + 1)
+            if len(raw_response) > 1024 * 1024:
+                raise AIProviderError('AI Provider 响应超过 1 MiB 限制')
+            data = json.loads(raw_response.decode('utf-8'))
     except (OSError, TimeoutError) as error:
         raise AIProviderError('AI Provider 请求失败') from error
     return data['choices'][0]['message']['content']
