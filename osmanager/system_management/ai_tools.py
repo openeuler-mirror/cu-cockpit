@@ -42,4 +42,7 @@ AI_TOOLS = {
 
 
 def get_tool(name):
-    return AI_TOOLS[name]
+    try:
+        return AI_TOOLS[str(name)]
+    except KeyError as error:
+        raise AIToolValidationError('工具未注册') from error
