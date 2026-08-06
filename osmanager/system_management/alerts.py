@@ -97,3 +97,9 @@ def recover_alert_event(event, value):
     event.last_value = value
     event.save(update_fields=['status', 'recovered_at', 'recovery_value', 'last_value'])
     return event
+
+
+def update_alert_event_value(event, value):
+    event.last_value = value
+    event.save(update_fields=['last_value'])
+    return event
