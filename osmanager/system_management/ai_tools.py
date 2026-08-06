@@ -125,7 +125,10 @@ def execute_log_query(arguments, _context=None):
     result = run_safe(command, {'journalctl'}, timeout=15)
     if not result.success:
         raise RuntimeError('无法读取系统日志')
-    logs = [json.loads(line) for line in result.stdout.splitlines() if line.strip()]
+    try:
+        logs = [json.loads(line) for line in result.stdout.splitlines() if line.strip()]
+    except json.JSONDecodeError as error:
+        raise RuntimeError('系统日志格式无效') from error
     return {'logs': logs, 'count': len(logs)}
 
 
