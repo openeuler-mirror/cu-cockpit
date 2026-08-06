@@ -51,3 +51,19 @@ def collect_inode_percent():
     if not result.success:
         raise MetricCollectionError('无法采集根 inode 使用率')
     return parse_df_percent(result.stdout)
+
+
+def collect_network_bytes(path=Path('/proc/net/dev')):
+    received = transmitted = 0
+    try:
+        for line in path.read_text(encoding='utf-8').splitlines():
+            if ':' not in line:
+                continue
+            interface, values = line.split(':', 1)
+            fields = values.split()
+            if interface.strip() != 'lo' and len(fields) >= 9:
+                received += int(fields[0])
+                transmitted += int(fields[8])
+    except (OSError, ValueError) as error:
+        raise MetricCollectionError('无法采集网络流量') from error
+    return {'network_rx_bytes': received, 'network_tx_bytes': transmitted}
