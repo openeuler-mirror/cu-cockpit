@@ -1,6 +1,6 @@
 import json
 
-from .ai_tools import normalize_tool_call, tool_catalog
+from .ai_tools import AIToolValidationError, normalize_tool_call, tool_catalog
 
 
 class AIPlanValidationError(ValueError):
@@ -41,7 +41,10 @@ def validate_plan_payload(payload):
     summary = str(payload.get('summary') or '').strip()
     if not intent or len(intent) > 256 or len(summary) > 2000:
         raise AIPlanValidationError('AI 计划意图或摘要长度无效')
-    spec, arguments = normalize_tool_call(payload['tool_calls'][0])
+    try:
+        spec, arguments = normalize_tool_call(payload['tool_calls'][0])
+    except AIToolValidationError as error:
+        raise AIPlanValidationError(str(error)) from error
     return {
         'intent': intent,
         'summary': summary,
