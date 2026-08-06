@@ -30,3 +30,12 @@ def execute_service_status(arguments, _context=None):
     result = run_safe(['systemctl', 'is-active', arguments['service']], {'systemctl'}, timeout=3)
     state = result.stdout.strip() or ('inactive' if result.returncode else 'active')
     return {'service': arguments['service'], 'state': state}
+
+
+AI_TOOLS = {
+    'service.status': AIToolSpec(
+        name='service.status', description='查询 systemd 服务运行状态', risk='readonly',
+        requires_admin=False, requires_confirmation=True,
+        normalize=normalize_service_status, execute=execute_service_status,
+    ),
+}
