@@ -47,3 +47,9 @@ def require_runbook_owner(runbook, actor):
     if runbook.actor != actor:
         raise AIRunbookError('无权操作其他用户的 Runbook')
     return runbook
+
+
+def current_runbook_step(runbook):
+    if runbook.status in ('completed', 'cancelled'):
+        raise AIRunbookError('Runbook 已经结束')
+    return runbook.steps.filter(position=runbook.current_step).first()
