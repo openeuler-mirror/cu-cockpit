@@ -41,3 +41,7 @@ def analyze_context(kind, content):
     if not isinstance(analysis, dict):
         raise AIAnalysisError('AI 分析响应必须为 JSON 对象')
     return {'analysis': analysis, 'truncated': truncated}
+
+
+def analyze_logs(logs):
+    return analyze_context('logs', json.dumps(logs, ensure_ascii=False, default=str))
