@@ -92,6 +92,8 @@ def serialize_operation_plan(plan):
 
 
 def execute_operation_plan(plan, context):
+    if plan.status != 'draft':
+        raise AIPlanValidationError('AI 计划已经执行或结束')
     from django.utils import timezone
     result = execute_tool_call(plan.tool_calls[0], context)
     plan.status = 'executed'
