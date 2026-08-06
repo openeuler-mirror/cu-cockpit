@@ -75,4 +75,7 @@ def chat_completion(messages, config=None):
         raise AIProviderError('AI Provider 请求失败') from error
     except (json.JSONDecodeError, UnicodeError) as error:
         raise AIProviderError('AI Provider 响应格式无效') from error
-    return data['choices'][0]['message']['content']
+    try:
+        return data['choices'][0]['message']['content']
+    except (KeyError, IndexError, TypeError) as error:
+        raise AIProviderError('AI Provider 响应结构无效') from error
