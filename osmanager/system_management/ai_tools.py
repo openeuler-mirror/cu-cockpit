@@ -140,12 +140,21 @@ def execute_log_query(arguments, _context=None):
 
 
 def normalize_cron_create(arguments):
-    return {
+    payload = {
         'name': str(arguments.get('name') or '').strip(),
         'schedule': str(arguments.get('schedule') or '').strip(),
         'command': str(arguments.get('command') or '').strip(),
         'enabled': arguments.get('enabled', True),
     }
+    if not payload['name'] or len(payload['name']) > 128 or not isinstance(payload['enabled'], bool):
+        raise AIToolValidationError('Cron 名称或启用状态无效')
+    from .cron import parse_job_command, validate_schedule
+    try:
+        payload['schedule'] = validate_schedule(payload['schedule'])
+        parse_job_command(payload['command'])
+    except ValueError as error:
+        raise AIToolValidationError(str(error)) from error
+    return payload
 
 
 AI_TOOLS = {
