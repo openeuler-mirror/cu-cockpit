@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 
@@ -14,4 +15,9 @@ def allowed_document_paths():
     specs = PROJECT_ROOT / 'openspec' / 'specs'
     if specs.is_dir():
         paths.extend(specs.rglob('*.md'))
+    configured = os.environ.get('AI_SOP_PATH', '').strip()
+    if configured:
+        sop_directory = Path(configured).expanduser().resolve()
+        if sop_directory.is_dir():
+            paths.extend(sop_directory.rglob('*.md'))
     return sorted({path.resolve() for path in paths if path.is_file()})
