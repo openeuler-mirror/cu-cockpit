@@ -58,3 +58,16 @@ def document_chunks(path):
         chunks.extend({'source': source, 'text': text[index:index + 2000]}
                       for index in range(0, len(text), 2000) if text[index:index + 2000])
     return chunks
+
+
+def search_knowledge(query, limit=5):
+    terms = query_terms(query)
+    matches = []
+    for path in allowed_document_paths():
+        for chunk in document_chunks(path):
+            normalized = chunk['text'].lower()
+            score = sum(normalized.count(term) for term in terms)
+            if score:
+                matches.append({**chunk, 'score': score})
+    matches.sort(key=lambda item: (-item['score'], item['source'], item['text']))
+    return matches[:limit]
