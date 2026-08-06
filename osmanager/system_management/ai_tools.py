@@ -45,6 +45,11 @@ def execute_service_status(arguments, _context=None):
     return {'service': arguments['service'], 'state': state}
 
 
+def execute_service_restart(arguments, _context=None):
+    run_safe(['systemctl', 'restart', arguments['service']], {'systemctl'}, timeout=30)
+    return {'service': arguments['service'], 'restarted': True}
+
+
 def normalize_process_search(arguments):
     search = str(arguments.get('search') or '').strip()
     try:
