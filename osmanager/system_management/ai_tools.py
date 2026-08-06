@@ -41,10 +41,14 @@ def execute_service_status(arguments, _context=None):
 
 
 def normalize_process_search(arguments):
-    return {
-        'search': str(arguments.get('search') or '').strip(),
-        'limit': int(arguments.get('limit', 20)),
-    }
+    search = str(arguments.get('search') or '').strip()
+    try:
+        limit = int(arguments.get('limit', 20))
+    except (TypeError, ValueError) as error:
+        raise AIToolValidationError('进程条数必须为整数') from error
+    if len(search) > 128 or not 1 <= limit <= 100:
+        raise AIToolValidationError('进程搜索词最多 128 字符且条数范围为 1-100')
+    return {'search': search, 'limit': limit}
 
 
 AI_TOOLS = {
