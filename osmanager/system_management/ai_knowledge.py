@@ -1,0 +1,2 @@
+class AIKnowledgeError(ValueError):
+    pass
