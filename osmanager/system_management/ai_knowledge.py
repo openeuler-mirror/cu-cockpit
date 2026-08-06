@@ -105,5 +105,10 @@ def build_knowledge_messages(query, matches):
 
 def answer_knowledge_question(query):
     matches = search_knowledge(query)
-    answer = json.loads(chat_completion(build_knowledge_messages(query, matches)))
+    try:
+        answer = json.loads(chat_completion(build_knowledge_messages(query, matches)))
+    except (json.JSONDecodeError, TypeError) as error:
+        raise AIKnowledgeError('AI 知识回答不是有效 JSON') from error
+    if not isinstance(answer, dict):
+        raise AIKnowledgeError('AI 知识回答必须为 JSON 对象')
     return {'answer': answer, 'matches': matches}
