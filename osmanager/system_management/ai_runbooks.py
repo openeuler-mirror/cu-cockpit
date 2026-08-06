@@ -53,3 +53,13 @@ def current_runbook_step(runbook):
     if runbook.status in ('completed', 'cancelled'):
         raise AIRunbookError('Runbook 已经结束')
     return runbook.steps.filter(position=runbook.current_step).first()
+
+
+def issue_step_confirmation(step):
+    import hashlib
+    import secrets
+    token = secrets.token_urlsafe(32)
+    step.status = 'awaiting_confirmation'
+    step.confirmation_token_hash = hashlib.sha256(token.encode('utf-8')).hexdigest()
+    step.save(update_fields=['status', 'confirmation_token_hash'])
+    return token
