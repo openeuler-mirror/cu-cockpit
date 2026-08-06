@@ -1,0 +1,2 @@
+class AlertRuleValidationError(ValueError):
+    pass
