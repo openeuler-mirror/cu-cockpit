@@ -41,3 +41,9 @@ def create_runbook(payload, actor):
             AIRunbookStep(runbook=runbook, **step) for step in normalized['steps']
         )
     return runbook
+
+
+def require_runbook_owner(runbook, actor):
+    if runbook.actor != actor:
+        raise AIRunbookError('无权操作其他用户的 Runbook')
+    return runbook
