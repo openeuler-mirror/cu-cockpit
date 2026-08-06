@@ -106,7 +106,10 @@ def collect_metric_values():
 
 def collect_metric_sample():
     from .models import MetricSample
-    return MetricSample.objects.create(**collect_metric_values())
+    from .alerts import evaluate_alert_rules
+    sample = MetricSample.objects.create(**collect_metric_values())
+    evaluate_alert_rules(sample)
+    return sample
 
 
 def purge_metric_samples(retention_days=30):
