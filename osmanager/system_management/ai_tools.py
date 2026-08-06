@@ -58,6 +58,10 @@ def execute_process_search(arguments, _context=None):
     )
 
 
+def normalize_listener_search(arguments):
+    return {'port': int(arguments['port'])}
+
+
 AI_TOOLS = {
     'service.status': AIToolSpec(
         name='service.status', description='查询 systemd 服务运行状态', risk='readonly',
