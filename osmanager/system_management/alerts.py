@@ -27,4 +27,8 @@ def normalize_alert_rule(payload):
     )
     if not valid:
         raise AlertRuleValidationError('告警规则字段或范围无效')
+    if rule['operator'] == 'gte' and rule['recovery_threshold'] >= rule['threshold']:
+        raise AlertRuleValidationError('高阈值告警的恢复阈值必须低于触发阈值')
+    if rule['operator'] == 'lte' and rule['recovery_threshold'] <= rule['threshold']:
+        raise AlertRuleValidationError('低阈值告警的恢复阈值必须高于触发阈值')
     return rule
