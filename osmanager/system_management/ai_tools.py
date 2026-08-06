@@ -88,6 +88,11 @@ def normalize_storage_usage(arguments):
     return {'mount': mount}
 
 
+def execute_storage_usage(arguments, _context=None):
+    result = run_safe(['df', '-P', '-T', '--', arguments['mount']], {'df'}, timeout=5)
+    return {'mount': arguments['mount'], 'output': result.stdout.strip()}
+
+
 AI_TOOLS = {
     'service.status': AIToolSpec(
         name='service.status', description='查询 systemd 服务运行状态', risk='readonly',
