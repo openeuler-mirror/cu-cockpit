@@ -173,3 +173,32 @@ class AIRunbook(models.Model):
 
     class Meta:
         ordering = ['-created_at', '-id']
+
+
+class AIRunbookStep(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('awaiting_confirmation', 'Awaiting confirmation'),
+        ('running', 'Running'),
+        ('succeeded', 'Succeeded'),
+        ('failed', 'Failed'),
+        ('skipped', 'Skipped'),
+        ('cancelled', 'Cancelled'),
+    )
+
+    runbook = models.ForeignKey(AIRunbook, on_delete=models.CASCADE, related_name='steps')
+    position = models.PositiveIntegerField()
+    title = models.CharField(max_length=256)
+    tool_call = models.JSONField(default=dict)
+    risk = models.CharField(max_length=16, default='readonly')
+    status = models.CharField(max_length=32, choices=STATUS_CHOICES, default='pending', db_index=True)
+    output = models.JSONField(default=dict, blank=True)
+    error = models.TextField(blank=True)
+    confirmation_token_hash = models.CharField(max_length=64, blank=True)
+    confirmed_at = models.DateTimeField(null=True, blank=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['position', 'id']
+        constraints = [models.UniqueConstraint(fields=['runbook', 'position'], name='unique_runbook_step_position')]
