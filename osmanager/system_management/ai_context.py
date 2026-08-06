@@ -19,4 +19,10 @@ def redact_context(value):
     pattern = re.compile(
         r'(?i)\b(password|passwd|token|api[_-]?key|secret)\s*[:=]\s*(?:"[^"]*"|\'[^\']*\'|[^\s,;]+)'
     )
-    return pattern.sub(lambda match: f'{match.group(1)}=[REDACTED]', str(value or ''))
+    redacted = pattern.sub(lambda match: f'{match.group(1)}=[REDACTED]', str(value or ''))
+    return re.sub(
+        r'-----BEGIN (?:[A-Z0-9]+ )?PRIVATE KEY-----.*?-----END (?:[A-Z0-9]+ )?PRIVATE KEY-----',
+        '[REDACTED PRIVATE KEY]',
+        redacted,
+        flags=re.DOTALL,
+    )
