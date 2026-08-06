@@ -81,6 +81,10 @@ def execute_listener_search(arguments, _context=None):
     return {'port': arguments['port'], 'listening': bool(lines), 'lines': lines}
 
 
+def normalize_storage_usage(arguments):
+    return {'mount': str(arguments.get('mount') or '/').strip()}
+
+
 AI_TOOLS = {
     'service.status': AIToolSpec(
         name='service.status', description='查询 systemd 服务运行状态', risk='readonly',
