@@ -23,4 +23,7 @@ def build_plan_messages(request_text):
 
 
 def parse_plan_response(content):
-    return json.loads(content)
+    try:
+        return json.loads(content)
+    except (json.JSONDecodeError, TypeError) as error:
+        raise AIPlanValidationError('AI 计划不是有效 JSON') from error
