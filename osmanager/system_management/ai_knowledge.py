@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path
 
 
@@ -34,3 +35,12 @@ def validate_document_path(path):
 
 def read_document(path):
     return validate_document_path(path).read_text(encoding='utf-8', errors='replace')
+
+
+def query_terms(query):
+    tokens = re.findall(r'[a-z0-9_.:@/-]{2,}|[\u4e00-\u9fff]{2,}', str(query).lower())
+    terms = set(tokens)
+    for token in tokens:
+        if len(token) > 2 and all('\u4e00' <= char <= '\u9fff' for char in token):
+            terms.update(token[index:index + 2] for index in range(len(token) - 1))
+    return sorted(terms)
