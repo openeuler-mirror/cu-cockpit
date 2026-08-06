@@ -65,6 +65,12 @@ AI_TOOLS = {
         normalize=normalize_service_status, execute=execute_service_status,
         allowed_arguments=('service',),
     ),
+    'process.search': AIToolSpec(
+        name='process.search', description='按名称、用户、PID 或命令搜索进程', risk='readonly',
+        requires_admin=False, requires_confirmation=True,
+        normalize=normalize_process_search, execute=execute_process_search,
+        allowed_arguments=('search', 'limit'),
+    ),
 }
 
 
