@@ -81,3 +81,24 @@ def collect_service_states(services=MONITORED_SERVICES):
         except (OSError, RuntimeError):
             states[service] = 'unknown'
     return states
+
+
+def collect_metric_values():
+    values = {}
+    collectors = (
+        ('cpu_percent', collect_cpu_percent),
+        ('memory_percent', collect_memory_percent),
+        ('root_percent', collect_root_percent),
+        ('inode_percent', collect_inode_percent),
+    )
+    for field, collector in collectors:
+        try:
+            values[field] = collector()
+        except MetricCollectionError:
+            values[field] = None
+    try:
+        values.update(collect_network_bytes())
+    except MetricCollectionError:
+        values.update(network_rx_bytes=None, network_tx_bytes=None)
+    values['services'] = collect_service_states()
+    return values
