@@ -73,4 +73,6 @@ def chat_completion(messages, config=None):
             data = json.loads(raw_response.decode('utf-8'))
     except (OSError, TimeoutError) as error:
         raise AIProviderError('AI Provider 请求失败') from error
+    except (json.JSONDecodeError, UnicodeError) as error:
+        raise AIProviderError('AI Provider 响应格式无效') from error
     return data['choices'][0]['message']['content']
