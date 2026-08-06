@@ -38,6 +38,7 @@ AI_TOOLS = {
         name='service.status', description='查询 systemd 服务运行状态', risk='readonly',
         requires_admin=False, requires_confirmation=True,
         normalize=normalize_service_status, execute=execute_service_status,
+        allowed_arguments=('service',),
     ),
 }
 
