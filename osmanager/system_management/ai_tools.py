@@ -123,6 +123,8 @@ def execute_log_query(arguments, _context=None):
         unit = arguments['service'] if arguments['service'].endswith('.service') else f'{arguments["service"]}.service'
         command.extend(['-u', unit])
     result = run_safe(command, {'journalctl'}, timeout=15)
+    if not result.success:
+        raise RuntimeError('无法读取系统日志')
     logs = [json.loads(line) for line in result.stdout.splitlines() if line.strip()]
     return {'logs': logs, 'count': len(logs)}
 
