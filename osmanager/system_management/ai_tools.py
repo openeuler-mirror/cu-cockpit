@@ -46,7 +46,9 @@ def execute_service_status(arguments, _context=None):
 
 
 def execute_service_restart(arguments, _context=None):
-    run_safe(['systemctl', 'restart', arguments['service']], {'systemctl'}, timeout=30)
+    result = run_safe(['systemctl', 'restart', arguments['service']], {'systemctl'}, timeout=30)
+    if not result.success:
+        raise RuntimeError('服务重启失败')
     return {'service': arguments['service'], 'restarted': True}
 
 
