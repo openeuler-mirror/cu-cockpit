@@ -54,4 +54,8 @@ def normalize_tool_call(call):
     if not isinstance(call, dict) or not isinstance(call.get('arguments', {}), dict):
         raise AIToolValidationError('工具调用和 arguments 必须为对象')
     spec = get_tool(call['tool'])
-    return spec, spec.normalize(call.get('arguments', {}))
+    arguments = call.get('arguments', {})
+    unknown = sorted(set(arguments) - set(spec.allowed_arguments))
+    if unknown:
+        raise AIToolValidationError(f'工具包含未知参数: {", ".join(unknown)}')
+    return spec, spec.normalize(arguments)
