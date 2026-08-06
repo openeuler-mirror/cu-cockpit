@@ -200,3 +200,19 @@ def serialize_alert_rule(rule):
         'created_at': rule.created_at,
         'updated_at': rule.updated_at,
     }
+
+
+def serialize_alert_event(event):
+    return {
+        'id': event.id,
+        'rule': {'id': event.rule_id, 'name': event.rule.name, 'metric': event.rule.metric},
+        'status': event.status,
+        'started_at': event.started_at,
+        'recovered_at': event.recovered_at,
+        'trigger_value': event.trigger_value,
+        'last_value': event.last_value,
+        'recovery_value': event.recovery_value,
+        'acknowledged_by': event.acknowledged_by,
+        'acknowledged_at': event.acknowledged_at,
+        'context': event.context,
+    }
