@@ -120,3 +120,10 @@ def pause_runbook_for_confirmation(runbook, step):
     runbook.error = ''
     runbook.save(update_fields=['status', 'error', 'updated_at'])
     return token
+
+
+def fail_runbook(runbook, error):
+    runbook.status = 'failed'
+    runbook.error = redact_context(str(error))[:2000]
+    runbook.save(update_fields=['status', 'error', 'updated_at'])
+    return runbook
