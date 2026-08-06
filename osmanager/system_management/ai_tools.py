@@ -119,6 +119,9 @@ def execute_log_query(arguments, _context=None):
         'journalctl', '--no-pager', '-r', '-p', arguments['priority'],
         '-n', str(arguments['limit']), '-o', 'json',
     ]
+    if arguments['service']:
+        unit = arguments['service'] if arguments['service'].endswith('.service') else f'{arguments["service"]}.service'
+        command.extend(['-u', unit])
     result = run_safe(command, {'journalctl'}, timeout=15)
     logs = [json.loads(line) for line in result.stdout.splitlines() if line.strip()]
     return {'logs': logs, 'count': len(logs)}
