@@ -74,3 +74,18 @@ def create_operation_plan(request_text, actor):
         risk=payload['risk'],
         tool_calls=payload['tool_calls'],
     )
+
+
+def serialize_operation_plan(plan):
+    return {
+        'id': plan.id,
+        'intent': plan.intent,
+        'summary': plan.summary,
+        'risk': plan.risk,
+        'tool_calls': plan.tool_calls,
+        'status': plan.status,
+        'created_at': plan.created_at,
+        'executed_at': plan.executed_at,
+        'result': plan.result,
+        'error': plan.error,
+    }
