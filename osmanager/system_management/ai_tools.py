@@ -82,7 +82,10 @@ def execute_listener_search(arguments, _context=None):
 
 
 def normalize_storage_usage(arguments):
-    return {'mount': str(arguments.get('mount') or '/').strip()}
+    mount = str(arguments.get('mount') or '/').strip()
+    if not mount.startswith('/') or len(mount) > 512 or any(char in mount for char in ('\x00', '\n', '\r')):
+        raise AIToolValidationError('挂载点必须为不超过 512 字符的绝对路径')
+    return {'mount': mount}
 
 
 AI_TOOLS = {
