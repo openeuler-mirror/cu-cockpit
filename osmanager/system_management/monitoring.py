@@ -121,3 +121,17 @@ def purge_metric_samples(retention_days=30):
     from .models import MetricSample
     deleted, _ = MetricSample.objects.filter(collected_at__lt=timezone.now() - timedelta(days=days)).delete()
     return deleted
+
+
+def serialize_metric_sample(sample):
+    return {
+        'id': sample.id,
+        'collected_at': sample.collected_at,
+        'cpu_percent': sample.cpu_percent,
+        'memory_percent': sample.memory_percent,
+        'root_percent': sample.root_percent,
+        'inode_percent': sample.inode_percent,
+        'network_rx_bytes': sample.network_rx_bytes,
+        'network_tx_bytes': sample.network_tx_bytes,
+        'services': sample.services,
+    }
