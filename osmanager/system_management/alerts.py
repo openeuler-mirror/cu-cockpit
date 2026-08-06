@@ -87,3 +87,13 @@ def open_alert_event(rule, sample, values):
             'context': {'sample_id': sample.id, 'values': list(values)},
         },
     )
+
+
+def recover_alert_event(event, value):
+    from django.utils import timezone
+    event.status = 'recovered'
+    event.recovered_at = timezone.now()
+    event.recovery_value = value
+    event.last_value = value
+    event.save(update_fields=['status', 'recovered_at', 'recovery_value', 'last_value'])
+    return event
