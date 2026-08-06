@@ -208,6 +208,19 @@ AI_TOOLS = {
 }
 
 
+def tool_catalog():
+    return [
+        {
+            'name': spec.name,
+            'description': spec.description,
+            'risk': spec.risk,
+            'requires_admin': spec.requires_admin,
+            'arguments': list(spec.allowed_arguments),
+        }
+        for spec in AI_TOOLS.values()
+    ]
+
+
 def get_tool(name):
     try:
         return AI_TOOLS[str(name)]
