@@ -27,3 +27,13 @@ def collect_memory_percent(path=Path('/proc/meminfo')):
     except (OSError, KeyError, ValueError, IndexError) as error:
         raise MetricCollectionError('无法采集内存使用率') from error
     return round(max(0.0, min(100.0, (total - available) * 100.0 / total)), 2)
+
+
+def parse_df_percent(output):
+    lines = [line for line in str(output).splitlines() if line.strip()]
+    if len(lines) < 2:
+        raise MetricCollectionError('df 返回格式无效')
+    match = re.search(r'([0-9]+)%', lines[-1])
+    if not match:
+        raise MetricCollectionError('df 返回格式无效')
+    return float(match.group(1))
