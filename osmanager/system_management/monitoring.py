@@ -107,3 +107,14 @@ def collect_metric_values():
 def collect_metric_sample():
     from .models import MetricSample
     return MetricSample.objects.create(**collect_metric_values())
+
+
+def purge_metric_samples(retention_days=30):
+    days = int(retention_days)
+    if not 1 <= days <= 365:
+        raise ValueError('指标保留天数范围为 1-365')
+    from datetime import timedelta
+    from django.utils import timezone
+    from .models import MetricSample
+    deleted, _ = MetricSample.objects.filter(collected_at__lt=timezone.now() - timedelta(days=days)).delete()
+    return deleted
