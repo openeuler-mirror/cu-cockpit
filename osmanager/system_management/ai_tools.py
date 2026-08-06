@@ -72,4 +72,6 @@ def execute_tool_call(call, context):
     spec, arguments = normalize_tool_call(call)
     if spec.requires_confirmation and not context.confirmed:
         raise AIToolValidationError('工具执行需要用户确认')
+    if spec.requires_admin and not context.is_admin:
+        raise AIToolValidationError('工具执行需要管理员权限')
     return spec.execute(arguments, context)
