@@ -1,0 +1,2 @@
+class MetricCollectionError(RuntimeError):
+    pass
