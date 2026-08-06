@@ -185,3 +185,18 @@ def set_alert_rule_enabled(rule, enabled):
     rule.enabled = enabled
     rule.save(update_fields=['enabled', 'updated_at'])
     return rule
+
+
+def serialize_alert_rule(rule):
+    return {
+        'id': rule.id,
+        'name': rule.name,
+        'metric': rule.metric,
+        'operator': rule.operator,
+        'threshold': rule.threshold,
+        'recovery_threshold': rule.recovery_threshold,
+        'consecutive_hits': rule.consecutive_hits,
+        'enabled': rule.enabled,
+        'created_at': rule.created_at,
+        'updated_at': rule.updated_at,
+    }
