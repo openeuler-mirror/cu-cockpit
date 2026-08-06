@@ -48,3 +48,8 @@ def get_tool(name):
         return AI_TOOLS[str(name)]
     except KeyError as error:
         raise AIToolValidationError('工具未注册') from error
+
+
+def normalize_tool_call(call):
+    spec = get_tool(call['tool'])
+    return spec, spec.normalize(call['arguments'])
