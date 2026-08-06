@@ -34,5 +34,8 @@ def build_analysis_messages(kind, content):
 
 def analyze_context(kind, content):
     messages, truncated = build_analysis_messages(kind, content)
-    analysis = json.loads(chat_completion(messages))
+    try:
+        analysis = json.loads(chat_completion(messages))
+    except (json.JSONDecodeError, TypeError) as error:
+        raise AIAnalysisError('AI 分析响应不是有效 JSON') from error
     return {'analysis': analysis, 'truncated': truncated}
