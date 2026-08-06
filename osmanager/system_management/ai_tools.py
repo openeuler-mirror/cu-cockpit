@@ -59,7 +59,13 @@ def execute_process_search(arguments, _context=None):
 
 
 def normalize_listener_search(arguments):
-    return {'port': int(arguments['port'])}
+    try:
+        port = int(arguments.get('port'))
+    except (TypeError, ValueError) as error:
+        raise AIToolValidationError('端口必须为整数') from error
+    if not 1 <= port <= 65535:
+        raise AIToolValidationError('端口范围必须为 1-65535')
+    return {'port': port}
 
 
 AI_TOOLS = {
