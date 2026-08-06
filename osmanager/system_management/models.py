@@ -151,3 +151,25 @@ class AlertEvent(models.Model):
                 fields=['rule'], condition=models.Q(status='active'), name='one_active_event_per_rule'
             ),
         ]
+
+
+class AIRunbook(models.Model):
+    STATUS_CHOICES = (
+        ('draft', 'Draft'),
+        ('running', 'Running'),
+        ('paused', 'Paused'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+    )
+
+    actor = models.CharField(max_length=150, db_index=True)
+    title = models.CharField(max_length=256)
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default='draft', db_index=True)
+    current_step = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    error = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-created_at', '-id']
