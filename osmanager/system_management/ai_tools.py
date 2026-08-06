@@ -66,3 +66,8 @@ def normalize_tool_call(call):
     if unknown:
         raise AIToolValidationError(f'工具包含未知参数: {", ".join(unknown)}')
     return spec, spec.normalize(arguments)
+
+
+def execute_tool_call(call, context):
+    spec, arguments = normalize_tool_call(call)
+    return spec.execute(arguments, context)
