@@ -73,3 +73,17 @@ def consecutive_recovered(rule, values):
     return len(values) >= rule.consecutive_hits and all(
         threshold_recovered(rule, value) for value in values[:rule.consecutive_hits]
     )
+
+
+def open_alert_event(rule, sample, values):
+    from .models import AlertEvent
+    current = getattr(sample, rule.metric)
+    return AlertEvent.objects.get_or_create(
+        rule=rule,
+        status='active',
+        defaults={
+            'trigger_value': current,
+            'last_value': current,
+            'context': {'sample_id': sample.id, 'values': list(values)},
+        },
+    )
