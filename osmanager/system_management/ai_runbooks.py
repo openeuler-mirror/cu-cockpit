@@ -127,3 +127,15 @@ def fail_runbook(runbook, error):
     runbook.error = redact_context(str(error))[:2000]
     runbook.save(update_fields=['status', 'error', 'updated_at'])
     return runbook
+
+
+def advance_runbook_position(runbook):
+    runbook.current_step += 1
+    if runbook.steps.filter(position=runbook.current_step).exists():
+        runbook.status = 'running'
+        runbook.error = ''
+        runbook.save(update_fields=['current_step', 'status', 'error', 'updated_at'])
+        return False
+    complete_runbook(runbook)
+    runbook.save(update_fields=['current_step', 'updated_at'])
+    return True
