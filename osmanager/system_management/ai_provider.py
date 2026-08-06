@@ -1,4 +1,6 @@
+import json
 import os
+import urllib.request
 from dataclasses import dataclass
 
 
@@ -41,3 +43,25 @@ def provider_status(config=None):
         'model': current.model,
         'reason': '',
     }
+
+
+def chat_completion(messages, config=None):
+    current = config or get_provider_config()
+    payload = json.dumps({
+        'model': current.model,
+        'messages': messages,
+        'temperature': 0.1,
+        'response_format': {'type': 'json_object'},
+    }).encode('utf-8')
+    request = urllib.request.Request(
+        f'{current.base_url}/chat/completions',
+        data=payload,
+        headers={
+            'Authorization': f'Bearer {current.api_key}',
+            'Content-Type': 'application/json',
+        },
+        method='POST',
+    )
+    with urllib.request.urlopen(request, timeout=current.timeout_seconds) as response:
+        data = json.loads(response.read().decode('utf-8'))
+    return data['choices'][0]['message']['content']
