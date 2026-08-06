@@ -30,3 +30,7 @@ def validate_document_path(path):
     if resolved.stat().st_size > MAX_DOCUMENT_BYTES:
         raise AIKnowledgeError('知识文档超过 1 MiB 限制')
     return resolved
+
+
+def read_document(path):
+    return validate_document_path(path).read_text(encoding='utf-8', errors='replace')
