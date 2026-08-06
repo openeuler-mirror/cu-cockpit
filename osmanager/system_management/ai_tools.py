@@ -40,6 +40,13 @@ def execute_service_status(arguments, _context=None):
     return {'service': arguments['service'], 'state': state}
 
 
+def normalize_process_search(arguments):
+    return {
+        'search': str(arguments.get('search') or '').strip(),
+        'limit': int(arguments.get('limit', 20)),
+    }
+
+
 AI_TOOLS = {
     'service.status': AIToolSpec(
         name='service.status', description='查询 systemd 服务运行状态', risk='readonly',
