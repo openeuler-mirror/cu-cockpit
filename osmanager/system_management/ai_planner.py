@@ -1,6 +1,6 @@
 import json
 
-from .ai_tools import tool_catalog
+from .ai_tools import normalize_tool_call, tool_catalog
 
 
 class AIPlanValidationError(ValueError):
@@ -27,3 +27,13 @@ def parse_plan_response(content):
         return json.loads(content)
     except (json.JSONDecodeError, TypeError) as error:
         raise AIPlanValidationError('AI 计划不是有效 JSON') from error
+
+
+def validate_plan_payload(payload):
+    spec, arguments = normalize_tool_call(payload['tool_calls'][0])
+    return {
+        'intent': str(payload['intent']).strip(),
+        'summary': str(payload.get('summary') or '').strip(),
+        'risk': spec.risk,
+        'tool_calls': [{'tool': spec.name, 'arguments': arguments}],
+    }
