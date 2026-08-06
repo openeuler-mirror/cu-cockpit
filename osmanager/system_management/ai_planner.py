@@ -2,7 +2,7 @@ import json
 
 from .ai_context import redact_context
 from .ai_provider import chat_completion
-from .ai_tools import AIToolValidationError, normalize_tool_call, tool_catalog
+from .ai_tools import AIToolValidationError, execute_tool_call, normalize_tool_call, tool_catalog
 
 
 class AIPlanValidationError(ValueError):
@@ -89,3 +89,14 @@ def serialize_operation_plan(plan):
         'result': plan.result,
         'error': plan.error,
     }
+
+
+def execute_operation_plan(plan, context):
+    from django.utils import timezone
+    result = execute_tool_call(plan.tool_calls[0], context)
+    plan.status = 'executed'
+    plan.executed_at = timezone.now()
+    plan.result = result
+    plan.error = ''
+    plan.save(update_fields=['status', 'executed_at', 'result', 'error'])
+    return result
