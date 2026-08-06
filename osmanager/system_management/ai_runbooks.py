@@ -112,3 +112,11 @@ def complete_runbook(runbook):
     runbook.error = ''
     runbook.save(update_fields=['status', 'error', 'updated_at'])
     return runbook
+
+
+def pause_runbook_for_confirmation(runbook, step):
+    token = issue_step_confirmation(step)
+    runbook.status = 'paused'
+    runbook.error = ''
+    runbook.save(update_fields=['status', 'error', 'updated_at'])
+    return token
