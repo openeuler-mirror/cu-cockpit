@@ -105,3 +105,26 @@ class MetricSample(models.Model):
 
     class Meta:
         ordering = ['-collected_at', '-id']
+
+
+class AlertRule(models.Model):
+    METRIC_CHOICES = (
+        ('cpu_percent', 'CPU'),
+        ('memory_percent', 'Memory'),
+        ('root_percent', 'Root filesystem'),
+        ('inode_percent', 'Root inode'),
+    )
+    OPERATOR_CHOICES = (('gte', '>='), ('lte', '<='))
+
+    name = models.CharField(max_length=128, unique=True)
+    metric = models.CharField(max_length=32, choices=METRIC_CHOICES, db_index=True)
+    operator = models.CharField(max_length=8, choices=OPERATOR_CHOICES, default='gte')
+    threshold = models.FloatField()
+    recovery_threshold = models.FloatField()
+    consecutive_hits = models.PositiveSmallIntegerField(default=3)
+    enabled = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name', 'id']
