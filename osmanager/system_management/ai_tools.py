@@ -99,11 +99,18 @@ def execute_storage_usage(arguments, _context=None):
 
 
 def normalize_log_query(arguments):
-    return {
-        'priority': str(arguments.get('priority') or 'err').strip().lower(),
-        'service': str(arguments.get('service') or '').strip(),
-        'limit': int(arguments.get('limit', 50)),
-    }
+    priority = str(arguments.get('priority') or 'err').strip().lower()
+    service = str(arguments.get('service') or '').strip()
+    try:
+        limit = int(arguments.get('limit', 50))
+    except (TypeError, ValueError) as error:
+        raise AIToolValidationError('日志条数必须为整数') from error
+    valid_service = not service or (
+        len(service) <= 128 and all(char.isalnum() or char in '@_.:-' for char in service)
+    )
+    if priority not in ALLOWED_LOG_PRIORITIES or not valid_service or not 1 <= limit <= 200:
+        raise AIToolValidationError('日志优先级、服务名或条数无效')
+    return {'priority': priority, 'service': service, 'limit': limit}
 
 
 AI_TOOLS = {
