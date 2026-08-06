@@ -51,5 +51,7 @@ def get_tool(name):
 
 
 def normalize_tool_call(call):
+    if not isinstance(call, dict) or not isinstance(call.get('arguments', {}), dict):
+        raise AIToolValidationError('工具调用和 arguments 必须为对象')
     spec = get_tool(call['tool'])
-    return spec, spec.normalize(call['arguments'])
+    return spec, spec.normalize(call.get('arguments', {}))
