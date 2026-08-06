@@ -29,3 +29,15 @@ def normalize_runbook_payload(payload):
             'risk': spec.risk,
         })
     return {'title': title, 'steps': steps}
+
+
+def create_runbook(payload, actor):
+    from django.db import transaction
+    from .models import AIRunbook, AIRunbookStep
+    normalized = normalize_runbook_payload(payload)
+    with transaction.atomic():
+        runbook = AIRunbook.objects.create(actor=actor, title=normalized['title'])
+        AIRunbookStep.objects.bulk_create(
+            AIRunbookStep(runbook=runbook, **step) for step in normalized['steps']
+        )
+    return runbook
