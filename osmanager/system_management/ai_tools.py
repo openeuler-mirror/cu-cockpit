@@ -16,6 +16,13 @@ class AIToolSpec:
     allowed_arguments: tuple[str, ...] = ()
 
 
+@dataclass(frozen=True)
+class AIToolExecutionContext:
+    actor: str
+    is_admin: bool
+    confirmed: bool
+
+
 class AIToolValidationError(ValueError):
     pass
 
