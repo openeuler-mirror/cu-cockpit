@@ -70,3 +70,14 @@ def collect_network_bytes(path=Path('/proc/net/dev')):
     except (OSError, ValueError) as error:
         raise MetricCollectionError('无法采集网络流量') from error
     return {'network_rx_bytes': received, 'network_tx_bytes': transmitted}
+
+
+def collect_service_states(services=MONITORED_SERVICES):
+    states = {}
+    for service in services:
+        try:
+            result = run_safe(['systemctl', 'is-active', service], {'systemctl'}, timeout=3)
+            states[service] = result.stdout.strip() or ('inactive' if result.returncode else 'active')
+        except (OSError, RuntimeError):
+            states[service] = 'unknown'
+    return states
