@@ -112,6 +112,9 @@ def evaluate_alert_rule(rule, sample):
     from .models import AlertEvent
     active = AlertEvent.objects.filter(rule=rule, status='active').first()
     if active:
+        values = recent_rule_values(rule)
+        if consecutive_recovered(rule, values):
+            return recover_alert_event(active, value)
         return active
     values = recent_rule_values(rule)
     if not consecutive_triggered(rule, values):
