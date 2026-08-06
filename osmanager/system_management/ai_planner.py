@@ -30,10 +30,18 @@ def parse_plan_response(content):
 
 
 def validate_plan_payload(payload):
+    if not isinstance(payload, dict) or not isinstance(payload.get('tool_calls'), list):
+        raise AIPlanValidationError('AI 计划必须为对象且 tool_calls 必须为数组')
+    if len(payload['tool_calls']) != 1:
+        raise AIPlanValidationError('单次 AI 计划必须且只能包含一个工具调用')
+    intent = str(payload.get('intent') or '').strip()
+    summary = str(payload.get('summary') or '').strip()
+    if not intent or len(intent) > 256 or len(summary) > 2000:
+        raise AIPlanValidationError('AI 计划意图或摘要长度无效')
     spec, arguments = normalize_tool_call(payload['tool_calls'][0])
     return {
-        'intent': str(payload['intent']).strip(),
-        'summary': str(payload.get('summary') or '').strip(),
+        'intent': intent,
+        'summary': summary,
         'risk': spec.risk,
         'tool_calls': [{'tool': spec.name, 'arguments': arguments}],
     }
