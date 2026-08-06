@@ -73,7 +73,11 @@ def search_knowledge(query, limit=5):
     terms = query_terms(text)
     matches = []
     for path in allowed_document_paths():
-        for chunk in document_chunks(path):
+        try:
+            chunks = document_chunks(path)
+        except (AIKnowledgeError, OSError):
+            continue
+        for chunk in chunks:
             normalized = chunk['text'].lower()
             score = sum(normalized.count(term) for term in terms)
             if score:
