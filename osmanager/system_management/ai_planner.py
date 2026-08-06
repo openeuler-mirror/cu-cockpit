@@ -1,5 +1,6 @@
 import json
 
+from .ai_context import redact_context
 from .ai_provider import chat_completion
 from .ai_tools import AIToolValidationError, normalize_tool_call, tool_catalog
 
@@ -60,3 +61,16 @@ def generate_plan(request_text):
         raise AIPlanValidationError('运维请求不能为空且不能超过 2000 字符')
     content = chat_completion(build_plan_messages(text))
     return validate_plan_payload(parse_plan_response(content))
+
+
+def create_operation_plan(request_text, actor):
+    from .models import AIOperationPlan
+    payload = generate_plan(request_text)
+    return AIOperationPlan.objects.create(
+        actor=actor,
+        request_text=redact_context(str(request_text).strip()),
+        intent=payload['intent'],
+        summary=payload['summary'],
+        risk=payload['risk'],
+        tool_calls=payload['tool_calls'],
+    )
