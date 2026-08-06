@@ -131,3 +131,13 @@ def evaluate_alert_rules(sample):
         if event is not None:
             events.append(event)
     return events
+
+
+def acknowledge_alert_event(event, actor):
+    if event.status != 'active':
+        raise AlertRuleValidationError('只能确认活动告警')
+    from django.utils import timezone
+    event.acknowledged_by = str(actor)
+    event.acknowledged_at = timezone.now()
+    event.save(update_fields=['acknowledged_by', 'acknowledged_at'])
+    return event
