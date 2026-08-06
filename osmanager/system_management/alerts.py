@@ -37,3 +37,11 @@ def normalize_alert_rule(payload):
 def create_alert_rule(payload):
     from .models import AlertRule
     return AlertRule.objects.create(**normalize_alert_rule(payload))
+
+
+def threshold_triggered(rule, value):
+    if value is None:
+        return False
+    if rule.operator == 'gte':
+        return value >= rule.threshold
+    return value <= rule.threshold
