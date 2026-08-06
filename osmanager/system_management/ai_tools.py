@@ -39,3 +39,7 @@ AI_TOOLS = {
         normalize=normalize_service_status, execute=execute_service_status,
     ),
 }
+
+
+def get_tool(name):
+    return AI_TOOLS[name]
