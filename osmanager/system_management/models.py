@@ -91,3 +91,17 @@ class AIOperationPlan(models.Model):
 
     class Meta:
         ordering = ['-created_at', '-id']
+
+
+class MetricSample(models.Model):
+    collected_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    cpu_percent = models.FloatField(null=True, blank=True)
+    memory_percent = models.FloatField(null=True, blank=True)
+    root_percent = models.FloatField(null=True, blank=True)
+    inode_percent = models.FloatField(null=True, blank=True)
+    network_rx_bytes = models.BigIntegerField(null=True, blank=True)
+    network_tx_bytes = models.BigIntegerField(null=True, blank=True)
+    services = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ['-collected_at', '-id']
