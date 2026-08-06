@@ -102,3 +102,8 @@ def collect_metric_values():
         values.update(network_rx_bytes=None, network_tx_bytes=None)
     values['services'] = collect_service_states()
     return values
+
+
+def collect_metric_sample():
+    from .models import MetricSample
+    return MetricSample.objects.create(**collect_metric_values())
