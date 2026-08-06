@@ -21,3 +21,12 @@ def allowed_document_paths():
         if sop_directory.is_dir():
             paths.extend(sop_directory.rglob('*.md'))
     return sorted({path.resolve() for path in paths if path.is_file()})
+
+
+def validate_document_path(path):
+    resolved = Path(path).resolve()
+    if resolved not in set(allowed_document_paths()):
+        raise AIKnowledgeError('知识文档路径不在允许范围')
+    if resolved.stat().st_size > MAX_DOCUMENT_BYTES:
+        raise AIKnowledgeError('知识文档超过 1 MiB 限制')
+    return resolved
