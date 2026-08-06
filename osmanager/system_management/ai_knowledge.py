@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from .ai_context import prepare_context, wrap_untrusted_context
+from .ai_provider import chat_completion
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -100,3 +101,9 @@ def build_knowledge_messages(query, matches):
         {'role': 'system', 'content': system},
         {'role': 'user', 'content': f'问题：{query}\n{wrap_untrusted_context("knowledge", prepared)}'},
     ]
+
+
+def answer_knowledge_question(query):
+    matches = search_knowledge(query)
+    answer = json.loads(chat_completion(build_knowledge_messages(query, matches)))
+    return {'answer': answer, 'matches': matches}
