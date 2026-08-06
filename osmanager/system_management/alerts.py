@@ -61,3 +61,9 @@ def recent_rule_values(rule):
     from .models import MetricSample
     queryset = MetricSample.objects.exclude(**{f'{rule.metric}__isnull': True})
     return list(queryset.values_list(rule.metric, flat=True)[:rule.consecutive_hits])
+
+
+def consecutive_triggered(rule, values):
+    return len(values) >= rule.consecutive_hits and all(
+        threshold_triggered(rule, value) for value in values[:rule.consecutive_hits]
+    )
