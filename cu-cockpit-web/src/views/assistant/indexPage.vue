@@ -260,6 +260,7 @@ import {
 	type AssistantStatusResponse,
 	type MetricSample,
 	type Runbook,
+	type RunbookResponse,
 } from '/@/api/system/assistant';
 import { userPermissiom } from '/@/stores/userPermissiom';
 import { useThemeConfig } from '/@/stores/themeConfig';
@@ -526,7 +527,7 @@ const generateRunbook = async () => {
 	if (!provider.available) return ElMessage.warning(provider.reason || 'AI Provider 不可用');
 	runbookLoading.value = true;
 	try {
-		const response = await assistantRequest<any>('/system/ai/runbooks/generate', 'post', {
+		const response = await assistantRequest<RunbookResponse>('/system/ai/runbooks/generate', 'post', {
 			request: runbookPrompt.value.trim(),
 		});
 		selectedRunbookId.value = response.runbook.id;
