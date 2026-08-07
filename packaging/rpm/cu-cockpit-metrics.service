@@ -1,6 +1,6 @@
 [Unit]
 Description=Collect cu-cockpit metrics and evaluate alerts
-After=osmanager.service
+After=cu-cockpit.service
 
 [Service]
 Type=oneshot
