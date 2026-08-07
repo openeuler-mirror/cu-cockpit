@@ -12,6 +12,7 @@ from .ai_runbooks import (
     generate_runbook,
     serialize_runbook,
 )
+from .ai_tools import AIToolValidationError
 from .models import AIRunbook
 from .permissions import get_session_identity
 
@@ -59,7 +60,10 @@ def runbook_generate(request):
 def runbook_advance(request, runbook_id):
     runbook = get_object_or_404(AIRunbook, id=runbook_id)
     identity = get_session_identity(request)
-    outcome = advance_runbook(runbook, identity.username, identity.is_admin)
+    try:
+        outcome = advance_runbook(runbook, identity.username, identity.is_admin)
+    except (AIRunbookError, AIToolValidationError, RuntimeError) as error:
+        return _runbook_error(error)
     return JsonResponse({
         'action': outcome['action'],
         'confirmation_token': outcome.get('confirmation_token'),
