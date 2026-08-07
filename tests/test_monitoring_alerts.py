@@ -58,4 +58,9 @@ class MetricCollectorTest(TestCase):
 
 
 class AlertRuleStateTest(TestCase):
-    pass
+    def test_high_threshold_requires_lower_recovery_value(self):
+        with self.assertRaisesRegex(AlertRuleValidationError, '恢复阈值必须低于'):
+            normalize_alert_rule({
+                'name': 'CPU high', 'metric': 'cpu_percent', 'operator': 'gte',
+                'threshold': 80, 'recovery_threshold': 80,
+            })
