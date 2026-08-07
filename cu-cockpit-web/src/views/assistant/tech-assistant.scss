@@ -153,3 +153,27 @@
 .analysis-editor .el-button { justify-self: end; }
 .analysis-sources { display: flex; flex-wrap: wrap; gap: 7px; }
 .analysis-sources span { padding: 4px 8px; border: 1px solid var(--assistant-line); color: #85a9b6; font-size: 10px; }
+
+.metric-strip {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 9px;
+	margin-bottom: 12px;
+}
+.metric-strip__item {
+	padding: 12px 14px;
+	border-top: 2px solid var(--assistant-cyan);
+	background: rgba(8, 25, 35, 0.84);
+}
+.metric-strip__item span,
+.metric-strip__item strong,
+.metric-strip__item small { display: block; }
+.metric-strip__item span { color: #7899a7; font-size: 11px; }
+.metric-strip__item strong { margin: 5px 0; font-size: 23px; }
+.metric-strip__item small { color: #607d89; font-size: 10px; }
+.alerts-workspace { display: grid; gap: 12px; }
+.assistant-table { --el-table-bg-color: transparent; --el-table-tr-bg-color: transparent; --el-table-header-bg-color: rgba(85, 231, 239, 0.055); --el-table-border-color: var(--assistant-line); }
+.assistant-table :deep(.el-table__inner-wrapper::before) { display: none; }
+.alert-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+.assistant-dialog .el-select,
+.assistant-dialog .el-input-number { width: 100%; }
