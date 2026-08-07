@@ -182,6 +182,13 @@ class AICommandReviewTest(TestCase):
         self.assertEqual(result['operators'], ['|'])
         self.assertFalse(result['requires_admin_review'])
 
+    def test_systemctl_restart_is_change_risk(self):
+        result = assess_linux_command('systemctl restart nginx')
+
+        self.assertEqual(result['risk'], 'change')
+        self.assertEqual(result['commands'], ['systemctl'])
+        self.assertTrue(result['requires_admin_review'])
+
 
 class AIPlanSafetyTest(TestCase):
     def test_policy_rejection_preserves_draft_plan(self):
