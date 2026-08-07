@@ -1,11 +1,18 @@
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 
 from osmanager.auth.decorators import login_required_api
 
-from .ai_planner import AIPlanValidationError, create_operation_plan, serialize_operation_plan
+from .ai_planner import (
+    AIPlanValidationError,
+    create_operation_plan,
+    execute_operation_plan,
+    serialize_operation_plan,
+)
 from .ai_provider import AIProviderError, provider_status
-from .ai_tools import tool_catalog
+from .ai_tools import AIToolExecutionContext, tool_catalog
+from .models import AIOperationPlan
 from .permissions import get_session_identity
 
 
@@ -31,4 +38,18 @@ def ai_plan_create(request):
         plan = create_operation_plan(request.data.get('request'), identity.username)
     except (AIPlanValidationError, AIProviderError) as error:
         return _ai_error(error)
+    return JsonResponse({'plan': serialize_operation_plan(plan)})
+
+
+@login_required_api
+@api_view(['POST'])
+def ai_plan_execute(request, plan_id):
+    plan = get_object_or_404(AIOperationPlan, id=plan_id)
+    identity = get_session_identity(request)
+    context = AIToolExecutionContext(
+        actor=identity.username,
+        is_admin=identity.is_admin,
+        confirmed=request.data.get('confirmed') is True,
+    )
+    execute_operation_plan(plan, context)
     return JsonResponse({'plan': serialize_operation_plan(plan)})
