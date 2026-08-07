@@ -33,4 +33,5 @@ urlpatterns = [
     path('ai/status', ai_views.ai_status, name='ai-status'),
     path('ai/plans', ai_views.ai_plan_create, name='ai-plan-create'),
     path('ai/plans/<int:plan_id>/execute', ai_views.ai_plan_execute, name='ai-plan-execute'),
+    path('ai/analyze/logs', ai_views.ai_logs_analyze, name='ai-logs-analyze'),
 ]
