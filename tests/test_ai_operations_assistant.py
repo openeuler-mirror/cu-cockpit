@@ -57,6 +57,15 @@ class AIProviderTest(TestCase):
         self.assertEqual(result['reason'], '缺少配置: AI_BASE_URL, AI_MODEL')
         self.assertNotIn('secret-key', str(result))
 
+    def test_configured_provider_status_never_exposes_api_key(self):
+        config = AIProviderConfig('https://ai.example.com/v1', 'secret-key', 'ops-model', 30)
+
+        result = provider_status(config)
+
+        self.assertTrue(result['available'])
+        self.assertEqual(result['model'], 'ops-model')
+        self.assertNotIn('secret-key', str(result))
+
 
 class AIToolSafetyTest(TestCase):
     def test_unregistered_shell_tool_is_rejected(self):
