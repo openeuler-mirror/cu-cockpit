@@ -19,6 +19,7 @@ from osmanager.system_management.alerts import (
     build_alert_context,
     consecutive_recovered,
     consecutive_triggered,
+    evaluate_alert_rule,
     normalize_alert_rule,
 )
 from osmanager.system_management.monitoring import (
@@ -27,7 +28,7 @@ from osmanager.system_management.monitoring import (
     collect_metric_values,
     collect_network_bytes,
 )
-from osmanager.system_management.models import AlertEvent, AlertRule
+from osmanager.system_management.models import AlertEvent, AlertRule, MetricSample
 
 
 class MetricCollectorTest(TestCase):
@@ -63,6 +64,21 @@ class MetricCollectorTest(TestCase):
 
 
 class AlertRuleStateTest(TestCase):
+    def test_consecutive_samples_open_active_alert(self):
+        rule = AlertRule.objects.create(
+            name='CPU high', metric='cpu_percent', threshold=80,
+            recovery_threshold=70, consecutive_hits=3,
+        )
+        MetricSample.objects.create(cpu_percent=82)
+        MetricSample.objects.create(cpu_percent=85)
+        sample = MetricSample.objects.create(cpu_percent=91)
+
+        event = evaluate_alert_rule(rule, sample)
+
+        self.assertEqual(event.status, 'active')
+        self.assertEqual(event.trigger_value, 91)
+        self.assertEqual(event.context, {'sample_id': sample.id, 'values': [91, 85, 82]})
+
     def test_high_threshold_requires_lower_recovery_value(self):
         with self.assertRaisesRegex(AlertRuleValidationError, '恢复阈值必须低于'):
             normalize_alert_rule({
