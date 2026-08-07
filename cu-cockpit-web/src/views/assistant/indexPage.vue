@@ -393,7 +393,7 @@ const executeOperationPlan = async () => {
 	);
 	executionLoading.value = true;
 	try {
-		const response = await assistantRequest<any>(
+		const response = await assistantRequest<AssistantPlanResponse>(
 			`/system/ai/plans/${operationPlan.value.id}/execute`, 'post', { confirmed: true },
 		);
 		operationPlan.value = response.plan;
