@@ -105,3 +105,36 @@ def extract_segment_command(segment):
             arguments.append(argument)
         return {'name': name, 'arguments': arguments, 'wrappers': wrappers}
     return {'name': '', 'arguments': [], 'wrappers': wrappers}
+
+
+def classify_segment_risk(segment):
+    command = extract_segment_command(segment)
+    name = command['name']
+    arguments = command['arguments']
+    if not name:
+        return {**command, 'risk': 'change', 'reason': '无法识别命令段，按变更风险处理'}
+    if name in DANGEROUS_COMMANDS or name == 'mkfs' or name.startswith('mkfs.'):
+        return {**command, 'risk': 'dangerous', 'reason': f'{name} 属于破坏性命令'}
+    if name in {'kill', 'pkill', 'killall'} and any(value in ('-9', '-KILL') for value in arguments):
+        return {**command, 'risk': 'dangerous', 'reason': f'{name} 请求不可恢复的强制终止'}
+    if name == 'systemctl':
+        action = next((value for value in arguments if not value.startswith('-')), '')
+        risk = 'readonly' if action in READONLY_SYSTEMCTL_ACTIONS else 'change'
+        return {**command, 'risk': risk, 'reason': f'systemctl {action or "未知动作"}'}
+    if name == 'service':
+        risk = 'readonly' if arguments and arguments[-1] == 'status' else 'change'
+        return {**command, 'risk': risk, 'reason': f'service {arguments[-1] if arguments else "未知动作"}'}
+    if name == 'sed':
+        changed = any(value == '-i' or value.startswith('-i') for value in arguments)
+        return {**command, 'risk': 'change' if changed else 'readonly', 'reason': 'sed 原地写入' if changed else 'sed 只读转换'}
+    if name == 'find':
+        changed = any(value in ('-delete', '-exec', '-execdir', '-ok', '-okdir') for value in arguments)
+        return {**command, 'risk': 'change' if changed else 'readonly', 'reason': 'find 包含写操作' if changed else 'find 只读查询'}
+    if name == 'journalctl':
+        changed = any(value.startswith(('--vacuum', '--rotate', '--flush', '--sync')) for value in arguments)
+        return {**command, 'risk': 'change' if changed else 'readonly', 'reason': 'journalctl 修改日志存储' if changed else 'journalctl 只读查询'}
+    if name in CHANGE_COMMANDS:
+        return {**command, 'risk': 'change', 'reason': f'{name} 可能修改系统状态'}
+    if name in READONLY_COMMANDS:
+        return {**command, 'risk': 'readonly', 'reason': f'{name} 是已知只读命令'}
+    return {**command, 'risk': 'change', 'reason': f'未识别命令 {name}，按变更风险处理'}
