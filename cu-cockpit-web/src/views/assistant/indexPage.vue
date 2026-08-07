@@ -51,7 +51,31 @@
 					</div>
 				</article>
 
-				<article class="assistant-panel operation-plan"></article>
+				<article class="assistant-panel operation-plan">
+					<div class="assistant-panel__head">
+						<div><span class="panel-index">02</span><h2>执行计划</h2></div>
+						<el-tag v-if="operationPlan" effect="dark" :type="operationPlan.risk === 'readonly' ? 'success' : 'warning'">{{ operationPlan.risk }}</el-tag>
+					</div>
+					<template v-if="operationPlan">
+						<div class="plan-facts">
+							<div><span>意图</span><strong>{{ operationPlan.intent }}</strong></div>
+							<div><span>状态</span><strong>{{ operationPlan.status }}</strong></div>
+							<div><span>注册工具</span><strong>{{ operationPlan.tool_calls?.[0]?.tool }}</strong></div>
+						</div>
+						<p class="plan-summary">{{ operationPlan.summary || '等待用户审查' }}</p>
+						<pre class="assistant-code">{{ formatJson(operationPlan.tool_calls?.[0]?.arguments) }}</pre>
+						<el-alert v-if="operationPlan.risk !== 'readonly'" title="该计划会修改系统，执行前需要管理员权限和再次确认。" type="warning" :closable="false" show-icon />
+						<div class="assistant-panel__actions">
+							<el-button
+								:icon="operationPlan.risk === 'readonly' ? VideoPlay : Key" type="primary"
+								:loading="executionLoading" :disabled="operationPlan.status !== 'draft'"
+								@click="executeOperationPlan"
+							>确认并执行</el-button>
+						</div>
+						<pre v-if="operationResult" class="assistant-code assistant-code--result">{{ formatJson(operationResult) }}</pre>
+					</template>
+					<el-empty v-else :image-size="72" description="尚未生成计划" />
+				</article>
 			</section>
 		</main>
 	</div>
