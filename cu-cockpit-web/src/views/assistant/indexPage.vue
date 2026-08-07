@@ -273,4 +273,23 @@ const advanceRunbook = async () => {
 		runbookLoading.value = false;
 	}
 };
+
+const confirmRunbook = async () => {
+	if (!currentRunbook.value || !confirmationToken.value) {
+		return ElMessage.warning('当前会话没有可用的一次性确认令牌');
+	}
+	runbookLoading.value = true;
+	try {
+		await assistantRequest(`/system/ai/runbooks/${currentRunbook.value.id}/confirm`, 'post', {
+			confirmation_token: confirmationToken.value,
+		});
+		confirmationToken.value = '';
+		ElMessage.success('步骤已确认，请执行当前步骤');
+		await loadWorkspace();
+	} catch (error) {
+		console.error('confirm Runbook failed:', error);
+	} finally {
+		runbookLoading.value = false;
+	}
+};
 </script>
