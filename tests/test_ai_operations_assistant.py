@@ -73,7 +73,12 @@ class AIToolSafetyTest(TestCase):
 
 
 class AIContextSafetyTest(TestCase):
-    pass
+    def test_context_is_redacted_before_truncation(self):
+        prepared = prepare_context('password=secret ' + ('x' * 100), limit=24)
+        self.assertTrue(prepared.truncated)
+        self.assertEqual(len(prepared.text), 24)
+        self.assertIn('password=[REDACTED]', prepared.text)
+        self.assertNotIn('secret', prepared.text)
 
 
 class AIPlanSafetyTest(TestCase):
