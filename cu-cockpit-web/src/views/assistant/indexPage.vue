@@ -408,7 +408,7 @@ const executeOperationPlan = async () => {
 };
 
 const analyzeLogs = async () => {
-	let logs: any[];
+	let logs: unknown[];
 	try {
 		logs = JSON.parse(logsInput.value);
 		if (!Array.isArray(logs)) throw new Error('logs must be an array');
@@ -417,7 +417,7 @@ const analyzeLogs = async () => {
 	}
 	analysisLoading.value = true;
 	try {
-		analysisResult.value = await assistantRequest<any>('/system/ai/analyze/logs', 'post', { logs });
+		analysisResult.value = await assistantRequest<AnalysisResult>('/system/ai/analyze/logs', 'post', { logs });
 	} catch (error) {
 		console.error('analyze logs failed:', error);
 	} finally {
