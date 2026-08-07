@@ -64,6 +64,9 @@ def login_view(request):
         username = request.data.get('username') if hasattr(request, 'data') else request.POST.get('username')
         password = request.data.get('password') if hasattr(request, 'data') else request.POST.get('password')
 
+        if not isinstance(username, str) or not isinstance(password, str):
+            return Response({'code': 400, 'message': '用户名和密码必须为字符串'},
+                          status=status.HTTP_400_BAD_REQUEST)
         if not username or not password:
             return Response({'code': 400, 'message': '请输入用户名和密码'},
                           status=status.HTTP_400_BAD_REQUEST)
