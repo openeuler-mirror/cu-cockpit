@@ -35,7 +35,25 @@
 			<button :class="{ 'is-active': activeTab === 'runbooks' }" @click="activeTab = 'runbooks'"><Guide />Runbook</button>
 		</nav>
 
-		<main class="assistant-workspace"></main>
+		<main class="assistant-workspace">
+			<section v-if="activeTab === 'operations'" class="assistant-grid assistant-grid--operations">
+				<article class="assistant-panel operation-composer">
+					<div class="assistant-panel__head">
+						<div><span class="panel-index">01</span><h2>运维需求</h2></div>
+						<el-tag effect="dark" type="info">自然语言</el-tag>
+					</div>
+					<el-input
+						v-model="operationRequest" type="textarea" :rows="8" maxlength="2000"
+						show-word-limit placeholder="例如：查看 8080 端口占用，或每天凌晨 2 点执行 df -h"
+					/>
+					<div class="assistant-panel__actions">
+						<el-button :icon="MagicStick" type="primary" :loading="planLoading" :disabled="!provider.available" @click="createOperationPlan">生成受控计划</el-button>
+					</div>
+				</article>
+
+				<article class="assistant-panel operation-plan"></article>
+			</section>
+		</main>
 	</div>
 </template>
 
