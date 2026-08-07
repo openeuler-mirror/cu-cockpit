@@ -187,3 +187,21 @@ def confirm_runbook_step(runbook, actor, token):
     runbook.error = ''
     runbook.save(update_fields=['status', 'error', 'updated_at'])
     return step
+
+
+def retry_runbook_step(runbook, actor):
+    require_runbook_owner(runbook, actor)
+    step = current_runbook_step(runbook)
+    if runbook.status != 'failed' or step is None or step.status != 'failed':
+        raise AIRunbookError('当前 Runbook 步骤不可重试')
+    step.status = 'pending'
+    step.output = {}
+    step.error = ''
+    step.confirmed_at = None
+    step.started_at = None
+    step.finished_at = None
+    step.save(update_fields=['status', 'output', 'error', 'confirmed_at', 'started_at', 'finished_at'])
+    runbook.status = 'running'
+    runbook.error = ''
+    runbook.save(update_fields=['status', 'error', 'updated_at'])
+    return step
