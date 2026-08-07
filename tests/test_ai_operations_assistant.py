@@ -33,7 +33,12 @@ class AIProviderTest(TestCase):
 
 
 class AIToolSafetyTest(TestCase):
-    pass
+    def test_unregistered_shell_tool_is_rejected(self):
+        with self.assertRaisesRegex(AIToolValidationError, '工具未注册'):
+            normalize_tool_call({
+                'tool': 'shell.execute',
+                'arguments': {'command': 'rm -rf /'},
+            })
 
 
 class AIContextSafetyTest(TestCase):
