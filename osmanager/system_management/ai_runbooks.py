@@ -233,3 +233,19 @@ def cancel_runbook(runbook, actor):
     runbook.error = ''
     runbook.save(update_fields=['status', 'error', 'updated_at'])
     return runbook
+
+
+def serialize_runbook_step(step):
+    return {
+        'id': step.id,
+        'position': step.position,
+        'title': step.title,
+        'tool_call': step.tool_call,
+        'risk': step.risk,
+        'status': step.status,
+        'output': step.output,
+        'error': step.error,
+        'confirmed_at': step.confirmed_at,
+        'started_at': step.started_at,
+        'finished_at': step.finished_at,
+    }
