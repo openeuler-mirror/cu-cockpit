@@ -14,6 +14,7 @@ from .ai_runbooks import (
     generate_runbook,
     retry_runbook_step,
     serialize_runbook,
+    skip_runbook_step,
 )
 from .ai_tools import AIToolValidationError
 from .models import AIRunbook
@@ -112,4 +113,13 @@ def runbook_retry(request, runbook_id):
         retry_runbook_step(runbook, identity.username)
     except AIRunbookError as error:
         return _runbook_error(error)
+    return JsonResponse({'runbook': serialize_runbook(runbook)})
+
+
+@login_required_api
+@api_view(['POST'])
+def runbook_skip(request, runbook_id):
+    runbook = get_object_or_404(AIRunbook, id=runbook_id)
+    identity = get_session_identity(request)
+    skip_runbook_step(runbook, identity.username)
     return JsonResponse({'runbook': serialize_runbook(runbook)})
