@@ -12,6 +12,7 @@ from .ai_runbooks import (
     confirm_runbook_step,
     create_runbook,
     generate_runbook,
+    retry_runbook_step,
     serialize_runbook,
 )
 from .ai_tools import AIToolValidationError
@@ -99,4 +100,13 @@ def runbook_confirm(request, runbook_id):
         request, 'ai_runbook', 'confirm_step', str(runbook.id), True, 'Runbook 步骤已确认',
         {'runbook_id': runbook.id, 'current_step': runbook.current_step},
     )
+    return JsonResponse({'runbook': serialize_runbook(runbook)})
+
+
+@login_required_api
+@api_view(['POST'])
+def runbook_retry(request, runbook_id):
+    runbook = get_object_or_404(AIRunbook, id=runbook_id)
+    identity = get_session_identity(request)
+    retry_runbook_step(runbook, identity.username)
     return JsonResponse({'runbook': serialize_runbook(runbook)})
