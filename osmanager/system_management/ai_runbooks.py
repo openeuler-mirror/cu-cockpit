@@ -164,7 +164,11 @@ def advance_runbook(runbook, actor, is_admin):
             'confirmation_token': token,
             'result': None,
         }
-    result = execute_runbook_step(step, actor, is_admin)
+    try:
+        result = execute_runbook_step(step, actor, is_admin)
+    except Exception as error:
+        fail_runbook(runbook, error)
+        raise
     completed = advance_runbook_position(runbook)
     return {
         'action': 'completed' if completed else 'executed',
