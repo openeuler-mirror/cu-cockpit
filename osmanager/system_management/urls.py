@@ -42,4 +42,5 @@ urlpatterns = [
     path('monitoring/alert-rules/create', monitoring_views.alert_rule_create, name='alert-rule-create'),
     path('monitoring/alert-rules/<int:rule_id>/toggle', monitoring_views.alert_rule_toggle, name='alert-rule-toggle'),
     path('monitoring/alert-events', monitoring_views.alert_events, name='alert-events'),
+    path('monitoring/alert-events/<int:event_id>/acknowledge', monitoring_views.alert_event_acknowledge, name='alert-event-acknowledge'),
 ]
