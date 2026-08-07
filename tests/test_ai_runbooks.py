@@ -32,6 +32,19 @@ class RunbookConfirmationTest(TestCase):
         self.assertEqual(step.confirmation_token_hash, hashlib.sha256(b'plain-token').hexdigest())
         self.assertNotIn('plain-token', step.confirmation_token_hash)
 
+    def test_confirmation_token_cannot_be_reused(self):
+        step = SimpleNamespace(
+            status='awaiting_confirmation',
+            confirmation_token_hash=hashlib.sha256(b'one-time').hexdigest(),
+            confirmed_at=None,
+            save=Mock(),
+        )
+        consume_step_confirmation(step, 'one-time')
+        self.assertEqual(step.status, 'pending')
+        self.assertEqual(step.confirmation_token_hash, '')
+        with self.assertRaisesRegex(AIRunbookError, '不等待确认'):
+            consume_step_confirmation(step, 'one-time')
+
 
 class RunbookStateMachineTest(TestCase):
     pass
