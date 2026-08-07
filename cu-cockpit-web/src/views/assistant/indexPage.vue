@@ -195,4 +195,20 @@ const createAlertRule = async () => {
 		alertSaving.value = false;
 	}
 };
+
+const toggleAlertRule = async (rule: any, enabled: string | number | boolean) => {
+	if (!isAdmin.value) return ElMessage.warning('修改告警规则需要管理员权限');
+	alertSaving.value = true;
+	try {
+		await assistantRequest(`/system/monitoring/alert-rules/${rule.id}/toggle`, 'post', {
+			enabled: Boolean(enabled),
+		});
+		ElMessage.success(enabled ? '告警规则已启用' : '告警规则已停用');
+		await loadWorkspace();
+	} catch (error) {
+		console.error('toggle alert rule failed:', error);
+	} finally {
+		alertSaving.value = false;
+	}
+};
 </script>
