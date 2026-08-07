@@ -123,6 +123,16 @@
 						<small>{{ metricSamples.length }} 个历史样本</small>
 					</div>
 				</div>
+				<article class="assistant-panel metric-history-panel">
+					<div class="assistant-panel__head"><div><span class="panel-index">H24</span><h2>最近指标样本</h2></div><span class="assistant-sync">最近 24 小时</span></div>
+					<el-table :data="recentMetricSamples" class="assistant-table" max-height="300" empty-text="等待采样任务写入数据">
+						<el-table-column label="采样时间" min-width="170"><template #default="{ row }">{{ formatTime(row.collected_at) }}</template></el-table-column>
+						<el-table-column label="CPU" width="90"><template #default="{ row }">{{ row.cpu_percent == null ? '—' : `${Number(row.cpu_percent).toFixed(1)}%` }}</template></el-table-column>
+						<el-table-column label="内存" width="90"><template #default="{ row }">{{ row.memory_percent == null ? '—' : `${Number(row.memory_percent).toFixed(1)}%` }}</template></el-table-column>
+						<el-table-column label="根目录" width="90"><template #default="{ row }">{{ row.root_percent == null ? '—' : `${Number(row.root_percent).toFixed(1)}%` }}</template></el-table-column>
+						<el-table-column label="inode" width="90"><template #default="{ row }">{{ row.inode_percent == null ? '—' : `${Number(row.inode_percent).toFixed(1)}%` }}</template></el-table-column>
+					</el-table>
+				</article>
 
 				<div class="assistant-grid assistant-grid--alerts">
 					<article class="assistant-panel alert-rules-panel">
