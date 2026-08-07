@@ -215,6 +215,20 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
           icon: 'iconfont icon-diannao2',
         }
       },
+      {
+        path: '/assistant',
+        component: () => import('/@/views/assistant/indexPage.vue'),
+        name: 'assistant',
+        meta: {
+          title: 'message.router.assistant',
+          isLink: '',
+          isHide: false,
+          isKeepAlive: false,
+          isAffix: false,
+          isIframe: false,
+          icon: 'fa fa-magic',
+        }
+      },
     ],
 	}
 ];
