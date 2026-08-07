@@ -33,4 +33,6 @@ COMMAND_REVIEW_FIELDS = frozenset({
 def validate_linux_command(command):
     if not isinstance(command, str) or not command.strip():
         raise AIAnalysisError('Linux 命令必须为非空字符串')
+    if '\x00' in command:
+        raise AIAnalysisError('Linux 命令不能包含 NUL 字节')
     return command.strip()
