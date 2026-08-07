@@ -23,6 +23,7 @@ READONLY_COMMANDS = frozenset({
     'ls', 'pwd', 'whoami', 'id', 'uname', 'uptime', 'free', 'df', 'du', 'ps', 'pgrep',
     'ss', 'netstat', 'lsof', 'dmesg', 'cat', 'head', 'tail', 'wc', 'stat', 'readlink',
     'realpath', 'which', 'whereis', 'printenv', 'grep', 'awk', 'sort', 'uniq', 'cut', 'tr',
+    'echo', 'printf', 'true', 'false', 'test',
 })
 READONLY_SYSTEMCTL_ACTIONS = frozenset({
     'status', 'is-active', 'is-enabled', 'show', 'cat', 'list-units', 'list-unit-files',
