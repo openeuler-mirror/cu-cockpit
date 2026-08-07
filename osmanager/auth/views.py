@@ -71,6 +71,9 @@ def login_view(request):
         if len(username) > 150:
             return Response({'code': 400, 'message': '用户名长度不能超过 150 字符'},
                           status=status.HTTP_400_BAD_REQUEST)
+        if len(password) > 4096:
+            return Response({'code': 400, 'message': '密码长度超过允许范围'},
+                          status=status.HTTP_400_BAD_REQUEST)
         if not username or not password:
             return Response({'code': 400, 'message': '请输入用户名和密码'},
                           status=status.HTTP_400_BAD_REQUEST)
