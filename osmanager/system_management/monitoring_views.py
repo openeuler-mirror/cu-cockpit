@@ -63,6 +63,10 @@ def alert_rule_create(request):
 @api_view(['POST'])
 def alert_rule_toggle(request, rule_id):
     rule = get_object_or_404(AlertRule, id=rule_id)
-    set_alert_rule_enabled(rule, request.data.get('enabled'))
+    try:
+        set_alert_rule_enabled(rule, request.data.get('enabled'))
+    except AlertRuleValidationError as error:
+        return JsonResponse({'code': 400, 'message': str(error)}, status=400,
+                            json_dumps_params={'ensure_ascii': False})
     return JsonResponse({'code': 200, 'message': '告警规则状态已更新', 'item': serialize_alert_rule(rule)},
                         json_dumps_params={'ensure_ascii': False})
