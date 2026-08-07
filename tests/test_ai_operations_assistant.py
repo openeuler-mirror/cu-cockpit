@@ -90,4 +90,11 @@ class AIContextSafetyTest(TestCase):
 
 
 class AIPlanSafetyTest(TestCase):
-    pass
+    def test_plan_risk_is_derived_from_registered_tool(self):
+        payload = {
+            'intent': 'restart nginx',
+            'summary': 'restart service',
+            'tool_calls': [{'tool': 'service.restart', 'arguments': {'service': 'nginx'}}],
+        }
+        result = validate_plan_payload(payload)
+        self.assertEqual(result['risk'], 'change')
