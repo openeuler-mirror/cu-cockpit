@@ -67,6 +67,14 @@ const formatTime = (value?: string) => value
 	}).format(new Date(value))
 	: '—';
 
+const formatJson = (value: unknown) => {
+	try {
+		return JSON.stringify(value, null, 2);
+	} catch (error) {
+		return String(value ?? '');
+	}
+};
+
 const loadWorkspace = async () => {
 	loading.value = true;
 	try {
