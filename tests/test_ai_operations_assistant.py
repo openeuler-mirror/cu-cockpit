@@ -10,7 +10,7 @@ django.setup()
 from django.test import TestCase
 
 from osmanager.system_management.ai_context import prepare_context, wrap_untrusted_context
-from osmanager.system_management.ai_planner import AIPlanValidationError, validate_plan_payload
+from osmanager.system_management.ai_planner import AIPlanValidationError, execute_operation_plan, validate_plan_payload
 from osmanager.system_management.ai_provider import AIProviderConfig, provider_status
 from osmanager.system_management.ai_tools import (
     AIToolExecutionContext,
@@ -100,6 +100,18 @@ class AIContextSafetyTest(TestCase):
 
 
 class AIPlanSafetyTest(TestCase):
+    def test_policy_rejection_preserves_draft_plan(self):
+        plan = SimpleNamespace(
+            status='draft', actor='alice', tool_calls=[{
+                'tool': 'service.status', 'arguments': {'service': 'sshd'},
+            }], save=Mock(),
+        )
+        context = AIToolExecutionContext('alice', False, False)
+        with self.assertRaisesRegex(AIToolValidationError, '需要用户确认'):
+            execute_operation_plan(plan, context)
+        self.assertEqual(plan.status, 'draft')
+        plan.save.assert_not_called()
+
     def test_plan_risk_is_derived_from_registered_tool(self):
         payload = {
             'intent': 'restart nginx',
