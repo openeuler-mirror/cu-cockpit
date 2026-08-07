@@ -87,5 +87,8 @@ def runbook_advance(request, runbook_id):
 def runbook_confirm(request, runbook_id):
     runbook = get_object_or_404(AIRunbook, id=runbook_id)
     identity = get_session_identity(request)
-    confirm_runbook_step(runbook, identity.username, request.data.get('confirmation_token'))
+    try:
+        confirm_runbook_step(runbook, identity.username, request.data.get('confirmation_token'))
+    except AIRunbookError as error:
+        return _runbook_error(error)
     return JsonResponse({'runbook': serialize_runbook(runbook)})
