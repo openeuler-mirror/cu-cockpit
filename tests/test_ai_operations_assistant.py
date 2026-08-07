@@ -40,6 +40,12 @@ class AIProviderTest(TestCase):
         config = AIProviderConfig('file:///etc/passwd', 'key', 'model', 30)
         self.assertFalse(provider_status(config)['available'])
 
+    def test_provider_rejects_embedded_url_credentials(self):
+        config = AIProviderConfig('https://user:pass@example.com/v1', 'key', 'model', 30)
+        result = provider_status(config)
+        self.assertFalse(result['available'])
+        self.assertEqual(result['base_url'], '')
+
     def test_missing_provider_configuration_is_reported_without_key(self):
         config = AIProviderConfig('', 'secret-key', '', 30)
         result = provider_status(config)
