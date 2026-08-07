@@ -14,6 +14,8 @@ def sanitize_detail(value, key=''):
         return REDACTED
     if isinstance(value, Mapping):
         return {str(item_key): sanitize_detail(item_value, item_key) for item_key, item_value in value.items()}
+    if isinstance(value, (bytes, bytearray)):
+        return f'[BINARY {len(value)} bytes]'
     if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
         return [sanitize_detail(item) for item in value]
     if isinstance(value, str) and len(value) > 2000:
