@@ -60,6 +60,13 @@ const runbookStatusLabels: Record<string, string> = {
 	awaiting_confirmation: '等待确认', succeeded: '成功', skipped: '已跳过',
 };
 
+const formatTime = (value?: string) => value
+	? new Intl.DateTimeFormat('zh-CN', {
+		year: 'numeric', month: '2-digit', day: '2-digit',
+		hour: '2-digit', minute: '2-digit', second: '2-digit',
+	}).format(new Date(value))
+	: '—';
+
 const loadWorkspace = async () => {
 	loading.value = true;
 	try {
