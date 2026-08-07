@@ -252,6 +252,16 @@ class AICommandReviewTest(TestCase):
         with self.assertRaisesRegex(AIAnalysisError, '字段无效'):
             validate_command_review_analysis(analysis)
 
+    @patch('osmanager.system_management.ai_views.review_linux_command')
+    def test_command_review_api_requires_login(self, review_command):
+        response = self.client.post(
+            '/api/system/ai/review-command', {'command': 'ls -l'},
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 401)
+        review_command.assert_not_called()
+
 
 class AIPlanSafetyTest(TestCase):
     def test_policy_rejection_preserves_draft_plan(self):
