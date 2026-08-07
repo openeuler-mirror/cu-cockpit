@@ -80,3 +80,24 @@
 .assistant-summary__item strong { font-size: 21px; }
 .assistant-summary__item.is-alert strong { color: #ff7a8f; }
 .assistant-summary__item.is-alert .el-icon { color: #ff7a8f; }
+
+.assistant-tabs {
+	display: flex;
+	gap: 3px;
+	padding: 4px;
+	border: 1px solid var(--assistant-line);
+	background: rgba(5, 17, 25, 0.88);
+}
+.assistant-tabs button {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	min-height: 38px;
+	padding: 0 15px;
+	border: 0;
+	color: #82a1af;
+	background: transparent;
+	cursor: pointer;
+}
+.assistant-tabs button svg { width: 16px; height: 16px; }
+.assistant-tabs button.is-active { color: #061018; background: var(--assistant-cyan); }
