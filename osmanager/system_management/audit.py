@@ -14,7 +14,7 @@ def record_audit(request, module, action, target='', success=False, message='', 
             action=str(action or '')[:96],
             target=str(target or '')[:512],
             success=bool(success),
-            message=str(message or ''),
+            message=str(message or '')[:4096],
             detail=sanitize_detail(detail or {}),
         )
     except Exception:
