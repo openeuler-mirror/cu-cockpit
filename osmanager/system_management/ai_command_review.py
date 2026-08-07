@@ -1,3 +1,4 @@
+import os
 import shlex
 
 from .ai_analysis import AIAnalysisError
@@ -70,3 +71,36 @@ def parse_linux_command(command):
     if current:
         segments.append(current)
     return {'segments': segments, 'operators': operators}
+
+
+def extract_segment_command(segment):
+    wrappers = []
+    index = 0
+    while index < len(segment):
+        token = segment[index]
+        if token in REDIRECTION_OPERATORS:
+            break
+        assignment = token.split('=', 1)[0]
+        if '=' in token and assignment.isidentifier():
+            index += 1
+            continue
+        name = os.path.basename(token).lower()
+        if name in WRAPPER_COMMANDS:
+            wrappers.append(name)
+            index += 1
+            while index < len(segment) and segment[index].startswith('-'):
+                option = segment[index].split('=', 1)[0]
+                index += 1
+                if option in WRAPPER_VALUE_OPTIONS and index < len(segment):
+                    index += 1
+            continue
+        if token == '$':
+            index += 1
+            continue
+        arguments = []
+        for argument in segment[index + 1:]:
+            if argument in REDIRECTION_OPERATORS:
+                break
+            arguments.append(argument)
+        return {'name': name, 'arguments': arguments, 'wrappers': wrappers}
+    return {'name': '', 'arguments': [], 'wrappers': wrappers}
