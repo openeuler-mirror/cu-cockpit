@@ -1,4 +1,6 @@
 import os
+import tempfile
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
@@ -10,6 +12,7 @@ django.setup()
 from django.test import TestCase
 
 from osmanager.system_management.ai_context import prepare_context, wrap_untrusted_context
+from osmanager.system_management.ai_knowledge import allowed_document_paths
 from osmanager.system_management.ai_planner import AIPlanValidationError, execute_operation_plan, validate_plan_payload
 from osmanager.system_management.ai_provider import AIProviderConfig, get_provider_config, provider_status
 from osmanager.system_management.ai_tools import (
@@ -122,7 +125,14 @@ class AIContextSafetyTest(TestCase):
 
 
 class AIKnowledgeSafetyTest(TestCase):
-    pass
+    def test_sop_symlink_cannot_escape_configured_directory(self):
+        with tempfile.TemporaryDirectory() as sop_directory, tempfile.TemporaryDirectory() as external_directory:
+            external_document = Path(external_directory) / 'secret.md'
+            external_document.write_text('private operations', encoding='utf-8')
+            (Path(sop_directory) / 'linked.md').symlink_to(external_document)
+
+            with patch.dict(os.environ, {'AI_SOP_PATH': sop_directory}):
+                self.assertNotIn(external_document.resolve(), allowed_document_paths())
 
 
 class AIPlanSafetyTest(TestCase):
