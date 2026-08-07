@@ -3,7 +3,7 @@ from rest_framework.decorators import api_view
 
 from osmanager.auth.decorators import login_required_api
 
-from .ai_runbooks import serialize_runbook
+from .ai_runbooks import create_runbook, serialize_runbook
 from .models import AIRunbook
 from .permissions import get_session_identity
 
@@ -22,3 +22,11 @@ def runbook_list(request):
     identity = get_session_identity(request)
     queryset = AIRunbook.objects.filter(actor=identity.username).prefetch_related('steps')[:100]
     return JsonResponse({'items': [serialize_runbook(runbook) for runbook in queryset]})
+
+
+@login_required_api
+@api_view(['POST'])
+def runbook_create(request):
+    identity = get_session_identity(request)
+    runbook = create_runbook(request.data, identity.username)
+    return JsonResponse({'runbook': serialize_runbook(runbook)})
