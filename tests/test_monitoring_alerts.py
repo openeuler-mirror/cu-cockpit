@@ -9,6 +9,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'osmanager.settings')
 import django
 django.setup()
 
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 
 from osmanager.system_management.alerts import (
@@ -23,6 +24,7 @@ from osmanager.system_management.monitoring import (
     collect_metric_values,
     collect_network_bytes,
 )
+from osmanager.system_management.models import AlertEvent, AlertRule
 
 
 class MetricCollectorTest(TestCase):
@@ -76,3 +78,12 @@ class AlertRuleStateTest(TestCase):
         self.assertTrue(consecutive_recovered(rule, [65, 70]))
         self.assertFalse(consecutive_recovered(rule, [65]))
         self.assertFalse(consecutive_recovered(rule, [65, 71]))
+
+    def test_rule_allows_only_one_active_event(self):
+        rule = AlertRule.objects.create(
+            name='CPU high', metric='cpu_percent', threshold=80,
+            recovery_threshold=70, consecutive_hits=2,
+        )
+        AlertEvent.objects.create(rule=rule, trigger_value=90, last_value=90)
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            AlertEvent.objects.create(rule=rule, trigger_value=95, last_value=95)
