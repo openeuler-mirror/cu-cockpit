@@ -24,7 +24,13 @@ def allowed_document_paths():
     if configured:
         sop_directory = Path(configured).expanduser().resolve()
         if sop_directory.is_dir():
-            paths.extend(sop_directory.rglob('*.md'))
+            for candidate in sop_directory.rglob('*.md'):
+                try:
+                    resolved = candidate.resolve(strict=True)
+                    resolved.relative_to(sop_directory)
+                except (OSError, ValueError):
+                    continue
+                paths.append(resolved)
     return sorted({path.resolve() for path in paths if path.is_file()})
 
 
