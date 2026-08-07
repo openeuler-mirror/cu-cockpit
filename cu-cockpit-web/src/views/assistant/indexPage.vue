@@ -443,7 +443,7 @@ const reviewConfig = async () => {
 	if (!snapshotId.value) return ElMessage.warning('请输入配置快照 ID');
 	analysisLoading.value = true;
 	try {
-		analysisResult.value = await assistantRequest<any>('/system/ai/review-config', 'post', {
+		analysisResult.value = await assistantRequest<AnalysisResult>('/system/ai/review-config', 'post', {
 			snapshot_id: snapshotId.value,
 		});
 	} catch (error) {
