@@ -145,14 +145,16 @@ def acknowledge_alert_event(event, actor):
 
 def build_alert_context(event):
     from datetime import timedelta
+    from django.utils import timezone
     from .ai_tools import execute_log_query
     from .models import MetricSample, OperationAudit
     since = event.started_at - timedelta(minutes=30)
-    samples = list(MetricSample.objects.filter(collected_at__gte=since).values(
+    until = event.recovered_at or timezone.now()
+    samples = list(MetricSample.objects.filter(collected_at__gte=since, collected_at__lte=until).values(
         'collected_at', 'cpu_percent', 'memory_percent', 'root_percent', 'inode_percent',
         'network_rx_bytes', 'network_tx_bytes', 'services',
     )[:120])
-    audits = list(OperationAudit.objects.filter(created_at__gte=since).values(
+    audits = list(OperationAudit.objects.filter(created_at__gte=since, created_at__lte=until).values(
         'created_at', 'actor', 'module', 'action', 'target', 'success', 'message',
     )[:50])
     samples.reverse()
