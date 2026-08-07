@@ -125,7 +125,19 @@
 				</div>
 
 				<div class="assistant-grid assistant-grid--alerts">
-					<article class="assistant-panel alert-rules-panel"></article>
+					<article class="assistant-panel alert-rules-panel">
+						<div class="assistant-panel__head">
+							<div><span class="panel-index">01</span><h2>告警规则</h2></div>
+							<el-button :icon="Plus" type="primary" :disabled="!isAdmin" @click="alertDialog = true">新建规则</el-button>
+						</div>
+						<el-table :data="alertRules" class="assistant-table" empty-text="暂无告警规则">
+							<el-table-column prop="name" label="规则" min-width="160" />
+							<el-table-column label="指标" min-width="120"><template #default="{ row }">{{ metricLabels[row.metric] || row.metric }}</template></el-table-column>
+							<el-table-column label="阈值" width="110"><template #default="{ row }">{{ row.operator === 'gte' ? '≥' : '≤' }} {{ row.threshold }}%</template></el-table-column>
+							<el-table-column label="连续" width="80"><template #default="{ row }">{{ row.consecutive_hits }} 次</template></el-table-column>
+							<el-table-column label="状态" width="90"><template #default="{ row }"><el-switch :model-value="row.enabled" :disabled="!isAdmin || alertSaving" @change="toggleAlertRule(row, $event)" /></template></el-table-column>
+						</el-table>
+					</article>
 					<article class="assistant-panel alert-events-panel"></article>
 				</div>
 				<article v-if="alertAnalysis" class="assistant-panel alert-analysis-panel">
