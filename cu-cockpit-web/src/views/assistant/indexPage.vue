@@ -41,4 +41,10 @@ const alertForm = reactive({
 	threshold: 85, recovery_threshold: 75, consecutive_hits: 3, enabled: true,
 });
 const activeAlertCount = computed(() => alertEvents.value.filter((item) => item.status === 'active').length);
+const runbookPrompt = ref('检查 nginx 服务状态和 80 端口；必要时重启 nginx');
+const runbooks = ref<any[]>([]);
+const selectedRunbookId = ref<number | null>(null);
+const confirmationToken = ref('');
+const runbookLoading = ref(false);
+const currentRunbook = computed(() => runbooks.value.find((item) => item.id === selectedRunbookId.value) || null);
 </script>
