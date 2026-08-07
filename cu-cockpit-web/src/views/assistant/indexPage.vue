@@ -112,13 +112,34 @@
 						<div><span class="panel-index">02</span><h2>分析结果</h2></div>
 						<el-tag v-if="analysisResult?.truncated" type="warning" effect="dark">输入已截断</el-tag>
 					</div>
-					<template v-if="analysisResult">
+					<template v-if="analysisMode === 'command' && commandReview">
+						<div class="command-risk-result" :class="`is-${commandReview.assessment.risk}`">
+							<div class="command-risk-result__head">
+								<div><span>服务端风险</span><strong>{{ commandRiskLabels[commandReview.assessment.risk] }}</strong></div>
+								<el-tag :type="commandRiskTagTypes[commandReview.assessment.risk]" effect="dark">{{ commandReview.assessment.requires_admin_review ? '需人工复核' : '只读检查' }}</el-tag>
+							</div>
+							<div class="command-risk-result__meta">
+								<code v-for="name in commandReview.assessment.commands" :key="name">{{ name }}</code>
+								<span v-if="commandReview.assessment.operators.length">操作符 {{ commandReview.assessment.operators.join(' ') }}</span>
+							</div>
+							<ul><li v-for="reason in commandReview.assessment.reasons" :key="reason">{{ reason }}</li></ul>
+						</div>
+						<div class="command-review-details">
+							<section><span>命令解释</span><p>{{ commandReview.analysis.explanation }}</p></section>
+							<section v-if="commandReview.analysis.arguments.length"><span>参数</span><ul><li v-for="item in commandReview.analysis.arguments" :key="item">{{ item }}</li></ul></section>
+							<section v-if="commandReview.analysis.effects.length"><span>预期影响</span><ul><li v-for="item in commandReview.analysis.effects" :key="item">{{ item }}</li></ul></section>
+							<section v-if="commandReview.analysis.risks.length"><span>风险提示</span><ul><li v-for="item in commandReview.analysis.risks" :key="item">{{ item }}</li></ul></section>
+							<section v-if="commandReview.analysis.safer_alternative"><span>安全替代</span><code>{{ commandReview.analysis.safer_alternative }}</code></section>
+							<section v-if="commandReview.analysis.verification.length"><span>验证步骤</span><ul><li v-for="item in commandReview.analysis.verification" :key="item">{{ item }}</li></ul></section>
+						</div>
+					</template>
+					<template v-else-if="analysisMode !== 'command' && analysisResult">
 						<pre class="assistant-code assistant-code--analysis">{{ formatJson(analysisResult.analysis || analysisResult.answer || analysisResult) }}</pre>
 						<div v-if="analysisResult.matches?.length" class="analysis-sources">
 							<span v-for="match in analysisResult.matches" :key="`${match.source}-${match.score}`">{{ match.source }}</span>
 						</div>
 					</template>
-					<el-empty v-else :image-size="72" description="等待分析" />
+					<el-empty v-else :image-size="72" :description="analysisMode === 'command' ? '等待命令审查' : '等待分析'" />
 				</article>
 			</section>
 
