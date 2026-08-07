@@ -35,4 +35,6 @@ def validate_linux_command(command):
         raise AIAnalysisError('Linux 命令必须为非空字符串')
     if '\x00' in command:
         raise AIAnalysisError('Linux 命令不能包含 NUL 字节')
+    if len(command) > MAX_COMMAND_LENGTH:
+        raise AIAnalysisError(f'Linux 命令不能超过 {MAX_COMMAND_LENGTH} 字符')
     return command.strip()
