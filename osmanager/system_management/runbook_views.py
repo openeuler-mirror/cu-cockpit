@@ -90,6 +90,10 @@ def runbook_confirm(request, runbook_id):
     try:
         confirm_runbook_step(runbook, identity.username, request.data.get('confirmation_token'))
     except AIRunbookError as error:
+        record_audit(
+            request, 'ai_runbook', 'confirm_step', str(runbook.id), False, str(error),
+            {'runbook_id': runbook.id, 'current_step': runbook.current_step},
+        )
         return _runbook_error(error)
     record_audit(
         request, 'ai_runbook', 'confirm_step', str(runbook.id), True, 'Runbook 步骤已确认',
