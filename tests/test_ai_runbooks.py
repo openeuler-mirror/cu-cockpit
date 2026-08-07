@@ -51,3 +51,14 @@ class RunbookStateMachineTest(TestCase):
         runbook = SimpleNamespace(actor='alice')
         with self.assertRaisesRegex(AIRunbookError, '无权操作其他用户'):
             require_runbook_owner(runbook, 'bob')
+
+    def test_change_step_pauses_before_execution(self):
+        runbook = SimpleNamespace(actor='root')
+        step = SimpleNamespace(risk='change', status='pending', confirmed_at=None)
+        with patch('osmanager.system_management.ai_runbooks.current_runbook_step', return_value=step):
+            with patch('osmanager.system_management.ai_runbooks.pause_runbook_for_confirmation', return_value='token'):
+                with patch('osmanager.system_management.ai_runbooks.execute_runbook_step') as executor:
+                    outcome = advance_runbook(runbook, 'root', True)
+        self.assertEqual(outcome['action'], 'confirmation_required')
+        self.assertEqual(outcome['confirmation_token'], 'token')
+        executor.assert_not_called()
