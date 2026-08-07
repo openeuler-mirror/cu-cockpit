@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
-from ...models import ConfigSnapshot, OperationAudit
+from ...models import ConfigSnapshot, CronExecution, OperationAudit
 
 
 class Command(BaseCommand):
@@ -12,6 +12,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--audit-days', type=int, default=90)
         parser.add_argument('--snapshot-days', type=int, default=180)
+        parser.add_argument('--execution-days', type=int, default=90)
 
     def handle(self, *args, **options):
         days = options['audit_days']
@@ -26,3 +27,9 @@ class Command(BaseCommand):
         snapshot_cutoff = timezone.now() - timedelta(days=snapshot_days)
         deleted, _ = ConfigSnapshot.objects.filter(created_at__lt=snapshot_cutoff).delete()
         self.stdout.write(self.style.SUCCESS(f'Deleted {deleted} expired configuration snapshots'))
+        execution_days = options['execution_days']
+        if execution_days < 1:
+            raise CommandError('--execution-days must be at least 1')
+        execution_cutoff = timezone.now() - timedelta(days=execution_days)
+        deleted, _ = CronExecution.objects.filter(started_at__lt=execution_cutoff).delete()
+        self.stdout.write(self.style.SUCCESS(f'Deleted {deleted} expired cron executions'))
