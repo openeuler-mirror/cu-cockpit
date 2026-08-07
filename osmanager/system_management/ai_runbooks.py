@@ -249,3 +249,16 @@ def serialize_runbook_step(step):
         'started_at': step.started_at,
         'finished_at': step.finished_at,
     }
+
+
+def serialize_runbook(runbook):
+    return {
+        'id': runbook.id,
+        'title': runbook.title,
+        'status': runbook.status,
+        'current_step': runbook.current_step,
+        'created_at': runbook.created_at,
+        'updated_at': runbook.updated_at,
+        'error': runbook.error,
+        'steps': [serialize_runbook_step(step) for step in runbook.steps.all()],
+    }
