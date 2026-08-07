@@ -31,7 +31,11 @@ def build_runbook_messages(request_text):
 
 def generate_runbook_payload(request_text):
     content = chat_completion(build_runbook_messages(request_text))
-    return normalize_runbook_payload(json.loads(content))
+    try:
+        payload = json.loads(content)
+    except (json.JSONDecodeError, TypeError) as error:
+        raise AIRunbookError('AI Runbook 不是有效 JSON') from error
+    return normalize_runbook_payload(payload)
 
 
 def normalize_runbook_payload(payload):
