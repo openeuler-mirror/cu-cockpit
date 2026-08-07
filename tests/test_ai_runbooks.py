@@ -15,6 +15,7 @@ from osmanager.system_management.ai_runbooks import (
     advance_runbook,
     cancel_runbook,
     consume_step_confirmation,
+    generate_runbook,
     issue_step_confirmation,
     require_runbook_owner,
     retry_runbook_step,
@@ -47,6 +48,20 @@ class RunbookConfirmationTest(TestCase):
 
 
 class RunbookStateMachineTest(TestCase):
+    def test_generated_runbook_strips_derived_step_fields_before_creation(self):
+        normalized = {
+            'title': 'diagnose',
+            'steps': [{
+                'position': 0, 'title': 'check', 'risk': 'readonly',
+                'tool_call': {'tool': 'service.status', 'arguments': {'service': 'sshd'}},
+            }],
+        }
+        with patch('osmanager.system_management.ai_runbooks.generate_runbook_payload', return_value=normalized):
+            with patch('osmanager.system_management.ai_runbooks.create_runbook', return_value='runbook') as create:
+                self.assertEqual(generate_runbook('diagnose', 'alice'), 'runbook')
+        step = create.call_args.args[0]['steps'][0]
+        self.assertEqual(set(step), {'title', 'tool_call'})
+
     def test_non_owner_cannot_operate_runbook(self):
         runbook = SimpleNamespace(actor='alice')
         with self.assertRaisesRegex(AIRunbookError, '无权操作其他用户'):
