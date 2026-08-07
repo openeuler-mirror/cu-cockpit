@@ -81,3 +81,15 @@ class RunbookStateMachineTest(TestCase):
         with patch('osmanager.system_management.ai_runbooks.current_runbook_step', return_value=step):
             with self.assertRaisesRegex(AIRunbookError, '只能跳过失败的只读步骤'):
                 skip_runbook_step(runbook, 'root')
+
+    def test_cancel_preserves_succeeded_steps(self):
+        pending = SimpleNamespace(update=Mock(return_value=2))
+        steps = SimpleNamespace(filter=Mock(return_value=pending))
+        runbook = SimpleNamespace(
+            actor='alice', status='running', current_step=1, error='', steps=steps, save=Mock(),
+        )
+        cancel_runbook(runbook, 'alice')
+        statuses = steps.filter.call_args.kwargs['status__in']
+        self.assertNotIn('succeeded', statuses)
+        self.assertEqual(steps.filter.call_args.kwargs['position__gte'], 1)
+        self.assertEqual(runbook.status, 'cancelled')
