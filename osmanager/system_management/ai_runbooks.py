@@ -1,9 +1,31 @@
 from .ai_context import redact_context
-from .ai_tools import AIToolExecutionContext, AIToolValidationError, execute_tool_call, normalize_tool_call
+import json
+
+from .ai_tools import (
+    AIToolExecutionContext,
+    AIToolValidationError,
+    execute_tool_call,
+    normalize_tool_call,
+    tool_catalog,
+)
 
 
 class AIRunbookError(ValueError):
     pass
+
+
+def build_runbook_messages(request_text):
+    catalog = json.dumps(tool_catalog(), ensure_ascii=False)
+    system = (
+        '你是 cu-cockpit 受控 Runbook 规划器。只能使用工具目录中的注册工具，最多 20 步；'
+        '不得生成原始 Shell、管道、重定向或命令替换。只返回 JSON 对象：'
+        '{"title":"标题","steps":[{"title":"步骤","tool_call":'
+        '{"tool":"注册工具名","arguments":{}}}]}。工具目录：' + catalog
+    )
+    return [
+        {'role': 'system', 'content': system},
+        {'role': 'user', 'content': str(request_text)},
+    ]
 
 
 def normalize_runbook_payload(payload):
