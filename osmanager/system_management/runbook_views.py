@@ -9,6 +9,7 @@ from .ai_provider import AIProviderError
 from .ai_runbooks import (
     AIRunbookError,
     advance_runbook,
+    confirm_runbook_step,
     create_runbook,
     generate_runbook,
     serialize_runbook,
@@ -79,3 +80,12 @@ def runbook_advance(request, runbook_id):
         'result': outcome.get('result'),
         'runbook': serialize_runbook(runbook),
     })
+
+
+@login_required_api
+@api_view(['POST'])
+def runbook_confirm(request, runbook_id):
+    runbook = get_object_or_404(AIRunbook, id=runbook_id)
+    identity = get_session_identity(request)
+    confirm_runbook_step(runbook, identity.username, request.data.get('confirmation_token'))
+    return JsonResponse({'runbook': serialize_runbook(runbook)})
