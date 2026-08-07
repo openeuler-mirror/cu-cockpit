@@ -254,7 +254,9 @@ import {
 	type AlertEvent,
 	type AlertRule,
 	type AnalysisResult,
+	type AssistantItemsResponse,
 	type AssistantPlan,
+	type AssistantStatusResponse,
 	type MetricSample,
 	type Runbook,
 } from '/@/api/system/assistant';
@@ -338,11 +340,11 @@ const loadWorkspace = async () => {
 	try {
 		await permissionStore.refreshUserPermission();
 		const [status, metrics, rules, events, runbookData] = await Promise.all([
-			assistantRequest<any>('/system/ai/status'),
-			assistantRequest<any>('/system/monitoring/samples', 'get', undefined, { hours: 24, limit: 500 }),
-			assistantRequest<any>('/system/monitoring/alert-rules'),
-			assistantRequest<any>('/system/monitoring/alert-events', 'get', undefined, { limit: 100 }),
-			assistantRequest<any>('/system/ai/runbooks'),
+			assistantRequest<AssistantStatusResponse>('/system/ai/status'),
+			assistantRequest<AssistantItemsResponse<MetricSample>>('/system/monitoring/samples', 'get', undefined, { hours: 24, limit: 500 }),
+			assistantRequest<AssistantItemsResponse<AlertRule>>('/system/monitoring/alert-rules'),
+			assistantRequest<AssistantItemsResponse<AlertEvent>>('/system/monitoring/alert-events', 'get', undefined, { limit: 100 }),
+			assistantRequest<AssistantItemsResponse<Runbook>>('/system/ai/runbooks'),
 		]);
 		Object.assign(provider, status.provider);
 		toolCount.value = status.tools?.length || 0;
