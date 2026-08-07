@@ -30,4 +30,15 @@ const snapshotId = ref<number | null>(null);
 const knowledgeQuestion = ref('如何安全排查 nginx 服务启动失败？');
 const analysisResult = ref<any>(null);
 const analysisLoading = ref(false);
+const metricSamples = ref<any[]>([]);
+const alertRules = ref<any[]>([]);
+const alertEvents = ref<any[]>([]);
+const alertDialog = ref(false);
+const alertSaving = ref(false);
+const alertAnalysis = ref<any>(null);
+const alertForm = reactive({
+	name: '根文件系统使用率过高', metric: 'root_percent', operator: 'gte',
+	threshold: 85, recovery_threshold: 75, consecutive_hits: 3, enabled: true,
+});
+const activeAlertCount = computed(() => alertEvents.value.filter((item) => item.status === 'active').length);
 </script>
