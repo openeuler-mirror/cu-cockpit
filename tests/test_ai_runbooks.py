@@ -21,6 +21,7 @@ from osmanager.system_management.ai_runbooks import (
     retry_runbook_step,
     skip_runbook_step,
 )
+from osmanager.system_management.ai_tools import AIToolValidationError
 
 
 class RunbookConfirmationTest(TestCase):
@@ -77,6 +78,22 @@ class RunbookStateMachineTest(TestCase):
         self.assertEqual(outcome['action'], 'confirmation_required')
         self.assertEqual(outcome['confirmation_token'], 'token')
         executor.assert_not_called()
+
+    def test_policy_rejection_keeps_runbook_step_pending(self):
+        runbook = SimpleNamespace(actor='viewer', status='running', save=Mock())
+        step = SimpleNamespace(
+            status='pending', risk='change', confirmed_at='confirmed', save=Mock(),
+            tool_call={'tool': 'service.restart', 'arguments': {'service': 'nginx'}},
+        )
+
+        with patch('osmanager.system_management.ai_runbooks.current_runbook_step', return_value=step):
+            with self.assertRaisesRegex(AIToolValidationError, '需要管理员权限'):
+                advance_runbook(runbook, 'viewer', False)
+
+        self.assertEqual(step.status, 'pending')
+        self.assertEqual(runbook.status, 'running')
+        step.save.assert_not_called()
+        runbook.save.assert_not_called()
 
     def test_retry_requires_change_step_reconfirmation(self):
         runbook = SimpleNamespace(actor='root', status='failed', error='failed', save=Mock())
