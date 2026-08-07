@@ -74,3 +74,10 @@ class RunbookStateMachineTest(TestCase):
         self.assertEqual(step.status, 'pending')
         self.assertIsNone(step.confirmed_at)
         self.assertEqual(runbook.status, 'running')
+
+    def test_failed_change_step_cannot_be_skipped(self):
+        runbook = SimpleNamespace(actor='root')
+        step = SimpleNamespace(status='failed', risk='change')
+        with patch('osmanager.system_management.ai_runbooks.current_runbook_step', return_value=step):
+            with self.assertRaisesRegex(AIRunbookError, '只能跳过失败的只读步骤'):
+                skip_runbook_step(runbook, 'root')
