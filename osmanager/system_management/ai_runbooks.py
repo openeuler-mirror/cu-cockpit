@@ -205,3 +205,16 @@ def retry_runbook_step(runbook, actor):
     runbook.error = ''
     runbook.save(update_fields=['status', 'error', 'updated_at'])
     return step
+
+
+def skip_runbook_step(runbook, actor):
+    require_runbook_owner(runbook, actor)
+    step = current_runbook_step(runbook)
+    if step is None or step.status != 'failed' or step.risk != 'readonly':
+        raise AIRunbookError('只能跳过失败的只读步骤')
+    from django.utils import timezone
+    step.status = 'skipped'
+    step.finished_at = timezone.now()
+    step.save(update_fields=['status', 'finished_at'])
+    advance_runbook_position(runbook)
+    return step
