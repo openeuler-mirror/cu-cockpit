@@ -6,6 +6,7 @@ from osmanager.auth.decorators import login_required_api
 
 from .audit import record_audit
 from .ai_analysis import AIAnalysisError, analyze_logs, explain_command_output, review_config_diff
+from .ai_command_review import review_linux_command
 from .ai_knowledge import AIKnowledgeError, answer_knowledge_question
 from .ai_planner import (
     AIPlanValidationError,
@@ -86,6 +87,12 @@ def ai_output_explain(request):
         return JsonResponse(explain_command_output(request.data.get('output')))
     except (AIAnalysisError, AIProviderError) as error:
         return _ai_error(error)
+
+
+@login_required_api
+@api_view(['POST'])
+def ai_command_review(request):
+    return JsonResponse(review_linux_command(request.data.get('command')))
 
 
 @admin_required_api
