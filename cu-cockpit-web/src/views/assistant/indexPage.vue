@@ -120,4 +120,22 @@ const executeOperationPlan = async () => {
 		executionLoading.value = false;
 	}
 };
+
+const analyzeLogs = async () => {
+	let logs: any[];
+	try {
+		logs = JSON.parse(logsInput.value);
+		if (!Array.isArray(logs)) throw new Error('logs must be an array');
+	} catch (error) {
+		return ElMessage.warning('请输入有效的 JSON 日志数组');
+	}
+	analysisLoading.value = true;
+	try {
+		analysisResult.value = await assistantRequest<any>('/system/ai/analyze/logs', 'post', { logs });
+	} catch (error) {
+		console.error('analyze logs failed:', error);
+	} finally {
+		analysisLoading.value = false;
+	}
+};
 </script>
