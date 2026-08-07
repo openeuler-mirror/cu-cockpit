@@ -134,6 +134,10 @@ def runbook_skip(request, runbook_id):
         skip_runbook_step(runbook, identity.username)
     except AIRunbookError as error:
         return _runbook_error(error)
+    record_audit(
+        request, 'ai_runbook', 'skip_step', str(runbook.id), True, 'Runbook 只读步骤已跳过',
+        {'runbook_id': runbook.id, 'current_step': runbook.current_step},
+    )
     return JsonResponse({'runbook': serialize_runbook(runbook)})
 
 
