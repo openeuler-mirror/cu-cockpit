@@ -43,6 +43,19 @@ class MetricCollectorTest(TestCase):
                 'network_rx_bytes': 1000, 'network_tx_bytes': 2000,
             })
 
+    @patch('osmanager.system_management.monitoring.collect_service_states', return_value={'crond': 'active'})
+    @patch('osmanager.system_management.monitoring.collect_network_bytes', return_value={'network_rx_bytes': 1, 'network_tx_bytes': 2})
+    @patch('osmanager.system_management.monitoring.collect_inode_percent', return_value=30)
+    @patch('osmanager.system_management.monitoring.collect_root_percent', return_value=20)
+    @patch('osmanager.system_management.monitoring.collect_memory_percent', side_effect=MetricCollectionError('failed'))
+    @patch('osmanager.system_management.monitoring.collect_cpu_percent', return_value=10)
+    def test_partial_collection_preserves_valid_metrics(self, *_mocks):
+        values = collect_metric_values()
+        self.assertEqual(values['cpu_percent'], 10)
+        self.assertIsNone(values['memory_percent'])
+        self.assertEqual(values['root_percent'], 20)
+        self.assertEqual(values['services'], {'crond': 'active'})
+
 
 class AlertRuleStateTest(TestCase):
     pass
