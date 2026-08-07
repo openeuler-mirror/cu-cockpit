@@ -76,4 +76,22 @@ const loadWorkspace = async () => {
 		loading.value = false;
 	}
 };
+
+const createOperationPlan = async () => {
+	if (!operationRequest.value.trim()) return ElMessage.warning('请输入运维需求');
+	if (!provider.available) return ElMessage.warning(provider.reason || 'AI Provider 不可用');
+	planLoading.value = true;
+	operationResult.value = null;
+	try {
+		const response = await assistantRequest<any>('/system/ai/plans', 'post', {
+			request: operationRequest.value.trim(),
+		});
+		operationPlan.value = response.plan;
+		ElMessage.success('受控运维计划已生成');
+	} catch (error) {
+		console.error('create AI plan failed:', error);
+	} finally {
+		planLoading.value = false;
+	}
+};
 </script>
