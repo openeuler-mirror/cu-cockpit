@@ -91,4 +91,7 @@ def ai_output_explain(request):
 @api_view(['POST'])
 def ai_config_review(request):
     snapshot = get_object_or_404(ConfigSnapshot, id=request.data.get('snapshot_id'))
-    return JsonResponse(review_config_diff(snapshot.target, diff_snapshot(snapshot)))
+    try:
+        return JsonResponse(review_config_diff(snapshot.target, diff_snapshot(snapshot)))
+    except (OSError, UnicodeError, ValueError, AIAnalysisError, AIProviderError) as error:
+        return _ai_error(error)
