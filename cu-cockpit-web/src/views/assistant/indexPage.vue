@@ -21,6 +21,20 @@
 			</div>
 		</header>
 
+		<section class="assistant-summary">
+			<div class="assistant-summary__item"><el-icon><Key /></el-icon><span>受控工具</span><strong>{{ toolCount }}</strong></div>
+			<div class="assistant-summary__item"><el-icon><Connection /></el-icon><span>最新 CPU</span><strong>{{ latestMetric.cpu_percent == null ? '—' : `${Number(latestMetric.cpu_percent).toFixed(1)}%` }}</strong></div>
+			<div class="assistant-summary__item is-alert"><el-icon><Bell /></el-icon><span>活动告警</span><strong>{{ activeAlertCount }}</strong></div>
+			<div class="assistant-summary__item"><el-icon><Guide /></el-icon><span>Runbook</span><strong>{{ runbooks.length }}</strong></div>
+		</section>
+
+		<nav class="assistant-tabs" aria-label="AI 运维工作区">
+			<button :class="{ 'is-active': activeTab === 'operations' }" @click="activeTab = 'operations'"><MagicStick />自然语言运维</button>
+			<button :class="{ 'is-active': activeTab === 'analysis' }" @click="activeTab = 'analysis'"><Search />智能分析</button>
+			<button :class="{ 'is-active': activeTab === 'alerts' }" @click="activeTab = 'alerts'"><Bell />历史与告警</button>
+			<button :class="{ 'is-active': activeTab === 'runbooks' }" @click="activeTab = 'runbooks'"><Guide />Runbook</button>
+		</nav>
+
 		<main class="assistant-workspace"></main>
 	</div>
 </template>
