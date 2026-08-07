@@ -79,6 +79,10 @@ def create_runbook(payload, actor):
     return runbook
 
 
+def generate_runbook(request_text, actor):
+    return create_runbook(generate_runbook_payload(request_text), actor)
+
+
 def require_runbook_owner(runbook, actor):
     if runbook.actor != actor:
         raise AIRunbookError('无权操作其他用户的 Runbook')
