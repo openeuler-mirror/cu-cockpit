@@ -1,7 +1,8 @@
+import json
 import os
 import shlex
 
-from .ai_analysis import AIAnalysisError
+from .ai_analysis import AIAnalysisError, analyze_context
 
 
 MAX_COMMAND_LENGTH = 2000
@@ -194,3 +195,15 @@ def validate_command_review_analysis(analysis):
             raise AIAnalysisError(f'AI 命令解释字段 {field} 内容无效')
         normalized[field] = [value.strip() for value in values if value.strip()]
     return normalized
+
+
+def review_linux_command(command):
+    text = validate_linux_command(command)
+    assessment = assess_linux_command(text)
+    content = json.dumps(
+        {'command': text, 'server_assessment': assessment},
+        ensure_ascii=False,
+    )
+    result = analyze_context('command_review', content)
+    result['analysis'] = validate_command_review_analysis(result['analysis'])
+    return {'assessment': assessment, **result}
