@@ -3,8 +3,10 @@ from rest_framework.decorators import api_view
 
 from osmanager.auth.decorators import login_required_api
 
+from .ai_planner import create_operation_plan, serialize_operation_plan
 from .ai_provider import provider_status
 from .ai_tools import tool_catalog
+from .permissions import get_session_identity
 
 
 def _ai_error(error, status=400):
@@ -19,3 +21,11 @@ def _ai_error(error, status=400):
 @api_view(['GET'])
 def ai_status(request):
     return JsonResponse({'provider': provider_status(), 'tools': tool_catalog()})
+
+
+@login_required_api
+@api_view(['POST'])
+def ai_plan_create(request):
+    identity = get_session_identity(request)
+    plan = create_operation_plan(request.data.get('request'), identity.username)
+    return JsonResponse({'plan': serialize_operation_plan(plan)})
