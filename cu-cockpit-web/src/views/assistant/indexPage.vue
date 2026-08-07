@@ -234,4 +234,22 @@ const analyzeAlert = async (event: any) => {
 		analysisLoading.value = false;
 	}
 };
+
+const generateRunbook = async () => {
+	if (!runbookPrompt.value.trim()) return ElMessage.warning('请输入 Runbook 需求');
+	if (!provider.available) return ElMessage.warning(provider.reason || 'AI Provider 不可用');
+	runbookLoading.value = true;
+	try {
+		const response = await assistantRequest<any>('/system/ai/runbooks/generate', 'post', {
+			request: runbookPrompt.value.trim(),
+		});
+		selectedRunbookId.value = response.runbook.id;
+		ElMessage.success('受控 Runbook 已生成');
+		await loadWorkspace();
+	} catch (error) {
+		console.error('generate Runbook failed:', error);
+	} finally {
+		runbookLoading.value = false;
+	}
+};
 </script>
