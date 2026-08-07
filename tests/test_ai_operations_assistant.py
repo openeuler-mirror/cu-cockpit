@@ -189,6 +189,14 @@ class AICommandReviewTest(TestCase):
         self.assertEqual(result['commands'], ['systemctl'])
         self.assertTrue(result['requires_admin_review'])
 
+    def test_destructive_segment_makes_composite_command_dangerous(self):
+        result = assess_linux_command('echo safe; sudo rm -rf /')
+
+        self.assertEqual(result['risk'], 'dangerous')
+        self.assertEqual(result['commands'], ['echo', 'rm'])
+        self.assertEqual(result['wrappers'], ['sudo'])
+        self.assertIn(';', result['operators'])
+
 
 class AIPlanSafetyTest(TestCase):
     def test_policy_rejection_preserves_draft_plan(self):
