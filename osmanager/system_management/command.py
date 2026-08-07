@@ -100,6 +100,7 @@ def run_safe(args, allowed_commands, timeout=10, output_limit=DEFAULT_OUTPUT_LIM
             check=False,
             timeout=safe_timeout,
             env={'PATH': SAFE_PATH, 'LANG': 'C.UTF-8', 'LC_ALL': 'C.UTF-8'},
+            cwd='/',
             close_fds=True,
         )
     except subprocess.TimeoutExpired as error:
