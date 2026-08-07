@@ -251,6 +251,7 @@ import {
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
 	assistantRequest,
+	type AdvanceRunbookResponse,
 	type AlertEvent,
 	type AlertRule,
 	type AnalysisResult,
@@ -544,7 +545,7 @@ const advanceRunbook = async () => {
 	if (!currentRunbook.value) return;
 	runbookLoading.value = true;
 	try {
-		const response = await assistantRequest<any>(
+		const response = await assistantRequest<AdvanceRunbookResponse>(
 			`/system/ai/runbooks/${currentRunbook.value.id}/advance`, 'post',
 		);
 		confirmationToken.value = response.confirmation_token || '';
