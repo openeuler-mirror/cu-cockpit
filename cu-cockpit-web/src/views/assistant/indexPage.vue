@@ -152,4 +152,18 @@ const explainOutput = async () => {
 		analysisLoading.value = false;
 	}
 };
+
+const reviewConfig = async () => {
+	if (!snapshotId.value) return ElMessage.warning('请输入配置快照 ID');
+	analysisLoading.value = true;
+	try {
+		analysisResult.value = await assistantRequest<any>('/system/ai/review-config', 'post', {
+			snapshot_id: snapshotId.value,
+		});
+	} catch (error) {
+		console.error('review config failed:', error);
+	} finally {
+		analysisLoading.value = false;
+	}
+};
 </script>
