@@ -321,4 +321,24 @@ const skipRunbook = async () => {
 		runbookLoading.value = false;
 	}
 };
+
+const cancelRunbook = async () => {
+	if (!currentRunbook.value) return;
+	await ElMessageBox.confirm(
+		'取消后不会执行未开始步骤，已成功步骤不会自动回滚。',
+		'取消 Runbook',
+		{ type: 'warning', confirmButtonText: '确认取消' },
+	);
+	runbookLoading.value = true;
+	try {
+		await assistantRequest(`/system/ai/runbooks/${currentRunbook.value.id}/cancel`, 'post');
+		confirmationToken.value = '';
+		ElMessage.success('Runbook 已取消');
+		await loadWorkspace();
+	} catch (error) {
+		console.error('cancel Runbook failed:', error);
+	} finally {
+		runbookLoading.value = false;
+	}
+};
 </script>
