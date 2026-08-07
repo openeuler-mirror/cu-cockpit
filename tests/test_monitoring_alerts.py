@@ -64,3 +64,9 @@ class AlertRuleStateTest(TestCase):
                 'name': 'CPU high', 'metric': 'cpu_percent', 'operator': 'gte',
                 'threshold': 80, 'recovery_threshold': 80,
             })
+
+    def test_alert_requires_all_consecutive_trigger_samples(self):
+        rule = SimpleNamespace(operator='gte', threshold=80, consecutive_hits=3)
+        self.assertTrue(consecutive_triggered(rule, [90, 85, 80]))
+        self.assertFalse(consecutive_triggered(rule, [90, 85]))
+        self.assertFalse(consecutive_triggered(rule, [90, 79, 85]))
