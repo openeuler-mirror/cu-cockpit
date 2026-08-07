@@ -1,5 +1,6 @@
 import os
 import tempfile
+from datetime import timedelta
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -11,9 +12,11 @@ django.setup()
 
 from django.db import IntegrityError, transaction
 from django.test import TestCase
+from django.utils import timezone
 
 from osmanager.system_management.alerts import (
     AlertRuleValidationError,
+    build_alert_context,
     consecutive_recovered,
     consecutive_triggered,
     normalize_alert_rule,
@@ -87,3 +90,24 @@ class AlertRuleStateTest(TestCase):
         AlertEvent.objects.create(rule=rule, trigger_value=90, last_value=90)
         with self.assertRaises(IntegrityError), transaction.atomic():
             AlertEvent.objects.create(rule=rule, trigger_value=95, last_value=95)
+
+    @patch('osmanager.system_management.ai_tools.execute_log_query', return_value={'logs': []})
+    def test_alert_context_bounds_logs_to_event_window(self, execute_log_query):
+        rule = AlertRule.objects.create(
+            name='CPU high', metric='cpu_percent', threshold=80,
+            recovery_threshold=70, consecutive_hits=2,
+        )
+        recovered_at = timezone.now()
+        started_at = recovered_at - timedelta(hours=1)
+        event = AlertEvent.objects.create(
+            rule=rule, status='recovered', recovered_at=recovered_at,
+            trigger_value=90, last_value=60,
+        )
+        AlertEvent.objects.filter(id=event.id).update(started_at=started_at)
+        event.refresh_from_db()
+
+        build_alert_context(event)
+
+        arguments = execute_log_query.call_args.args[0]
+        self.assertEqual(arguments['since'], started_at - timedelta(minutes=30))
+        self.assertEqual(arguments['until'], recovered_at)
