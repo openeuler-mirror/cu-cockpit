@@ -173,7 +173,7 @@
 .metric-strip__item small { color: #607d89; font-size: 10px; }
 .alerts-workspace { display: grid; gap: 12px; }
 .assistant-table { --el-table-bg-color: transparent; --el-table-tr-bg-color: transparent; --el-table-header-bg-color: rgba(85, 231, 239, 0.055); --el-table-border-color: var(--assistant-line); }
-.assistant-table :deep(.el-table__inner-wrapper::before) { display: none; }
+.assistant-table .el-table__inner-wrapper::before { display: none; }
 .alert-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
 .assistant-dialog .el-select,
 .assistant-dialog .el-input-number { width: 100%; }
