@@ -5,7 +5,7 @@
 <script setup lang="ts" name="assistantIndex">
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue';
 import { storeToRefs } from 'pinia';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { assistantRequest } from '/@/api/system/assistant';
 import { userPermissiom } from '/@/stores/userPermissiom';
 import { useThemeConfig } from '/@/stores/themeConfig';
@@ -92,6 +92,32 @@ const createOperationPlan = async () => {
 		console.error('create AI plan failed:', error);
 	} finally {
 		planLoading.value = false;
+	}
+};
+
+const executeOperationPlan = async () => {
+	if (!operationPlan.value) return;
+	if (operationPlan.value.risk !== 'readonly' && !isAdmin.value) {
+		return ElMessage.warning('该变更计划需要管理员权限');
+	}
+	await ElMessageBox.confirm(
+		`确认执行 ${operationPlan.value.tool_calls?.[0]?.tool || '受控工具'}？风险级别：${operationPlan.value.risk}`,
+		'执行 AI 运维计划',
+		{ type: operationPlan.value.risk === 'readonly' ? 'info' : 'warning', confirmButtonText: '确认执行' },
+	);
+	executionLoading.value = true;
+	try {
+		const response = await assistantRequest<any>(
+			`/system/ai/plans/${operationPlan.value.id}/execute`, 'post', { confirmed: true },
+		);
+		operationPlan.value = response.plan;
+		operationResult.value = response.plan.result;
+		ElMessage.success('计划执行完成');
+		await loadWorkspace();
+	} catch (error) {
+		console.error('execute AI plan failed:', error);
+	} finally {
+		executionLoading.value = false;
 	}
 };
 </script>
