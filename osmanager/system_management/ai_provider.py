@@ -1,5 +1,6 @@
 import json
 import os
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 
@@ -42,6 +43,15 @@ def provider_status(config=None):
     if missing:
         return {'available': False, 'base_url': current.base_url, 'model': current.model,
                 'reason': f'缺少配置: {", ".join(missing)}'}
+    parsed_url = urllib.parse.urlparse(current.base_url)
+    invalid_url = (
+        parsed_url.scheme not in ('http', 'https') or not parsed_url.hostname
+        or parsed_url.username is not None or parsed_url.password is not None
+        or bool(parsed_url.query) or bool(parsed_url.fragment)
+    )
+    if invalid_url:
+        return {'available': False, 'base_url': '', 'model': current.model,
+                'reason': 'AI_BASE_URL 必须为无嵌入凭据的 HTTP(S) 地址'}
     return {
         'available': True,
         'base_url': current.base_url,
