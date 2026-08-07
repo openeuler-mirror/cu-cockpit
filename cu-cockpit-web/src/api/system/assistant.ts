@@ -79,6 +79,32 @@ export interface AnalysisResult {
 	matches?: Array<{ source: string; score: number }>;
 }
 
+export type CommandRisk = 'readonly' | 'change' | 'dangerous';
+
+export interface CommandRiskAssessment {
+	risk: CommandRisk;
+	reasons: string[];
+	commands: string[];
+	operators: string[];
+	wrappers: string[];
+	requires_admin_review: boolean;
+}
+
+export interface CommandReviewAnalysis {
+	explanation: string;
+	arguments: string[];
+	effects: string[];
+	risks: string[];
+	safer_alternative: string;
+	verification: string[];
+}
+
+export interface CommandReviewResult {
+	assessment: CommandRiskAssessment;
+	analysis: CommandReviewAnalysis;
+	truncated: boolean;
+}
+
 export interface AssistantStatusResponse {
 	provider: AssistantProvider;
 	tools: AssistantToolCall[];
