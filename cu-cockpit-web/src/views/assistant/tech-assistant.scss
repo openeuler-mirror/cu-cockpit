@@ -271,3 +271,34 @@
 	.el-segmented { --el-segmented-bg-color: rgba(3, 13, 19, 0.74); --el-segmented-item-selected-bg-color: #17aeb9; }
 	.el-empty__description p { color: #668490; }
 }
+
+@media (max-width: 1180px) {
+	.assistant-grid--operations,
+	.assistant-grid--analysis,
+	.assistant-grid--alerts,
+	.assistant-grid--runbooks { grid-template-columns: 1fr; }
+	.assistant-summary,
+	.metric-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+	.assistant-page { padding: 10px; }
+	.assistant-hud { align-items: flex-start; padding: 13px; }
+	.assistant-hud,
+	.assistant-hud__status { flex-direction: column; }
+	.assistant-hud__status { align-items: flex-start; gap: 9px; width: 100%; }
+	.assistant-sync { display: none; }
+	.assistant-summary,
+	.metric-strip { grid-template-columns: 1fr 1fr; }
+	.assistant-tabs { overflow-x: auto; }
+	.assistant-tabs button { flex: 0 0 auto; padding: 0 11px; }
+	.assistant-panel { padding: 12px; }
+	.plan-facts,
+	.alert-form-grid { grid-template-columns: 1fr; }
+	.alert-event { grid-template-columns: 1fr; }
+	.alert-event__value { text-align: left; }
+	.alert-event__actions,
+	.assistant-panel__actions { justify-content: flex-start; flex-wrap: wrap; }
+	.runbook-step { grid-template-columns: 28px minmax(0, 1fr); }
+	.runbook-step > .el-tag { grid-column: 2; justify-self: start; }
+}
