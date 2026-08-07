@@ -30,7 +30,10 @@ def build_runbook_messages(request_text):
 
 
 def generate_runbook_payload(request_text):
-    content = chat_completion(build_runbook_messages(request_text))
+    text = str(request_text or '').strip()
+    if not text or len(text) > 2000:
+        raise AIRunbookError('Runbook 请求不能为空且不能超过 2000 字符')
+    content = chat_completion(build_runbook_messages(text))
     try:
         payload = json.loads(content)
     except (json.JSONDecodeError, TypeError) as error:
