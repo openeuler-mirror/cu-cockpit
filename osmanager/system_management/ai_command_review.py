@@ -1,3 +1,6 @@
+from .ai_analysis import AIAnalysisError
+
+
 MAX_COMMAND_LENGTH = 2000
 SHELL_PUNCTUATION = '|&;<>()'
 CONTROL_OPERATORS = frozenset({';', '&&', '||', '|', '&', '(', ')'})
@@ -25,3 +28,9 @@ WRAPPER_VALUE_OPTIONS = frozenset({'-u', '--user', '-g', '--group', '-h', '--hos
 COMMAND_REVIEW_FIELDS = frozenset({
     'explanation', 'arguments', 'effects', 'risks', 'safer_alternative', 'verification',
 })
+
+
+def validate_linux_command(command):
+    if not isinstance(command, str) or not command.strip():
+        raise AIAnalysisError('Linux 命令必须为非空字符串')
+    return command.strip()
