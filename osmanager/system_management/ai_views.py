@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from osmanager.auth.decorators import login_required_api
 
 from .audit import record_audit
-from .ai_analysis import AIAnalysisError, analyze_logs, explain_command_output
+from .ai_analysis import AIAnalysisError, analyze_logs, explain_command_output, review_config_diff
 from .ai_planner import (
     AIPlanValidationError,
     create_operation_plan,
@@ -14,8 +14,9 @@ from .ai_planner import (
 )
 from .ai_provider import AIProviderError, provider_status
 from .ai_tools import AIToolExecutionContext, AIToolValidationError, tool_catalog
-from .models import AIOperationPlan
+from .models import AIOperationPlan, ConfigSnapshot
 from .permissions import get_session_identity
+from .snapshots import diff_snapshot
 
 
 def _ai_error(error, status=400):
@@ -84,3 +85,10 @@ def ai_output_explain(request):
         return JsonResponse(explain_command_output(request.data.get('output')))
     except (AIAnalysisError, AIProviderError) as error:
         return _ai_error(error)
+
+
+@login_required_api
+@api_view(['POST'])
+def ai_config_review(request):
+    snapshot = get_object_or_404(ConfigSnapshot, id=request.data.get('snapshot_id'))
+    return JsonResponse(review_config_diff(snapshot.target, diff_snapshot(snapshot)))
