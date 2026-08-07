@@ -79,6 +79,22 @@ class AlertRuleStateTest(TestCase):
         self.assertEqual(event.trigger_value, 91)
         self.assertEqual(event.context, {'sample_id': sample.id, 'values': [91, 85, 82]})
 
+    def test_consecutive_recovery_samples_close_active_alert(self):
+        rule = AlertRule.objects.create(
+            name='CPU high', metric='cpu_percent', threshold=80,
+            recovery_threshold=70, consecutive_hits=2,
+        )
+        AlertEvent.objects.create(rule=rule, trigger_value=91, last_value=91)
+        MetricSample.objects.create(cpu_percent=68)
+        sample = MetricSample.objects.create(cpu_percent=65)
+
+        event = evaluate_alert_rule(rule, sample)
+
+        self.assertEqual(event.status, 'recovered')
+        self.assertEqual(event.recovery_value, 65)
+        self.assertIsNotNone(event.recovered_at)
+        self.assertFalse(AlertEvent.objects.filter(rule=rule, status='active').exists())
+
     def test_high_threshold_requires_lower_recovery_value(self):
         with self.assertRaisesRegex(AlertRuleValidationError, '恢复阈值必须低于'):
             normalize_alert_rule({
