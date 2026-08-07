@@ -1,7 +1,10 @@
 from collections.abc import Mapping, Sequence
 
 
-SENSITIVE_MARKERS = ('password', 'passwd', 'private_key', 'privatekey', 'secret', 'token', 'content')
+SENSITIVE_MARKERS = (
+    'password', 'passwd', 'private_key', 'privatekey', 'secret', 'token', 'content',
+    'authorization', 'cookie', 'session',
+)
 REDACTED = '[REDACTED]'
 
 
