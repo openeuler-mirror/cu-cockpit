@@ -482,7 +482,7 @@ const createAlertRule = async () => {
 	}
 };
 
-const toggleAlertRule = async (rule: any, enabled: string | number | boolean) => {
+const toggleAlertRule = async (rule: AlertRule, enabled: string | number | boolean) => {
 	if (!isAdmin.value) return ElMessage.warning('修改告警规则需要管理员权限');
 	alertSaving.value = true;
 	try {
