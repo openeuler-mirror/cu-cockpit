@@ -49,10 +49,14 @@ def parse_linux_command(command):
     lexer = shlex.shlex(source, posix=True, punctuation_chars=SHELL_PUNCTUATION)
     lexer.whitespace_split = True
     lexer.commenters = ''
+    try:
+        tokens = list(lexer)
+    except ValueError as error:
+        raise AIAnalysisError('Linux 命令语法无法解析') from error
     segments = []
     operators = []
     current = []
-    for token in lexer:
+    for token in tokens:
         is_operator = token in CONTROL_OPERATORS or token in REDIRECTION_OPERATORS
         is_operator = is_operator or (token and all(char in SHELL_PUNCTUATION for char in token))
         if is_operator:
