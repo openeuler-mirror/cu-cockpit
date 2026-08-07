@@ -44,6 +44,8 @@ def analyze_context(kind, content):
 
 
 def analyze_logs(logs):
+    if not isinstance(logs, list) or not 1 <= len(logs) <= 200:
+        raise AIAnalysisError('日志必须为 1-200 条结构化数组')
     return analyze_context('logs', json.dumps(logs, ensure_ascii=False, default=str))
 
 
