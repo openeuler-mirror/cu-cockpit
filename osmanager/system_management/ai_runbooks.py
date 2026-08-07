@@ -1,6 +1,7 @@
 from .ai_context import redact_context
 import json
 
+from .ai_provider import chat_completion
 from .ai_tools import (
     AIToolExecutionContext,
     AIToolValidationError,
@@ -26,6 +27,11 @@ def build_runbook_messages(request_text):
         {'role': 'system', 'content': system},
         {'role': 'user', 'content': str(request_text)},
     ]
+
+
+def generate_runbook_payload(request_text):
+    content = chat_completion(build_runbook_messages(request_text))
+    return normalize_runbook_payload(json.loads(content))
 
 
 def normalize_runbook_payload(payload):
