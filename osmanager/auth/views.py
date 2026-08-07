@@ -90,6 +90,7 @@ def login_view(request):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         if auth_login:
+            request.session.cycle_key()
             # 登录成功，把用户名存入 Session
             request.session['username'] = username
             return Response({'code': 200, 'message': '登录成功', 'user': username})
