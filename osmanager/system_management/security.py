@@ -1,3 +1,4 @@
+import ipaddress
 from collections.abc import Mapping, Sequence
 
 
@@ -29,5 +30,10 @@ def sanitize_detail(value, key=''):
 def get_client_ip(request):
     forwarded = request.META.get('HTTP_X_FORWARDED_FOR', '')
     if forwarded:
-        return forwarded.split(',', 1)[0].strip() or None
-    return request.META.get('HTTP_X_REAL_IP') or request.META.get('REMOTE_ADDR') or None
+        candidate = forwarded.split(',', 1)[0].strip()
+    else:
+        candidate = request.META.get('HTTP_X_REAL_IP') or request.META.get('REMOTE_ADDR') or ''
+    try:
+        return str(ipaddress.ip_address(candidate))
+    except ValueError:
+        return None
