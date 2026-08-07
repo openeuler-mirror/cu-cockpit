@@ -138,4 +138,18 @@ const analyzeLogs = async () => {
 		analysisLoading.value = false;
 	}
 };
+
+const explainOutput = async () => {
+	if (!outputInput.value.trim()) return ElMessage.warning('请输入命令输出');
+	analysisLoading.value = true;
+	try {
+		analysisResult.value = await assistantRequest<any>('/system/ai/explain-output', 'post', {
+			output: outputInput.value,
+		});
+	} catch (error) {
+		console.error('explain command output failed:', error);
+	} finally {
+		analysisLoading.value = false;
+	}
+};
 </script>
