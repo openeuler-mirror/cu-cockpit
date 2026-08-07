@@ -89,6 +89,10 @@ def alert_events(request):
 @api_view(['POST'])
 def alert_event_acknowledge(request, event_id):
     event = get_object_or_404(AlertEvent.objects.select_related('rule'), id=event_id)
-    acknowledge_alert_event(event, request.session['username'])
+    try:
+        acknowledge_alert_event(event, request.session['username'])
+    except AlertRuleValidationError as error:
+        return JsonResponse({'code': 400, 'message': str(error)}, status=400,
+                            json_dumps_params={'ensure_ascii': False})
     return JsonResponse({'code': 200, 'message': '告警已确认', 'item': serialize_alert_event(event)},
                         json_dumps_params={'ensure_ascii': False})
