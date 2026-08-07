@@ -166,6 +166,23 @@
 				</article>
 			</section>
 		</main>
+
+		<el-dialog v-model="alertDialog" title="新建指标告警规则" width="min(560px, 94vw)" class="assistant-dialog">
+			<el-form :model="alertForm" label-position="top">
+				<el-form-item label="规则名称"><el-input v-model="alertForm.name" maxlength="128" /></el-form-item>
+				<div class="alert-form-grid">
+					<el-form-item label="监控指标">
+						<el-select v-model="alertForm.metric"><el-option v-for="(label, key) in metricLabels" :key="key" :label="label" :value="key" /></el-select>
+					</el-form-item>
+					<el-form-item label="比较符"><el-select v-model="alertForm.operator"><el-option label="大于等于" value="gte" /><el-option label="小于等于" value="lte" /></el-select></el-form-item>
+					<el-form-item label="触发阈值"><el-input-number v-model="alertForm.threshold" :min="0" :max="100" /></el-form-item>
+					<el-form-item label="恢复阈值"><el-input-number v-model="alertForm.recovery_threshold" :min="0" :max="100" /></el-form-item>
+					<el-form-item label="连续命中"><el-input-number v-model="alertForm.consecutive_hits" :min="1" :max="60" /></el-form-item>
+					<el-form-item label="立即启用"><el-switch v-model="alertForm.enabled" /></el-form-item>
+				</div>
+			</el-form>
+			<template #footer><el-button @click="alertDialog = false">取消</el-button><el-button type="primary" :loading="alertSaving" @click="createAlertRule">创建规则</el-button></template>
+		</el-dialog>
 	</div>
 </template>
 
