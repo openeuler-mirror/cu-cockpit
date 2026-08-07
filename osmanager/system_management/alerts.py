@@ -155,6 +155,8 @@ def build_alert_context(event):
     audits = list(OperationAudit.objects.filter(created_at__gte=since).values(
         'created_at', 'actor', 'module', 'action', 'target', 'success', 'message',
     )[:50])
+    samples.reverse()
+    audits.reverse()
     try:
         logs = execute_log_query({'priority': 'err', 'service': '', 'limit': 50})['logs']
     except RuntimeError:
