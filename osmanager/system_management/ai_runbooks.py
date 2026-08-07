@@ -215,6 +215,8 @@ def advance_runbook(runbook, actor, is_admin):
         }
     try:
         result = execute_runbook_step(step, actor, is_admin)
+    except AIToolValidationError:
+        raise
     except Exception as error:
         fail_runbook(runbook, error)
         raise
