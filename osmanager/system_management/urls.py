@@ -49,4 +49,5 @@ urlpatterns = [
     path('ai/runbooks/generate', runbook_views.runbook_generate, name='ai-runbook-generate'),
     path('ai/runbooks/<int:runbook_id>/advance', runbook_views.runbook_advance, name='ai-runbook-advance'),
     path('ai/runbooks/<int:runbook_id>/confirm', runbook_views.runbook_confirm, name='ai-runbook-confirm'),
+    path('ai/runbooks/<int:runbook_id>/retry', runbook_views.runbook_retry, name='ai-runbook-retry'),
 ]
