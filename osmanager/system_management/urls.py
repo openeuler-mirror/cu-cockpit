@@ -44,4 +44,5 @@ urlpatterns = [
     path('monitoring/alert-events', monitoring_views.alert_events, name='alert-events'),
     path('monitoring/alert-events/<int:event_id>/acknowledge', monitoring_views.alert_event_acknowledge, name='alert-event-acknowledge'),
     path('monitoring/alert-events/<int:event_id>/analyze', monitoring_views.alert_event_analyze, name='alert-event-analyze'),
+    path('ai/runbooks', runbook_views.runbook_list, name='ai-runbook-list'),
 ]
