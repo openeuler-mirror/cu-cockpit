@@ -90,6 +90,13 @@
 						<el-input v-model="outputInput" type="textarea" :rows="10" placeholder="粘贴命令输出" />
 						<el-button type="primary" :icon="Document" :loading="analysisLoading" @click="explainOutput">解释输出</el-button>
 					</div>
+					<div v-else-if="analysisMode === 'command'" class="analysis-editor command-review-editor">
+						<el-input
+							v-model="commandInput" type="textarea" :rows="8" maxlength="2000"
+							show-word-limit placeholder="例如：systemctl status nginx"
+						/>
+						<el-button type="primary" :icon="Warning" :loading="analysisLoading" :disabled="!provider.available" @click="reviewCommand">审查命令风险</el-button>
+					</div>
 					<div v-else-if="analysisMode === 'config'" class="analysis-editor">
 						<el-input-number v-model="snapshotId" :min="1" controls-position="right" placeholder="快照 ID" />
 						<el-button type="primary" :icon="Document" :loading="analysisLoading" @click="reviewConfig">审查快照</el-button>
