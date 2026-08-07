@@ -5,6 +5,8 @@
 <script setup lang="ts" name="assistantIndex">
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue';
 import { storeToRefs } from 'pinia';
+import { ElMessage } from 'element-plus';
+import { assistantRequest } from '/@/api/system/assistant';
 import { userPermissiom } from '/@/stores/userPermissiom';
 import { useThemeConfig } from '/@/stores/themeConfig';
 
@@ -47,4 +49,31 @@ const selectedRunbookId = ref<number | null>(null);
 const confirmationToken = ref('');
 const runbookLoading = ref(false);
 const currentRunbook = computed(() => runbooks.value.find((item) => item.id === selectedRunbookId.value) || null);
+
+const loadWorkspace = async () => {
+	loading.value = true;
+	try {
+		await permissionStore.refreshUserPermission();
+		const [status, metrics, rules, events, runbookData] = await Promise.all([
+			assistantRequest<any>('/system/ai/status'),
+			assistantRequest<any>('/system/monitoring/samples', 'get', undefined, { hours: 24, limit: 500 }),
+			assistantRequest<any>('/system/monitoring/alert-rules'),
+			assistantRequest<any>('/system/monitoring/alert-events', 'get', undefined, { limit: 100 }),
+			assistantRequest<any>('/system/ai/runbooks'),
+		]);
+		Object.assign(provider, status.provider);
+		toolCount.value = status.tools?.length || 0;
+		metricSamples.value = metrics.items || [];
+		alertRules.value = rules.items || [];
+		alertEvents.value = events.items || [];
+		runbooks.value = runbookData.items || [];
+		if (!selectedRunbookId.value && runbooks.value.length) selectedRunbookId.value = runbooks.value[0].id;
+		refreshedAt.value = new Date().toISOString();
+	} catch (error) {
+		ElMessage.error('AI 运维工作台加载失败');
+		console.error('load assistant workspace failed:', error);
+	} finally {
+		loading.value = false;
+	}
+};
 </script>
