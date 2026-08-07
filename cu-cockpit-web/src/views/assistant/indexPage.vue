@@ -221,4 +221,17 @@ const acknowledgeAlert = async (event: any) => {
 		console.error('acknowledge alert failed:', error);
 	}
 };
+
+const analyzeAlert = async (event: any) => {
+	analysisLoading.value = true;
+	try {
+		alertAnalysis.value = await assistantRequest<any>(
+			`/system/monitoring/alert-events/${event.id}/analyze`, 'post',
+		);
+	} catch (error) {
+		console.error('analyze alert failed:', error);
+	} finally {
+		analysisLoading.value = false;
+	}
+};
 </script>
