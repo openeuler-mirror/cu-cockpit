@@ -5,6 +5,7 @@ from .ai_provider import chat_completion
 from .ai_tools import (
     AIToolExecutionContext,
     AIToolValidationError,
+    authorize_tool_call,
     execute_tool_call,
     normalize_tool_call,
     tool_catalog,
@@ -132,11 +133,12 @@ def consume_step_confirmation(step, token):
 def execute_runbook_step(step, actor, is_admin):
     if step.status != 'pending' or (step.risk != 'readonly' and step.confirmed_at is None):
         raise AIRunbookError('步骤未处于可执行状态或尚未确认')
+    context = AIToolExecutionContext(actor=actor, is_admin=is_admin, confirmed=True)
+    authorize_tool_call(step.tool_call, context)
     from django.utils import timezone
     step.status = 'running'
     step.started_at = timezone.now()
     step.save(update_fields=['status', 'started_at'])
-    context = AIToolExecutionContext(actor=actor, is_admin=is_admin, confirmed=True)
     try:
         result = execute_tool_call(step.tool_call, context)
     except Exception as error:
