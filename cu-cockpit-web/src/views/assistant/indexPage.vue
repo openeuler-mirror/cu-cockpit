@@ -457,7 +457,7 @@ const askKnowledge = async () => {
 	if (!knowledgeQuestion.value.trim()) return ElMessage.warning('请输入运维问题');
 	analysisLoading.value = true;
 	try {
-		analysisResult.value = await assistantRequest<any>('/system/ai/knowledge', 'post', {
+		analysisResult.value = await assistantRequest<AnalysisResult>('/system/ai/knowledge', 'post', {
 			question: knowledgeQuestion.value.trim(),
 		});
 	} catch (error) {
