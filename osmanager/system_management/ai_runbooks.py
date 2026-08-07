@@ -80,7 +80,15 @@ def create_runbook(payload, actor):
 
 
 def generate_runbook(request_text, actor):
-    return create_runbook(generate_runbook_payload(request_text), actor)
+    payload = generate_runbook_payload(request_text)
+    create_payload = {
+        'title': payload['title'],
+        'steps': [
+            {'title': step['title'], 'tool_call': step['tool_call']}
+            for step in payload['steps']
+        ],
+    }
+    return create_runbook(create_payload, actor)
 
 
 def require_runbook_owner(runbook, actor):
