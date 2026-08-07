@@ -26,7 +26,11 @@ from osmanager.system_management.monitoring import (
 
 
 class MetricCollectorTest(TestCase):
-    pass
+    def test_memory_percentage_uses_mem_available(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'meminfo'
+            path.write_text('MemTotal: 1000 kB\nMemAvailable: 250 kB\n', encoding='utf-8')
+            self.assertEqual(collect_memory_percent(path), 75.0)
 
 
 class AlertRuleStateTest(TestCase):
