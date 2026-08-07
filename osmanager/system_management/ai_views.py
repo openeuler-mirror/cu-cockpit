@@ -92,7 +92,10 @@ def ai_output_explain(request):
 @login_required_api
 @api_view(['POST'])
 def ai_command_review(request):
-    return JsonResponse(review_linux_command(request.data.get('command')))
+    try:
+        return JsonResponse(review_linux_command(request.data.get('command')))
+    except (AIAnalysisError, AIProviderError) as error:
+        return _ai_error(error)
 
 
 @admin_required_api
