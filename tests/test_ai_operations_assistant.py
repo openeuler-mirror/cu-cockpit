@@ -47,6 +47,18 @@ class AIToolSafetyTest(TestCase):
                 'arguments': {'service': 'sshd', 'command': 'id', 'shell': True},
             })
 
+    def test_unconfirmed_tool_call_does_not_execute(self):
+        executor = Mock()
+        spec = AIToolSpec(
+            'test.read', 'test', 'readonly', False, True,
+            lambda arguments: arguments, executor, (),
+        )
+        context = AIToolExecutionContext('viewer', False, False)
+        with patch.dict(AI_TOOLS, {'test.read': spec}):
+            with self.assertRaisesRegex(AIToolValidationError, '需要用户确认'):
+                execute_tool_call({'tool': 'test.read', 'arguments': {}}, context)
+        executor.assert_not_called()
+
 
 class AIContextSafetyTest(TestCase):
     pass
