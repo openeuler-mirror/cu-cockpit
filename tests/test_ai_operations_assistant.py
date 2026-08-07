@@ -32,6 +32,10 @@ class AIProviderTest(TestCase):
         with patch.dict(os.environ, {'AI_TIMEOUT_SECONDS': '0'}):
             self.assertEqual(get_provider_config().timeout_seconds, 1.0)
 
+    def test_provider_timeout_has_two_minute_maximum(self):
+        with patch.dict(os.environ, {'AI_TIMEOUT_SECONDS': '500'}):
+            self.assertEqual(get_provider_config().timeout_seconds, 120.0)
+
     def test_missing_provider_configuration_is_reported_without_key(self):
         config = AIProviderConfig('', 'secret-key', '', 30)
         result = provider_status(config)
