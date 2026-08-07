@@ -20,6 +20,7 @@ from osmanager.system_management.ai_tools import (
     AIToolSpec,
     AIToolValidationError,
     AI_TOOLS,
+    execute_log_query,
     execute_tool_call,
     normalize_service_status,
     normalize_tool_call,
@@ -105,6 +106,17 @@ class AIToolSafetyTest(TestCase):
                     'command': 'df -h | cat', 'enabled': True,
                 },
             })
+
+    @patch('osmanager.system_management.ai_tools.run_safe', return_value=SimpleNamespace(success=True, stdout=''))
+    def test_log_query_applies_time_window(self, run_safe):
+        execute_log_query({
+            'priority': 'err', 'service': '', 'limit': 50,
+            'since': '2026-01-01 10:00:00', 'until': '2026-01-01 11:00:00',
+        })
+
+        command = run_safe.call_args.args[0]
+        self.assertEqual(command[command.index('--since') + 1], '2026-01-01 10:00:00')
+        self.assertEqual(command[command.index('--until') + 1], '2026-01-01 11:00:00')
 
 
 class AIContextSafetyTest(TestCase):
