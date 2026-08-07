@@ -9,6 +9,7 @@ from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .auth_pam import verify_with_pam, PamNotAvailable, PamAuthError
+from .decorators import login_required_api
 
 # ********************************************************
 # 用户登录视图
@@ -130,8 +131,8 @@ def login_view(request):
         )
     }
 )
+@login_required_api
 @api_view(['POST'])
-@permission_classes([AllowAny])
 def logout_view(request):
     try:
         # 清除当前用户的Session
