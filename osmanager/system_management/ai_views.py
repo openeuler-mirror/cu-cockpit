@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view
 
 from osmanager.auth.decorators import login_required_api
 
+from .audit import record_audit
 from .ai_planner import (
     AIPlanValidationError,
     create_operation_plan,
@@ -52,4 +53,8 @@ def ai_plan_execute(request, plan_id):
         confirmed=request.data.get('confirmed') is True,
     )
     execute_operation_plan(plan, context)
+    record_audit(
+        request, 'ai', 'execute_plan', str(plan.id), True, 'AI 计划执行成功',
+        {'plan_id': plan.id, 'tool': plan.tool_calls[0]['tool'], 'risk': plan.risk},
+    )
     return JsonResponse({'plan': serialize_operation_plan(plan)})
