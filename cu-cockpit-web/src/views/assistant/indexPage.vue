@@ -180,4 +180,19 @@ const askKnowledge = async () => {
 		analysisLoading.value = false;
 	}
 };
+
+const createAlertRule = async () => {
+	if (!isAdmin.value) return ElMessage.warning('创建告警规则需要管理员权限');
+	alertSaving.value = true;
+	try {
+		await assistantRequest('/system/monitoring/alert-rules/create', 'post', { ...alertForm });
+		alertDialog.value = false;
+		ElMessage.success('告警规则已创建');
+		await loadWorkspace();
+	} catch (error) {
+		console.error('create alert rule failed:', error);
+	} finally {
+		alertSaving.value = false;
+	}
+};
 </script>
