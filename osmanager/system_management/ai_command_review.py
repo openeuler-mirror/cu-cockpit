@@ -5,6 +5,7 @@ MAX_COMMAND_LENGTH = 2000
 SHELL_PUNCTUATION = '|&;<>()'
 CONTROL_OPERATORS = frozenset({';', '&&', '||', '|', '&', '(', ')'})
 WRITE_REDIRECTIONS = frozenset({'>', '>>', '>|', '&>', '&>>', '<>'})
+REDIRECTION_OPERATORS = WRITE_REDIRECTIONS | frozenset({'<', '<<', '<<<'})
 
 DANGEROUS_COMMANDS = frozenset({
     'rm', 'dd', 'wipefs', 'fdisk', 'parted', 'shutdown', 'reboot', 'poweroff', 'halt',
