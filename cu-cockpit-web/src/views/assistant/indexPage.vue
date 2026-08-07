@@ -5,6 +5,10 @@
 <script setup lang="ts" name="assistantIndex">
 import { computed, onMounted, onUnmounted, reactive, ref } from 'vue';
 import { storeToRefs } from 'pinia';
+import {
+	Bell, CircleCheck, Connection, Document, Guide, Key,
+	MagicStick, Plus, Refresh, Search, VideoPlay, Warning,
+} from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { assistantRequest } from '/@/api/system/assistant';
 import { userPermissiom } from '/@/stores/userPermissiom';
