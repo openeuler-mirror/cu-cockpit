@@ -6,7 +6,8 @@ from rest_framework.decorators import api_view
 
 from osmanager.auth.decorators import login_required_api
 
-from .models import MetricSample
+from .alerts import serialize_alert_rule
+from .models import AlertRule, MetricSample
 from .monitoring import serialize_metric_sample
 
 
@@ -27,3 +28,9 @@ def metric_samples(request):
     samples = list(queryset[:limit])
     samples.reverse()
     return JsonResponse({'items': [serialize_metric_sample(sample) for sample in samples]})
+
+
+@login_required_api
+@api_view(['GET'])
+def alert_rules(request):
+    return JsonResponse({'items': [serialize_alert_rule(rule) for rule in AlertRule.objects.all()]})
