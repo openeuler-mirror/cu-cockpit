@@ -37,4 +37,5 @@ urlpatterns = [
     path('ai/explain-output', ai_views.ai_output_explain, name='ai-output-explain'),
     path('ai/review-config', ai_views.ai_config_review, name='ai-config-review'),
     path('ai/knowledge', ai_views.ai_knowledge_answer, name='ai-knowledge-answer'),
+    path('monitoring/samples', monitoring_views.metric_samples, name='metric-samples'),
 ]
