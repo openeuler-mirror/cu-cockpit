@@ -21,6 +21,7 @@ def get_provider_config():
         timeout_seconds = float(os.environ.get('AI_TIMEOUT_SECONDS', '30'))
     except ValueError:
         timeout_seconds = 30.0
+    timeout_seconds = max(1.0, min(timeout_seconds, 120.0))
     return AIProviderConfig(
         base_url=os.environ.get('AI_BASE_URL', '').strip().rstrip('/'),
         api_key=os.environ.get('AI_API_KEY', '').strip(),
