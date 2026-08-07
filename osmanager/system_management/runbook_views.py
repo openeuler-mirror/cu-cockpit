@@ -121,5 +121,8 @@ def runbook_retry(request, runbook_id):
 def runbook_skip(request, runbook_id):
     runbook = get_object_or_404(AIRunbook, id=runbook_id)
     identity = get_session_identity(request)
-    skip_runbook_step(runbook, identity.username)
+    try:
+        skip_runbook_step(runbook, identity.username)
+    except AIRunbookError as error:
+        return _runbook_error(error)
     return JsonResponse({'runbook': serialize_runbook(runbook)})
