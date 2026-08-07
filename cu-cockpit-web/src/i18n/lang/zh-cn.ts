@@ -39,6 +39,7 @@ export default {
         network: '网络与防火墙',
         logs: '日志',
         logsDetail: '日志详情',
+        assistant: 'AI 运维助手',
     },
     staticRoutes: {
         signIn: '登录',
