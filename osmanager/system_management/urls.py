@@ -51,4 +51,5 @@ urlpatterns = [
     path('ai/runbooks/<int:runbook_id>/confirm', runbook_views.runbook_confirm, name='ai-runbook-confirm'),
     path('ai/runbooks/<int:runbook_id>/retry', runbook_views.runbook_retry, name='ai-runbook-retry'),
     path('ai/runbooks/<int:runbook_id>/skip', runbook_views.runbook_skip, name='ai-runbook-skip'),
+    path('ai/runbooks/<int:runbook_id>/cancel', runbook_views.runbook_cancel, name='ai-runbook-cancel'),
 ]
