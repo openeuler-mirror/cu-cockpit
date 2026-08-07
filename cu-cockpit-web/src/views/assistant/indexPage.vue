@@ -292,4 +292,19 @@ const confirmRunbook = async () => {
 		runbookLoading.value = false;
 	}
 };
+
+const retryRunbook = async () => {
+	if (!currentRunbook.value) return;
+	runbookLoading.value = true;
+	try {
+		await assistantRequest(`/system/ai/runbooks/${currentRunbook.value.id}/retry`, 'post');
+		confirmationToken.value = '';
+		ElMessage.success('失败步骤已重置');
+		await loadWorkspace();
+	} catch (error) {
+		console.error('retry Runbook failed:', error);
+	} finally {
+		runbookLoading.value = false;
+	}
+};
 </script>
