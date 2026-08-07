@@ -47,6 +47,10 @@ class CommandResult:
 
 
 def _validate_args(args, allowed_commands):
+    if not isinstance(allowed_commands, (set, frozenset, list, tuple)) or not allowed_commands:
+        raise UnsafeCommandError('命令允许列表不能为空')
+    if not all(isinstance(item, str) and item for item in allowed_commands):
+        raise UnsafeCommandError('命令允许列表格式不合法')
     if not isinstance(args, (list, tuple)) or not args:
         raise UnsafeCommandError('命令 argv 不能为空')
     if not all(isinstance(item, str) for item in args):
