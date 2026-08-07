@@ -47,6 +47,21 @@ class RunbookConfirmationTest(TestCase):
         with self.assertRaisesRegex(AIRunbookError, '不等待确认'):
             consume_step_confirmation(step, 'one-time')
 
+    def test_invalid_confirmation_token_preserves_waiting_state(self):
+        expected_hash = hashlib.sha256(b'expected-token').hexdigest()
+        step = SimpleNamespace(
+            status='awaiting_confirmation', confirmation_token_hash=expected_hash,
+            confirmed_at=None, save=Mock(),
+        )
+
+        with self.assertRaisesRegex(AIRunbookError, '确认令牌无效'):
+            consume_step_confirmation(step, 'wrong-token')
+
+        self.assertEqual(step.status, 'awaiting_confirmation')
+        self.assertEqual(step.confirmation_token_hash, expected_hash)
+        self.assertIsNone(step.confirmed_at)
+        step.save.assert_not_called()
+
 
 class RunbookStateMachineTest(TestCase):
     def test_generated_runbook_strips_derived_step_fields_before_creation(self):
