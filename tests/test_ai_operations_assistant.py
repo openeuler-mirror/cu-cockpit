@@ -262,6 +262,25 @@ class AICommandReviewTest(TestCase):
         self.assertEqual(response.status_code, 401)
         review_command.assert_not_called()
 
+    @patch('osmanager.system_management.ai_views.review_linux_command')
+    def test_logged_in_user_can_review_command(self, review_command):
+        review_command.return_value = {
+            'assessment': {'risk': 'dangerous'},
+            'analysis': {'explanation': '删除文件'}, 'truncated': False,
+        }
+        session = self.client.session
+        session['username'] = 'viewer'
+        session.save()
+
+        response = self.client.post(
+            '/api/system/ai/review-command', {'command': 'rm -rf /tmp/demo'},
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['assessment']['risk'], 'dangerous')
+        review_command.assert_called_once_with('rm -rf /tmp/demo')
+
 
 class AIPlanSafetyTest(TestCase):
     def test_policy_rejection_preserves_draft_plan(self):
