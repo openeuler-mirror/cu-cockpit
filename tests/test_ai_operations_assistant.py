@@ -135,6 +135,22 @@ class AIKnowledgeSafetyTest(TestCase):
                 self.assertNotIn(external_document.resolve(), allowed_document_paths())
 
 
+class AIConfigReviewPermissionTest(TestCase):
+    @patch('osmanager.system_management.permissions.pwd.getpwnam', return_value=SimpleNamespace(pw_uid=1000))
+    def test_config_review_rejects_viewer(self, _getpwnam):
+        session = self.client.session
+        session['username'] = 'viewer'
+        session.save()
+
+        response = self.client.post(
+            '/api/system/ai/review-config',
+            {'snapshot_id': 999},
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 403)
+
+
 class AIPlanSafetyTest(TestCase):
     def test_policy_rejection_preserves_draft_plan(self):
         plan = SimpleNamespace(
