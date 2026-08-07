@@ -114,6 +114,10 @@ def runbook_retry(request, runbook_id):
         retry_runbook_step(runbook, identity.username)
     except AIRunbookError as error:
         return _runbook_error(error)
+    record_audit(
+        request, 'ai_runbook', 'retry_step', str(runbook.id), True, 'Runbook 步骤已重置',
+        {'runbook_id': runbook.id, 'current_step': runbook.current_step},
+    )
     return JsonResponse({'runbook': serialize_runbook(runbook)})
 
 
