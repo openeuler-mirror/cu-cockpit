@@ -32,4 +32,5 @@ urlpatterns = [
     path('network/firewall/rules/update', views.firewall_rule_update, name='firewall-rule-update'),
     path('ai/status', ai_views.ai_status, name='ai-status'),
     path('ai/plans', ai_views.ai_plan_create, name='ai-plan-create'),
+    path('ai/plans/<int:plan_id>/execute', ai_views.ai_plan_execute, name='ai-plan-execute'),
 ]
