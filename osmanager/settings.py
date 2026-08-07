@@ -36,7 +36,7 @@ SECRET_KEY = 'django-insecure-@cbyeg3l_v#(7=r_fxq9sqal*96bs&dnb#^(@(q$wh7kd)o0))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = _env_bool('DEBUG', False)
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '127.0.0.1').split(',')
+ALLOWED_HOSTS = _env_list('ALLOWED_HOSTS', '127.0.0.1')
 # 配置信任来源与主机
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://127.0.0.1:8000').split(',')
 # 关闭浏览器session失效
