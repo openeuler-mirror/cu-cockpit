@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import ai_views, views
+from . import ai_views, monitoring_views, views
 
 
 urlpatterns = [
