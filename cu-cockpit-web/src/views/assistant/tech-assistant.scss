@@ -101,3 +101,29 @@
 }
 .assistant-tabs button svg { width: 16px; height: 16px; }
 .assistant-tabs button.is-active { color: #061018; background: var(--assistant-cyan); }
+
+.assistant-workspace { margin-top: 12px; }
+.assistant-grid { display: grid; gap: 12px; }
+.assistant-grid--operations,
+.assistant-grid--analysis,
+.assistant-grid--runbooks { grid-template-columns: minmax(310px, 0.8fr) minmax(0, 1.2fr); }
+.assistant-grid--alerts { grid-template-columns: minmax(0, 1fr) minmax(360px, 0.9fr); }
+.assistant-panel {
+	min-width: 0;
+	padding: 16px;
+	border: 1px solid var(--assistant-line);
+	border-radius: 4px;
+	background: var(--assistant-panel);
+	box-shadow: 0 16px 34px rgba(0, 0, 0, 0.2);
+}
+.assistant-panel__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 15px;
+}
+.assistant-panel__head > div { display: flex; align-items: center; gap: 9px; }
+.assistant-panel h2 { margin: 0; font-size: 16px; letter-spacing: 0; }
+.panel-index { color: var(--assistant-cyan); font: 700 11px/1 monospace; }
+.assistant-panel__actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 14px; }
