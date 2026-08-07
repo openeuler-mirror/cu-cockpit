@@ -36,6 +36,10 @@ class AIProviderTest(TestCase):
         with patch.dict(os.environ, {'AI_TIMEOUT_SECONDS': '500'}):
             self.assertEqual(get_provider_config().timeout_seconds, 120.0)
 
+    def test_provider_rejects_non_http_url(self):
+        config = AIProviderConfig('file:///etc/passwd', 'key', 'model', 30)
+        self.assertFalse(provider_status(config)['available'])
+
     def test_missing_provider_configuration_is_reported_without_key(self):
         config = AIProviderConfig('', 'secret-key', '', 30)
         result = provider_status(config)
