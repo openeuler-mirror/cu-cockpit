@@ -47,4 +47,7 @@ class RunbookConfirmationTest(TestCase):
 
 
 class RunbookStateMachineTest(TestCase):
-    pass
+    def test_non_owner_cannot_operate_runbook(self):
+        runbook = SimpleNamespace(actor='alice')
+        with self.assertRaisesRegex(AIRunbookError, '无权操作其他用户'):
+            require_runbook_owner(runbook, 'bob')
