@@ -67,6 +67,7 @@ def login_view(request):
         if not isinstance(username, str) or not isinstance(password, str):
             return Response({'code': 400, 'message': '用户名和密码必须为字符串'},
                           status=status.HTTP_400_BAD_REQUEST)
+        username = username.strip()
         if not username or not password:
             return Response({'code': 400, 'message': '请输入用户名和密码'},
                           status=status.HTTP_400_BAD_REQUEST)
