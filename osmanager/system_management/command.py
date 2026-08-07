@@ -8,6 +8,7 @@ from dataclasses import asdict, dataclass
 SAFE_PATH = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 MAX_TIMEOUT_SECONDS = 60
 DEFAULT_OUTPUT_LIMIT = 1024 * 1024
+MAX_ARGUMENTS = 128
 
 
 class UnsafeCommandError(ValueError):
@@ -48,6 +49,8 @@ def _validate_args(args, allowed_commands):
         raise UnsafeCommandError('命令 argv 不能为空')
     if not all(isinstance(item, str) for item in args):
         raise UnsafeCommandError('命令参数必须为字符串')
+    if len(args) > MAX_ARGUMENTS:
+        raise UnsafeCommandError('命令参数数量超过限制')
     if any('\x00' in item or '\n' in item or '\r' in item for item in args):
         raise UnsafeCommandError('命令参数包含禁止字符')
     executable = args[0]
