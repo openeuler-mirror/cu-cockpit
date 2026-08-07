@@ -256,6 +256,7 @@ import {
 	type AnalysisResult,
 	type AssistantItemsResponse,
 	type AssistantPlan,
+	type AssistantPlanResponse,
 	type AssistantStatusResponse,
 	type MetricSample,
 	type Runbook,
@@ -368,7 +369,7 @@ const createOperationPlan = async () => {
 	planLoading.value = true;
 	operationResult.value = null;
 	try {
-		const response = await assistantRequest<any>('/system/ai/plans', 'post', {
+		const response = await assistantRequest<AssistantPlanResponse>('/system/ai/plans', 'post', {
 			request: operationRequest.value.trim(),
 		});
 		operationPlan.value = response.plan;
