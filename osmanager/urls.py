@@ -23,12 +23,10 @@ from osmanager.auth.decorators import HasSystemSession
 # 创建 schema 视图
 schema_view = get_schema_view(
    openapi.Info(
-      title="我的项目 API 文档",
+      title="CU Cockpit API",
       default_version='v1',
-      description="这是我的 Django + DRF + drf-yasg 的接口文档，包含所有后端 API。",
-      terms_of_service="https://example.com/terms/",
-      contact=openapi.Contact(email="you@example.com"),
-      license=openapi.License(name="BSD License"),
+      description="Single-node Linux operations management API.",
+      license=openapi.License(name="Mulan PSL v2"),
    ),
    public=False,
    permission_classes=(HasSystemSession,),
