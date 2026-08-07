@@ -2,6 +2,12 @@
 
 from django.http import JsonResponse
 from functools import wraps
+from rest_framework.permissions import BasePermission
+
+
+class HasSystemSession(BasePermission):
+    def has_permission(self, request, view):
+        return bool(getattr(request, 'session', {}).get('username'))
 
 def login_required_api(view_func):
     @wraps(view_func)
