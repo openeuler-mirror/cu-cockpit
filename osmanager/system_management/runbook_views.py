@@ -64,6 +64,10 @@ def runbook_advance(request, runbook_id):
     try:
         outcome = advance_runbook(runbook, identity.username, identity.is_admin)
     except (AIRunbookError, AIToolValidationError, RuntimeError) as error:
+        record_audit(
+            request, 'ai_runbook', 'advance', str(runbook.id), False, str(error),
+            {'runbook_id': runbook.id, 'current_step': runbook.current_step},
+        )
         return _runbook_error(error)
     record_audit(
         request, 'ai_runbook', 'advance', str(runbook.id), True, outcome['action'],
