@@ -138,3 +138,36 @@ def classify_segment_risk(segment):
     if name in READONLY_COMMANDS:
         return {**command, 'risk': 'readonly', 'reason': f'{name} 是已知只读命令'}
     return {**command, 'risk': 'change', 'reason': f'未识别命令 {name}，按变更风险处理'}
+
+
+def assess_linux_command(command):
+    parsed = parse_linux_command(command)
+    details = [classify_segment_risk(segment) for segment in parsed['segments']]
+    risks = {detail['risk'] for detail in details}
+    if 'dangerous' in risks:
+        risk = 'dangerous'
+    elif 'change' in risks:
+        risk = 'change'
+    else:
+        risk = 'readonly'
+    reasons = [detail['reason'] for detail in details]
+    if any(operator in WRITE_REDIRECTIONS for operator in parsed['operators']):
+        if risk == 'readonly':
+            risk = 'change'
+        reasons.append('包含写重定向，可能修改文件或设备')
+    control = [operator for operator in parsed['operators'] if operator not in REDIRECTION_OPERATORS]
+    if control:
+        reasons.append('包含复合 Shell 控制操作符，已逐段检查')
+    if not details:
+        risk = 'change'
+        reasons.append('未找到可识别命令，按变更风险处理')
+    commands = [detail['name'] for detail in details if detail['name']]
+    wrappers = [wrapper for detail in details for wrapper in detail['wrappers']]
+    return {
+        'risk': risk,
+        'reasons': list(dict.fromkeys(reasons)),
+        'commands': list(dict.fromkeys(commands)),
+        'operators': list(dict.fromkeys(parsed['operators'])),
+        'wrappers': list(dict.fromkeys(wrappers)),
+        'requires_admin_review': risk != 'readonly',
+    }
