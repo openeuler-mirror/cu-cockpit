@@ -62,3 +62,15 @@ class RunbookStateMachineTest(TestCase):
         self.assertEqual(outcome['action'], 'confirmation_required')
         self.assertEqual(outcome['confirmation_token'], 'token')
         executor.assert_not_called()
+
+    def test_retry_requires_change_step_reconfirmation(self):
+        runbook = SimpleNamespace(actor='root', status='failed', error='failed', save=Mock())
+        step = SimpleNamespace(
+            status='failed', risk='change', output={'old': True}, error='failed',
+            confirmed_at='old-confirmation', started_at='start', finished_at='finish', save=Mock(),
+        )
+        with patch('osmanager.system_management.ai_runbooks.current_runbook_step', return_value=step):
+            retry_runbook_step(runbook, 'root')
+        self.assertEqual(step.status, 'pending')
+        self.assertIsNone(step.confirmed_at)
+        self.assertEqual(runbook.status, 'running')
