@@ -307,4 +307,18 @@ const retryRunbook = async () => {
 		runbookLoading.value = false;
 	}
 };
+
+const skipRunbook = async () => {
+	if (!currentRunbook.value) return;
+	runbookLoading.value = true;
+	try {
+		await assistantRequest(`/system/ai/runbooks/${currentRunbook.value.id}/skip`, 'post');
+		ElMessage.success('失败的只读步骤已跳过');
+		await loadWorkspace();
+	} catch (error) {
+		console.error('skip Runbook step failed:', error);
+	} finally {
+		runbookLoading.value = false;
+	}
+};
 </script>
