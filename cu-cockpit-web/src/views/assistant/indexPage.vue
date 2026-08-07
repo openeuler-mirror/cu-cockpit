@@ -165,6 +165,23 @@
 					<pre class="assistant-code assistant-code--analysis">{{ formatJson(alertAnalysis.analysis || alertAnalysis) }}</pre>
 				</article>
 			</section>
+
+			<section v-else class="assistant-grid assistant-grid--runbooks">
+				<article class="assistant-panel runbook-composer">
+					<div class="assistant-panel__head"><div><span class="panel-index">01</span><h2>生成 Runbook</h2></div></div>
+					<el-input v-model="runbookPrompt" type="textarea" :rows="7" maxlength="2000" show-word-limit placeholder="描述诊断目标和允许的变更条件" />
+					<el-button type="primary" :icon="Guide" :loading="runbookLoading" :disabled="!provider.available" @click="generateRunbook">生成多步骤计划</el-button>
+					<div class="runbook-list">
+						<button v-for="item in runbooks" :key="item.id" :class="{ 'is-active': item.id === selectedRunbookId }" @click="selectedRunbookId = item.id; confirmationToken = ''">
+							<span><strong>{{ item.title }}</strong><small>{{ formatTime(item.created_at) }}</small></span>
+							<em :class="`is-${item.status}`">{{ runbookStatusLabels[item.status] || item.status }}</em>
+						</button>
+						<el-empty v-if="!runbooks.length" :image-size="64" description="暂无 Runbook" />
+					</div>
+				</article>
+
+				<article class="assistant-panel runbook-detail"></article>
+			</section>
 		</main>
 
 		<el-dialog v-model="alertDialog" title="新建指标告警规则" width="min(560px, 94vw)" class="assistant-dialog">
