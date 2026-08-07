@@ -10,6 +10,7 @@ from osmanager.auth.decorators import login_required_api
 
 from .alerts import (
     AlertRuleValidationError,
+    acknowledge_alert_event,
     create_alert_rule,
     serialize_alert_event,
     serialize_alert_rule,
@@ -82,3 +83,12 @@ def alert_events(request):
         queryset = queryset.filter(status=event_status)
     limit = _bounded_int(request.GET.get('limit'), 100, 1, 500)
     return JsonResponse({'items': [serialize_alert_event(event) for event in queryset[:limit]]})
+
+
+@login_required_api
+@api_view(['POST'])
+def alert_event_acknowledge(request, event_id):
+    event = get_object_or_404(AlertEvent.objects.select_related('rule'), id=event_id)
+    acknowledge_alert_event(event, request.session['username'])
+    return JsonResponse({'code': 200, 'message': '告警已确认', 'item': serialize_alert_event(event)},
+                        json_dumps_params={'ensure_ascii': False})
