@@ -160,7 +160,10 @@ def build_alert_context(event):
     samples.reverse()
     audits.reverse()
     try:
-        logs = execute_log_query({'priority': 'err', 'service': '', 'limit': 50})['logs']
+        logs = execute_log_query({
+            'priority': 'err', 'service': '', 'limit': 50,
+            'since': since, 'until': until,
+        })['logs']
     except RuntimeError:
         logs = []
     return {
