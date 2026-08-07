@@ -6,6 +6,7 @@ from osmanager.auth.decorators import login_required_api
 
 from .audit import record_audit
 from .ai_analysis import AIAnalysisError, analyze_logs, explain_command_output, review_config_diff
+from .ai_knowledge import answer_knowledge_question
 from .ai_planner import (
     AIPlanValidationError,
     create_operation_plan,
@@ -95,3 +96,9 @@ def ai_config_review(request):
         return JsonResponse(review_config_diff(snapshot.target, diff_snapshot(snapshot)))
     except (OSError, UnicodeError, ValueError, AIAnalysisError, AIProviderError) as error:
         return _ai_error(error)
+
+
+@login_required_api
+@api_view(['POST'])
+def ai_knowledge_answer(request):
+    return JsonResponse(answer_knowledge_question(request.data.get('question')))
