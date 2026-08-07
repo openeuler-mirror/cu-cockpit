@@ -48,6 +48,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # session实效设置为30分钟
 SESSION_COOKIE_AGE = 30 * 60          
 SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
 # 每次请求滑动续期
 SESSION_SAVE_EVERY_REQUEST = True
 # Application definition
