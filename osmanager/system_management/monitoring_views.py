@@ -11,10 +11,11 @@ from osmanager.auth.decorators import login_required_api
 from .alerts import (
     AlertRuleValidationError,
     create_alert_rule,
+    serialize_alert_event,
     serialize_alert_rule,
     set_alert_rule_enabled,
 )
-from .models import AlertRule, MetricSample
+from .models import AlertEvent, AlertRule, MetricSample
 from .monitoring import serialize_metric_sample
 from .permissions import audited_admin_api
 
@@ -70,3 +71,14 @@ def alert_rule_toggle(request, rule_id):
                             json_dumps_params={'ensure_ascii': False})
     return JsonResponse({'code': 200, 'message': '告警规则状态已更新', 'item': serialize_alert_rule(rule)},
                         json_dumps_params={'ensure_ascii': False})
+
+
+@login_required_api
+@api_view(['GET'])
+def alert_events(request):
+    queryset = AlertEvent.objects.select_related('rule')
+    event_status = request.GET.get('status', '').strip()
+    if event_status in ('active', 'recovered'):
+        queryset = queryset.filter(status=event_status)
+    limit = _bounded_int(request.GET.get('limit'), 100, 1, 500)
+    return JsonResponse({'items': [serialize_alert_event(event) for event in queryset[:limit]]})
