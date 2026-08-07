@@ -266,6 +266,7 @@ import {
 	type AssistantPlan,
 	type AssistantPlanResponse,
 	type AssistantStatusResponse,
+	type CommandRisk,
 	type CommandReviewResult,
 	type MetricSample,
 	type Runbook,
@@ -332,6 +333,12 @@ const runbookStatusLabels: Record<string, string> = {
 	draft: '草稿', running: '运行中', paused: '等待确认', completed: '已完成',
 	failed: '失败', cancelled: '已取消', pending: '待执行',
 	awaiting_confirmation: '等待确认', succeeded: '成功', skipped: '已跳过',
+};
+const commandRiskLabels: Record<CommandRisk, string> = {
+	readonly: '只读', change: '变更', dangerous: '危险',
+};
+const commandRiskTagTypes: Record<CommandRisk, 'success' | 'warning' | 'danger'> = {
+	readonly: 'success', change: 'warning', dangerous: 'danger',
 };
 
 const formatTime = (value?: string) => value
