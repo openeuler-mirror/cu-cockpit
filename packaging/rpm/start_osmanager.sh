@@ -6,6 +6,15 @@ APP_VENV="$OSM_DIR/venv"
 OSM_ENV="$OSM_DIR/os.env"
 SETUP_MARKER="$APP_VENV/.setup_complete"
 
+ensure_secret_key() {
+    if ! grep -q '^SECRET_KEY=' "$OSM_ENV" 2>/dev/null; then
+        local generated_secret
+        generated_secret=$(python3 -c 'import secrets; print(secrets.token_urlsafe(64))')
+        printf '\nSECRET_KEY=%s\n' "$generated_secret" >> "$OSM_ENV"
+        chmod 600 "$OSM_ENV"
+    fi
+}
+
 # Function to check custom PyPI mirror access
 check_pypi_mirror() {
     if grep -q "pypi.culinux.net" /etc/hosts 2>/dev/null; then
@@ -103,6 +112,10 @@ replace_ip_placeholders() {
 }
 # Replace IP placeholders before starting the server
 replace_ip_placeholders
+ensure_secret_key
+set -a
+source "$OSM_ENV"
+set +a
 # Check if initial setup is needed (skip if marker file exists)
 if [ ! -f "$SETUP_MARKER" ]; then
     # Create virtual environment if it doesn't exist
