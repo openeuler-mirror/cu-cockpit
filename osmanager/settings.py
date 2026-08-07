@@ -47,6 +47,7 @@ CSRF_TRUSTED_ORIGINS = _env_list('CSRF_TRUSTED_ORIGINS', 'http://127.0.0.1:8000'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # session实效设置为30分钟
 SESSION_COOKIE_AGE = 30 * 60          
+SESSION_COOKIE_HTTPONLY = True
 # 每次请求滑动续期
 SESSION_SAVE_EVERY_REQUEST = True
 # Application definition
