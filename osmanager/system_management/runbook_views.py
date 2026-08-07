@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view
 
 from osmanager.auth.decorators import login_required_api
 
+from .audit import record_audit
 from .ai_provider import AIProviderError
 from .ai_runbooks import (
     AIRunbookError,
@@ -64,6 +65,10 @@ def runbook_advance(request, runbook_id):
         outcome = advance_runbook(runbook, identity.username, identity.is_admin)
     except (AIRunbookError, AIToolValidationError, RuntimeError) as error:
         return _runbook_error(error)
+    record_audit(
+        request, 'ai_runbook', 'advance', str(runbook.id), True, outcome['action'],
+        {'runbook_id': runbook.id, 'action': outcome['action'], 'current_step': runbook.current_step},
+    )
     return JsonResponse({
         'action': outcome['action'],
         'confirmation_token': outcome.get('confirmation_token'),
