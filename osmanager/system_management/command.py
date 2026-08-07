@@ -81,7 +81,10 @@ def _decode_limited(value, limit):
 
 def run_safe(args, allowed_commands, timeout=10, output_limit=DEFAULT_OUTPUT_LIMIT):
     command = _validate_args(args, allowed_commands)
-    safe_timeout = max(0.1, min(float(timeout), MAX_TIMEOUT_SECONDS))
+    try:
+        safe_timeout = max(0.1, min(float(timeout), MAX_TIMEOUT_SECONDS))
+    except (TypeError, ValueError) as error:
+        raise UnsafeCommandError('命令超时时间格式不合法') from error
     safe_limit = max(1024, min(int(output_limit), DEFAULT_OUTPUT_LIMIT))
     started = time.monotonic()
     try:
