@@ -1,10 +1,17 @@
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 
 from osmanager.auth.decorators import login_required_api
 
 from .ai_provider import AIProviderError
-from .ai_runbooks import AIRunbookError, create_runbook, generate_runbook, serialize_runbook
+from .ai_runbooks import (
+    AIRunbookError,
+    advance_runbook,
+    create_runbook,
+    generate_runbook,
+    serialize_runbook,
+)
 from .models import AIRunbook
 from .permissions import get_session_identity
 
@@ -45,3 +52,17 @@ def runbook_generate(request):
     except (AIRunbookError, AIProviderError) as error:
         return _runbook_error(error)
     return JsonResponse({'runbook': serialize_runbook(runbook)})
+
+
+@login_required_api
+@api_view(['POST'])
+def runbook_advance(request, runbook_id):
+    runbook = get_object_or_404(AIRunbook, id=runbook_id)
+    identity = get_session_identity(request)
+    outcome = advance_runbook(runbook, identity.username, identity.is_admin)
+    return JsonResponse({
+        'action': outcome['action'],
+        'confirmation_token': outcome.get('confirmation_token'),
+        'result': outcome.get('result'),
+        'runbook': serialize_runbook(runbook),
+    })
