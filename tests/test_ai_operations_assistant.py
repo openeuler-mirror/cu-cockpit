@@ -59,6 +59,18 @@ class AIToolSafetyTest(TestCase):
                 execute_tool_call({'tool': 'test.read', 'arguments': {}}, context)
         executor.assert_not_called()
 
+    def test_confirmed_change_tool_requires_administrator(self):
+        executor = Mock()
+        spec = AIToolSpec(
+            'test.change', 'test', 'change', True, True,
+            lambda arguments: arguments, executor, (),
+        )
+        context = AIToolExecutionContext('viewer', False, True)
+        with patch.dict(AI_TOOLS, {'test.change': spec}):
+            with self.assertRaisesRegex(AIToolValidationError, '需要管理员权限'):
+                execute_tool_call({'tool': 'test.change', 'arguments': {}}, context)
+        executor.assert_not_called()
+
 
 class AIContextSafetyTest(TestCase):
     pass
