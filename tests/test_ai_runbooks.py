@@ -110,6 +110,26 @@ class RunbookStateMachineTest(TestCase):
         step.save.assert_not_called()
         runbook.save.assert_not_called()
 
+    @patch('osmanager.system_management.ai_runbooks.execute_tool_call', side_effect=RuntimeError('service unavailable'))
+    def test_execution_failure_marks_step_and_runbook_failed(self, _execute_tool_call):
+        runbook = SimpleNamespace(actor='alice', status='running', error='', save=Mock())
+        step = SimpleNamespace(
+            status='pending', risk='readonly', confirmed_at=None, output={'old': True},
+            error='', finished_at=None, save=Mock(),
+            tool_call={'tool': 'service.status', 'arguments': {'service': 'sshd'}},
+        )
+
+        with patch('osmanager.system_management.ai_runbooks.current_runbook_step', return_value=step):
+            with self.assertRaisesRegex(RuntimeError, 'service unavailable'):
+                advance_runbook(runbook, 'alice', False)
+
+        self.assertEqual(step.status, 'failed')
+        self.assertEqual(step.output, {})
+        self.assertEqual(step.error, 'service unavailable')
+        self.assertIsNotNone(step.finished_at)
+        self.assertEqual(runbook.status, 'failed')
+        self.assertEqual(runbook.error, 'service unavailable')
+
     def test_retry_requires_change_step_reconfirmation(self):
         runbook = SimpleNamespace(actor='root', status='failed', error='failed', save=Mock())
         step = SimpleNamespace(
