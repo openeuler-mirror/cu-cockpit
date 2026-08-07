@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view
 
 from osmanager.auth.decorators import login_required_api
 
+from .ai_provider import AIProviderError
 from .ai_runbooks import AIRunbookError, create_runbook, generate_runbook, serialize_runbook
 from .models import AIRunbook
 from .permissions import get_session_identity
@@ -39,5 +40,8 @@ def runbook_create(request):
 @api_view(['POST'])
 def runbook_generate(request):
     identity = get_session_identity(request)
-    runbook = generate_runbook(request.data.get('request'), identity.username)
+    try:
+        runbook = generate_runbook(request.data.get('request'), identity.username)
+    except (AIRunbookError, AIProviderError) as error:
+        return _runbook_error(error)
     return JsonResponse({'runbook': serialize_runbook(runbook)})
