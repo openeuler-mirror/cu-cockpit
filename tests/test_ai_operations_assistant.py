@@ -71,6 +71,16 @@ class AIToolSafetyTest(TestCase):
                 execute_tool_call({'tool': 'test.change', 'arguments': {}}, context)
         executor.assert_not_called()
 
+    def test_ai_cron_creation_reuses_command_allowlist(self):
+        with self.assertRaisesRegex(AIToolValidationError, 'shell 操作符'):
+            normalize_tool_call({
+                'tool': 'cron.create',
+                'arguments': {
+                    'name': 'unsafe', 'schedule': '0 2 * * *',
+                    'command': 'df -h | cat', 'enabled': True,
+                },
+            })
+
 
 class AIContextSafetyTest(TestCase):
     def test_context_is_redacted_before_truncation(self):
