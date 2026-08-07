@@ -1,5 +1,28 @@
 <template>
-	<div class="assistant-page"></div>
+	<div class="assistant-page" v-loading="loading">
+		<header class="assistant-hud">
+			<div class="assistant-identity">
+				<span class="assistant-identity__mark"><el-icon><MagicStick /></el-icon></span>
+				<div>
+					<h1>AI 运维助手</h1>
+					<p>CONTROLLED OPERATIONS · VERIFIED TOOLS · HUMAN CONFIRMATION</p>
+				</div>
+			</div>
+			<div class="assistant-hud__status">
+				<div class="provider-state" :class="{ 'is-online': provider.available }">
+					<span class="provider-state__dot"></span>
+					<div>
+						<strong>{{ provider.available ? 'AI Provider 在线' : 'AI Provider 未就绪' }}</strong>
+						<small>{{ provider.model || provider.reason }}</small>
+					</div>
+				</div>
+				<span class="assistant-sync">同步 {{ formatTime(refreshedAt) }}</span>
+				<el-button class="assistant-icon-button" :icon="Refresh" circle :loading="loading" @click="loadWorkspace" />
+			</div>
+		</header>
+
+		<main class="assistant-workspace"></main>
+	</div>
 </template>
 
 <script setup lang="ts" name="assistantIndex">
