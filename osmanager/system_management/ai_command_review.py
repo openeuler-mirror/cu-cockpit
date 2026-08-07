@@ -1,3 +1,5 @@
+import shlex
+
 from .ai_analysis import AIAnalysisError
 
 
@@ -39,3 +41,28 @@ def validate_linux_command(command):
     if len(command) > MAX_COMMAND_LENGTH:
         raise AIAnalysisError(f'Linux 命令不能超过 {MAX_COMMAND_LENGTH} 字符')
     return command.strip()
+
+
+def parse_linux_command(command):
+    text = validate_linux_command(command)
+    source = text.replace('\r\n', '\n').replace('\r', '\n').replace('\n', ' ; ')
+    lexer = shlex.shlex(source, posix=True, punctuation_chars=SHELL_PUNCTUATION)
+    lexer.whitespace_split = True
+    lexer.commenters = ''
+    segments = []
+    operators = []
+    current = []
+    for token in lexer:
+        is_operator = token in CONTROL_OPERATORS or token in REDIRECTION_OPERATORS
+        is_operator = is_operator or (token and all(char in SHELL_PUNCTUATION for char in token))
+        if is_operator:
+            operators.append(token)
+        if is_operator and token not in REDIRECTION_OPERATORS:
+            if current:
+                segments.append(current)
+                current = []
+            continue
+        current.append(token)
+    if current:
+        segments.append(current)
+    return {'segments': segments, 'operators': operators}
