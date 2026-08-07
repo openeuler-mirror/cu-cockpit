@@ -23,4 +23,11 @@ const operationPlan = ref<any>(null);
 const operationResult = ref<any>(null);
 const planLoading = ref(false);
 const executionLoading = ref(false);
+const analysisMode = ref('logs');
+const logsInput = ref('[\n  { "service": "sshd", "message": "Failed password for root" }\n]');
+const outputInput = ref('');
+const snapshotId = ref<number | null>(null);
+const knowledgeQuestion = ref('如何安全排查 nginx 服务启动失败？');
+const analysisResult = ref<any>(null);
+const analysisLoading = ref(false);
 </script>
