@@ -259,6 +259,7 @@ import {
 	type AssistantPlan,
 	type AssistantPlanResponse,
 	type AssistantStatusResponse,
+	type CommandReviewResult,
 	type MetricSample,
 	type Runbook,
 	type RunbookResponse,
@@ -285,11 +286,14 @@ const analysisMode = ref('logs');
 const analysisOptions = [
 	{ label: '日志', value: 'logs' },
 	{ label: '命令输出', value: 'output' },
+	{ label: '命令审查', value: 'command' },
 	{ label: '配置快照', value: 'config' },
 	{ label: '知识问答', value: 'knowledge' },
 ];
 const logsInput = ref('[\n  { "service": "sshd", "message": "Failed password for root" }\n]');
 const outputInput = ref('');
+const commandInput = ref('systemctl status nginx');
+const commandReview = ref<CommandReviewResult | null>(null);
 const snapshotId = ref<number | null>(null);
 const knowledgeQuestion = ref('如何安全排查 nginx 服务启动失败？');
 const analysisResult = ref<AnalysisResult | null>(null);
