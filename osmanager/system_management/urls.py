@@ -30,4 +30,5 @@ urlpatterns = [
     path('processes/<int:pid>/signal', views.process_signal, name='process-signal'),
     path('network/overview', views.network_status, name='network-overview'),
     path('network/firewall/rules/update', views.firewall_rule_update, name='firewall-rule-update'),
+    path('ai/status', ai_views.ai_status, name='ai-status'),
 ]
