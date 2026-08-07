@@ -6,6 +6,7 @@ SENSITIVE_MARKERS = (
     'authorization', 'cookie', 'session',
 )
 REDACTED = '[REDACTED]'
+MAX_DETAIL_STRING_LENGTH = 2000
 
 
 def sanitize_detail(value, key=''):
@@ -18,8 +19,8 @@ def sanitize_detail(value, key=''):
         return f'[BINARY {len(value)} bytes]'
     if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
         return [sanitize_detail(item) for item in value]
-    if isinstance(value, str) and len(value) > 2000:
-        return value[:2000] + '...[TRUNCATED]'
+    if isinstance(value, str) and len(value) > MAX_DETAIL_STRING_LENGTH:
+        return value[:MAX_DETAIL_STRING_LENGTH] + '...[TRUNCATED]'
     if value is None or isinstance(value, (str, int, float, bool)):
         return value
     return str(value)
