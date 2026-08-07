@@ -154,4 +154,8 @@ def runbook_cancel(request, runbook_id):
         cancel_runbook(runbook, identity.username)
     except AIRunbookError as error:
         return _runbook_error(error)
+    record_audit(
+        request, 'ai_runbook', 'cancel', str(runbook.id), True, 'Runbook 已取消',
+        {'runbook_id': runbook.id, 'current_step': runbook.current_step},
+    )
     return JsonResponse({'runbook': serialize_runbook(runbook)})
