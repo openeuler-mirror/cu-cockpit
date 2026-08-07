@@ -80,4 +80,7 @@ def ai_logs_analyze(request):
 @login_required_api
 @api_view(['POST'])
 def ai_output_explain(request):
-    return JsonResponse(explain_command_output(request.data.get('output')))
+    try:
+        return JsonResponse(explain_command_output(request.data.get('output')))
+    except (AIAnalysisError, AIProviderError) as error:
+        return _ai_error(error)
