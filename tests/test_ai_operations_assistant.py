@@ -13,7 +13,7 @@ from django.test import TestCase
 
 from osmanager.system_management.ai_analysis import AIAnalysisError
 from osmanager.system_management.ai_context import prepare_context, wrap_untrusted_context
-from osmanager.system_management.ai_command_review import assess_linux_command, review_linux_command
+from osmanager.system_management.ai_command_review import MAX_COMMAND_LENGTH, assess_linux_command, review_linux_command
 from osmanager.system_management.ai_knowledge import allowed_document_paths
 from osmanager.system_management.ai_planner import AIPlanValidationError, execute_operation_plan, validate_plan_payload
 from osmanager.system_management.ai_provider import AIProviderConfig, get_provider_config, provider_status
@@ -209,6 +209,13 @@ class AICommandReviewTest(TestCase):
     def test_nul_command_is_rejected_before_ai(self, analyze_context):
         with self.assertRaisesRegex(AIAnalysisError, 'NUL'):
             review_linux_command('echo safe\x00rm -rf /')
+
+        analyze_context.assert_not_called()
+
+    @patch('osmanager.system_management.ai_command_review.analyze_context')
+    def test_oversized_command_is_rejected_before_ai(self, analyze_context):
+        with self.assertRaisesRegex(AIAnalysisError, str(MAX_COMMAND_LENGTH)):
+            review_linux_command('x' * (MAX_COMMAND_LENGTH + 1))
 
         analyze_context.assert_not_called()
 
