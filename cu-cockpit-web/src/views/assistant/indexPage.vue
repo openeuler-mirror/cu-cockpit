@@ -138,7 +138,27 @@
 							<el-table-column label="状态" width="90"><template #default="{ row }"><el-switch :model-value="row.enabled" :disabled="!isAdmin || alertSaving" @change="toggleAlertRule(row, $event)" /></template></el-table-column>
 						</el-table>
 					</article>
-					<article class="assistant-panel alert-events-panel"></article>
+					<article class="assistant-panel alert-events-panel">
+						<div class="assistant-panel__head">
+							<div><span class="panel-index">02</span><h2>告警事件</h2></div>
+							<el-tag :type="activeAlertCount ? 'danger' : 'success'" effect="dark">{{ activeAlertCount }} 个活动</el-tag>
+						</div>
+						<div class="alert-event-list">
+							<div v-for="event in alertEvents" :key="event.id" class="alert-event" :class="`is-${event.status}`">
+								<div class="alert-event__identity">
+									<span><Warning v-if="event.status === 'active'" /><CircleCheck v-else /></span>
+									<div><strong>{{ event.rule.name }}</strong><small>{{ formatTime(event.started_at) }}</small></div>
+								</div>
+								<div class="alert-event__value"><span>触发 {{ event.trigger_value }}%</span><strong>{{ event.last_value }}%</strong></div>
+								<div class="alert-event__actions">
+									<el-button v-if="event.status === 'active' && !event.acknowledged_at" link @click="acknowledgeAlert(event)">确认</el-button>
+									<el-tag v-else-if="event.acknowledged_at" size="small" type="info">{{ event.acknowledged_by }} 已确认</el-tag>
+									<el-button link :loading="analysisLoading" @click="analyzeAlert(event)">AI 分析</el-button>
+								</div>
+							</div>
+							<el-empty v-if="!alertEvents.length" :image-size="64" description="暂无告警事件" />
+						</div>
+					</article>
 				</div>
 				<article v-if="alertAnalysis" class="assistant-panel alert-analysis-panel">
 					<div class="assistant-panel__head"><div><span class="panel-index">AI</span><h2>故障分析</h2></div></div>
