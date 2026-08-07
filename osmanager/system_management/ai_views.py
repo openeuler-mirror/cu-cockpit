@@ -6,7 +6,7 @@ from osmanager.auth.decorators import login_required_api
 
 from .audit import record_audit
 from .ai_analysis import AIAnalysisError, analyze_logs, explain_command_output, review_config_diff
-from .ai_knowledge import answer_knowledge_question
+from .ai_knowledge import AIKnowledgeError, answer_knowledge_question
 from .ai_planner import (
     AIPlanValidationError,
     create_operation_plan,
@@ -101,4 +101,7 @@ def ai_config_review(request):
 @login_required_api
 @api_view(['POST'])
 def ai_knowledge_answer(request):
-    return JsonResponse(answer_knowledge_question(request.data.get('question')))
+    try:
+        return JsonResponse(answer_knowledge_question(request.data.get('question')))
+    except (AIKnowledgeError, AIProviderError, OSError) as error:
+        return _ai_error(error)
