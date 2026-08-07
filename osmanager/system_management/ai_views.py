@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view
 from osmanager.auth.decorators import login_required_api
 
 from .audit import record_audit
+from .ai_analysis import analyze_logs
 from .ai_planner import (
     AIPlanValidationError,
     create_operation_plan,
@@ -65,3 +66,9 @@ def ai_plan_execute(request, plan_id):
         {'plan_id': plan.id, 'tool': plan.tool_calls[0]['tool'], 'risk': plan.risk},
     )
     return JsonResponse({'plan': serialize_operation_plan(plan)})
+
+
+@login_required_api
+@api_view(['POST'])
+def ai_logs_analyze(request):
+    return JsonResponse(analyze_logs(request.data.get('logs')))
