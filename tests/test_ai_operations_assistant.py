@@ -172,6 +172,10 @@ class AIConfigReviewPermissionTest(TestCase):
         self.assertEqual(response.status_code, 403)
 
 
+class AICommandReviewTest(TestCase):
+    pass
+
+
 class AIPlanSafetyTest(TestCase):
     def test_policy_rejection_preserves_draft_plan(self):
         plan = SimpleNamespace(
