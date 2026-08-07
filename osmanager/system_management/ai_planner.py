@@ -99,6 +99,8 @@ def execute_operation_plan(plan, context):
     from django.utils import timezone
     try:
         result = execute_tool_call(plan.tool_calls[0], context)
+    except AIToolValidationError:
+        raise
     except Exception as error:
         plan.status = 'failed'
         plan.executed_at = timezone.now()
