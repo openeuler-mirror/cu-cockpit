@@ -252,4 +252,25 @@ const generateRunbook = async () => {
 		runbookLoading.value = false;
 	}
 };
+
+const advanceRunbook = async () => {
+	if (!currentRunbook.value) return;
+	runbookLoading.value = true;
+	try {
+		const response = await assistantRequest<any>(
+			`/system/ai/runbooks/${currentRunbook.value.id}/advance`, 'post',
+		);
+		confirmationToken.value = response.confirmation_token || '';
+		if (response.action === 'confirmation_required') {
+			ElMessage.warning('当前步骤会修改系统，请确认后继续');
+		} else {
+			ElMessage.success(response.action === 'completed' ? 'Runbook 已完成' : '当前步骤执行成功');
+		}
+		await loadWorkspace();
+	} catch (error) {
+		console.error('advance Runbook failed:', error);
+	} finally {
+		runbookLoading.value = false;
+	}
+};
 </script>
