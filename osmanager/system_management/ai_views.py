@@ -16,7 +16,7 @@ from .ai_planner import (
 from .ai_provider import AIProviderError, provider_status
 from .ai_tools import AIToolExecutionContext, AIToolValidationError, tool_catalog
 from .models import AIOperationPlan, ConfigSnapshot
-from .permissions import get_session_identity
+from .permissions import admin_required_api, get_session_identity
 from .snapshots import diff_snapshot
 
 
@@ -88,7 +88,7 @@ def ai_output_explain(request):
         return _ai_error(error)
 
 
-@login_required_api
+@admin_required_api
 @api_view(['POST'])
 def ai_config_review(request):
     snapshot = get_object_or_404(ConfigSnapshot, id=request.data.get('snapshot_id'))
