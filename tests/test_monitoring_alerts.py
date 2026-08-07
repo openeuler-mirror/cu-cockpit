@@ -32,6 +32,17 @@ class MetricCollectorTest(TestCase):
             path.write_text('MemTotal: 1000 kB\nMemAvailable: 250 kB\n', encoding='utf-8')
             self.assertEqual(collect_memory_percent(path), 75.0)
 
+    def test_network_counters_exclude_loopback(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'dev'
+            path.write_text(
+                'lo: 100 0 0 0 0 0 0 0 200 0\neth0: 1000 0 0 0 0 0 0 0 2000 0\n',
+                encoding='utf-8',
+            )
+            self.assertEqual(collect_network_bytes(path), {
+                'network_rx_bytes': 1000, 'network_tx_bytes': 2000,
+            })
+
 
 class AlertRuleStateTest(TestCase):
     pass
