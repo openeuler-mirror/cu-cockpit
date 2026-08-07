@@ -5,7 +5,7 @@ from .security import get_client_ip, sanitize_detail
 def record_audit(request, module, action, target='', success=False, message='', detail=None):
     actor = 'anonymous'
     if hasattr(request, 'session'):
-        actor = request.session.get('username') or actor
+        actor = str(request.session.get('username') or actor)[:150]
     try:
         return OperationAudit.objects.create(
             actor=actor,
