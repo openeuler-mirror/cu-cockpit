@@ -175,3 +175,15 @@ def advance_runbook(runbook, actor, is_admin):
         'step': step,
         'result': result,
     }
+
+
+def confirm_runbook_step(runbook, actor, token):
+    require_runbook_owner(runbook, actor)
+    step = current_runbook_step(runbook)
+    if step is None:
+        raise AIRunbookError('Runbook 没有待确认步骤')
+    consume_step_confirmation(step, token)
+    runbook.status = 'running'
+    runbook.error = ''
+    runbook.save(update_fields=['status', 'error', 'updated_at'])
+    return step
