@@ -70,3 +70,9 @@ class AlertRuleStateTest(TestCase):
         self.assertTrue(consecutive_triggered(rule, [90, 85, 80]))
         self.assertFalse(consecutive_triggered(rule, [90, 85]))
         self.assertFalse(consecutive_triggered(rule, [90, 79, 85]))
+
+    def test_alert_requires_all_consecutive_recovery_samples(self):
+        rule = SimpleNamespace(operator='gte', recovery_threshold=70, consecutive_hits=2)
+        self.assertTrue(consecutive_recovered(rule, [65, 70]))
+        self.assertFalse(consecutive_recovered(rule, [65]))
+        self.assertFalse(consecutive_recovered(rule, [65, 71]))
