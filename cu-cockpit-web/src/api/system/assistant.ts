@@ -1,7 +1,7 @@
 import request from '/@/utils/request';
 
 
-export const assistantRequest = <T = any>(
+export const assistantRequest = <T = unknown>(
 	url: string,
 	method: 'get' | 'post' = 'get',
 	data?: Record<string, unknown>,
