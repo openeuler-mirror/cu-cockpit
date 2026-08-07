@@ -205,6 +205,13 @@ class AICommandReviewTest(TestCase):
 
         analyze_context.assert_not_called()
 
+    @patch('osmanager.system_management.ai_command_review.analyze_context')
+    def test_nul_command_is_rejected_before_ai(self, analyze_context):
+        with self.assertRaisesRegex(AIAnalysisError, 'NUL'):
+            review_linux_command('echo safe\x00rm -rf /')
+
+        analyze_context.assert_not_called()
+
 
 class AIPlanSafetyTest(TestCase):
     def test_policy_rejection_preserves_draft_plan(self):
