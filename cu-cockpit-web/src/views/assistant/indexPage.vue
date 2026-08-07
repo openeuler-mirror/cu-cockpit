@@ -289,6 +289,7 @@ const confirmationToken = ref('');
 const runbookLoading = ref(false);
 const currentRunbook = computed(() => runbooks.value.find((item) => item.id === selectedRunbookId.value) || null);
 const latestMetric = computed(() => metricSamples.value[metricSamples.value.length - 1] || {});
+const recentMetricSamples = computed(() => metricSamples.value.slice(-20).reverse());
 const metricLabels: Record<string, string> = {
 	cpu_percent: 'CPU 使用率', memory_percent: '内存使用率',
 	root_percent: '根文件系统', inode_percent: '根 inode',
