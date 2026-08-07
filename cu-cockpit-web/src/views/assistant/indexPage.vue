@@ -166,4 +166,18 @@ const reviewConfig = async () => {
 		analysisLoading.value = false;
 	}
 };
+
+const askKnowledge = async () => {
+	if (!knowledgeQuestion.value.trim()) return ElMessage.warning('请输入运维问题');
+	analysisLoading.value = true;
+	try {
+		analysisResult.value = await assistantRequest<any>('/system/ai/knowledge', 'post', {
+			question: knowledgeQuestion.value.trim(),
+		});
+	} catch (error) {
+		console.error('answer knowledge question failed:', error);
+	} finally {
+		analysisLoading.value = false;
+	}
+};
 </script>
