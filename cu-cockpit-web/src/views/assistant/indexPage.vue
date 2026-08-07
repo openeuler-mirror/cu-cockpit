@@ -366,4 +366,6 @@ const cancelRunbook = async () => {
 		runbookLoading.value = false;
 	}
 };
+
+const mountAssistantTheme = () => document.documentElement.classList.add('theme-tech-dark');
 </script>
