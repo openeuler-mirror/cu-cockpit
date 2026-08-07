@@ -77,6 +77,31 @@
 					<el-empty v-else :image-size="72" description="尚未生成计划" />
 				</article>
 			</section>
+
+			<section v-else-if="activeTab === 'analysis'" class="assistant-grid assistant-grid--analysis">
+				<article class="assistant-panel analysis-input">
+					<div class="assistant-panel__head"><div><span class="panel-index">01</span><h2>分析输入</h2></div></div>
+					<el-segmented v-model="analysisMode" :options="analysisOptions" block />
+					<div v-if="analysisMode === 'logs'" class="analysis-editor">
+						<el-input v-model="logsInput" type="textarea" :rows="10" placeholder="JSON 日志数组" />
+						<el-button type="primary" :icon="Search" :loading="analysisLoading" @click="analyzeLogs">分析日志</el-button>
+					</div>
+					<div v-else-if="analysisMode === 'output'" class="analysis-editor">
+						<el-input v-model="outputInput" type="textarea" :rows="10" placeholder="粘贴命令输出" />
+						<el-button type="primary" :icon="Document" :loading="analysisLoading" @click="explainOutput">解释输出</el-button>
+					</div>
+					<div v-else-if="analysisMode === 'config'" class="analysis-editor">
+						<el-input-number v-model="snapshotId" :min="1" controls-position="right" placeholder="快照 ID" />
+						<el-button type="primary" :icon="Document" :loading="analysisLoading" @click="reviewConfig">审查快照</el-button>
+					</div>
+					<div v-else class="analysis-editor">
+						<el-input v-model="knowledgeQuestion" type="textarea" :rows="7" maxlength="500" placeholder="输入运维问题" />
+						<el-button type="primary" :icon="Search" :loading="analysisLoading" @click="askKnowledge">检索并回答</el-button>
+					</div>
+				</article>
+
+				<article class="assistant-panel analysis-result"></article>
+			</section>
 		</main>
 	</div>
 </template>
