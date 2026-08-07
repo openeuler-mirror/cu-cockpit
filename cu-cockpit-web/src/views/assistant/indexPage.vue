@@ -109,6 +109,12 @@ const operationResult = ref<any>(null);
 const planLoading = ref(false);
 const executionLoading = ref(false);
 const analysisMode = ref('logs');
+const analysisOptions = [
+	{ label: '日志', value: 'logs' },
+	{ label: '命令输出', value: 'output' },
+	{ label: '配置快照', value: 'config' },
+	{ label: '知识问答', value: 'knowledge' },
+];
 const logsInput = ref('[\n  { "service": "sshd", "message": "Failed password for root" }\n]');
 const outputInput = ref('');
 const snapshotId = ref<number | null>(null);
