@@ -368,4 +368,7 @@ const cancelRunbook = async () => {
 };
 
 const mountAssistantTheme = () => document.documentElement.classList.add('theme-tech-dark');
+const restoreAssistantTheme = () => {
+	if (!themeConfig.value.isTechTheme) document.documentElement.classList.remove('theme-tech-dark');
+};
 </script>
