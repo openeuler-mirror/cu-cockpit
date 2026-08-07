@@ -180,7 +180,35 @@
 					</div>
 				</article>
 
-				<article class="assistant-panel runbook-detail"></article>
+				<article class="assistant-panel runbook-detail">
+					<template v-if="currentRunbook">
+						<div class="assistant-panel__head">
+							<div><span class="panel-index">02</span><h2>{{ currentRunbook.title }}</h2></div>
+							<el-tag effect="dark">{{ runbookStatusLabels[currentRunbook.status] || currentRunbook.status }}</el-tag>
+						</div>
+						<div class="runbook-steps">
+							<div v-for="step in currentRunbook.steps" :key="step.id" class="runbook-step" :class="[`is-${step.status}`, { 'is-current': step.position === currentRunbook.current_step }]">
+								<span class="runbook-step__index">{{ String(step.position + 1).padStart(2, '0') }}</span>
+								<div class="runbook-step__body">
+									<div><strong>{{ step.title }}</strong><em>{{ runbookStatusLabels[step.status] || step.status }}</em></div>
+									<code>{{ step.tool_call.tool }}</code>
+									<pre v-if="Object.keys(step.output || {}).length">{{ formatJson(step.output) }}</pre>
+									<p v-if="step.error">{{ step.error }}</p>
+								</div>
+								<el-tag :type="step.risk === 'readonly' ? 'success' : 'warning'" size="small">{{ step.risk }}</el-tag>
+							</div>
+						</div>
+						<el-alert v-if="confirmationToken" title="当前步骤会修改系统。确认只在本会话中有效，确认后仍需再次点击执行。" type="warning" :closable="false" show-icon />
+						<div class="assistant-panel__actions runbook-actions">
+							<el-button v-if="confirmationToken" type="warning" :icon="Key" :loading="runbookLoading" @click="confirmRunbook">确认变更步骤</el-button>
+							<el-button type="primary" :icon="VideoPlay" :loading="runbookLoading" :disabled="['completed', 'cancelled'].includes(currentRunbook.status)" @click="advanceRunbook">执行当前步骤</el-button>
+							<el-button v-if="currentRunbook.status === 'failed'" :loading="runbookLoading" @click="retryRunbook">重试</el-button>
+							<el-button v-if="currentRunbook.status === 'failed'" :loading="runbookLoading" @click="skipRunbook">跳过只读步骤</el-button>
+							<el-button type="danger" plain :disabled="['completed', 'cancelled'].includes(currentRunbook.status)" @click="cancelRunbook">取消</el-button>
+						</div>
+					</template>
+					<el-empty v-else :image-size="72" description="请选择 Runbook" />
+				</article>
 			</section>
 		</main>
 
