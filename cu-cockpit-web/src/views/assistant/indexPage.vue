@@ -445,6 +445,20 @@ const explainOutput = async () => {
 	}
 };
 
+const reviewCommand = async () => {
+	analysisLoading.value = true;
+	commandReview.value = null;
+	try {
+		commandReview.value = await assistantRequest<CommandReviewResult>('/system/ai/review-command', 'post', {
+			command: commandInput.value.trim(),
+		});
+	} catch (error) {
+		console.error('review Linux command failed:', error);
+	} finally {
+		analysisLoading.value = false;
+	}
+};
+
 const reviewConfig = async () => {
 	if (!snapshotId.value) return ElMessage.warning('请输入配置快照 ID');
 	analysisLoading.value = true;
