@@ -498,7 +498,7 @@ const toggleAlertRule = async (rule: AlertRule, enabled: string | number | boole
 	}
 };
 
-const acknowledgeAlert = async (event: any) => {
+const acknowledgeAlert = async (event: AlertEvent) => {
 	try {
 		await assistantRequest(`/system/monitoring/alert-events/${event.id}/acknowledge`, 'post');
 		ElMessage.success('告警已确认，等待指标恢复');
