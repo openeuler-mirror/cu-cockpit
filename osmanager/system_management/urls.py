@@ -34,4 +34,5 @@ urlpatterns = [
     path('ai/plans', ai_views.ai_plan_create, name='ai-plan-create'),
     path('ai/plans/<int:plan_id>/execute', ai_views.ai_plan_execute, name='ai-plan-execute'),
     path('ai/analyze/logs', ai_views.ai_logs_analyze, name='ai-logs-analyze'),
+    path('ai/explain-output', ai_views.ai_output_explain, name='ai-output-explain'),
 ]
