@@ -508,10 +508,10 @@ const acknowledgeAlert = async (event: AlertEvent) => {
 	}
 };
 
-const analyzeAlert = async (event: any) => {
+const analyzeAlert = async (event: AlertEvent) => {
 	analysisLoading.value = true;
 	try {
-		alertAnalysis.value = await assistantRequest<any>(
+		alertAnalysis.value = await assistantRequest<AnalysisResult>(
 			`/system/monitoring/alert-events/${event.id}/analyze`, 'post',
 		);
 	} catch (error) {
