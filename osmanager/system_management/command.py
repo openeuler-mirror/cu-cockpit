@@ -9,6 +9,7 @@ SAFE_PATH = '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 MAX_TIMEOUT_SECONDS = 60
 DEFAULT_OUTPUT_LIMIT = 1024 * 1024
 MAX_ARGUMENTS = 128
+MAX_ARGUMENT_LENGTH = 8192
 
 
 class UnsafeCommandError(ValueError):
@@ -51,6 +52,8 @@ def _validate_args(args, allowed_commands):
         raise UnsafeCommandError('命令参数必须为字符串')
     if len(args) > MAX_ARGUMENTS:
         raise UnsafeCommandError('命令参数数量超过限制')
+    if any(len(item) > MAX_ARGUMENT_LENGTH for item in args):
+        raise UnsafeCommandError('单个命令参数长度超过限制')
     if any('\x00' in item or '\n' in item or '\r' in item for item in args):
         raise UnsafeCommandError('命令参数包含禁止字符')
     executable = args[0]
