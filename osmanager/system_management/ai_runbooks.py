@@ -148,6 +148,13 @@ def advance_runbook(runbook, actor, is_admin):
         complete_runbook(runbook)
         return {'action': 'completed', 'step': None, 'result': None}
     if step.risk != 'readonly':
+        if step.status == 'awaiting_confirmation':
+            return {
+                'action': 'confirmation_required',
+                'step': step,
+                'confirmation_token': None,
+                'result': None,
+            }
         if step.status != 'pending':
             raise AIRunbookError('写步骤已经等待确认')
         token = pause_runbook_for_confirmation(runbook, step)
