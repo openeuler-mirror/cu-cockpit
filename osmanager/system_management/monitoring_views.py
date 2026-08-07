@@ -8,6 +8,8 @@ from rest_framework.decorators import api_view
 
 from osmanager.auth.decorators import login_required_api
 
+from .ai_analysis import AIAnalysisError
+from .ai_provider import AIProviderError
 from .alerts import (
     AlertRuleValidationError,
     acknowledge_alert_event,
@@ -103,4 +105,8 @@ def alert_event_acknowledge(request, event_id):
 @api_view(['POST'])
 def alert_event_analyze(request, event_id):
     event = get_object_or_404(AlertEvent.objects.select_related('rule'), id=event_id)
-    return JsonResponse(analyze_alert_event(event))
+    try:
+        return JsonResponse(analyze_alert_event(event))
+    except (AIAnalysisError, AIProviderError, OSError, RuntimeError) as error:
+        return JsonResponse({'code': 400, 'message': str(error)}, status=400,
+                            json_dumps_params={'ensure_ascii': False})
