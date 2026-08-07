@@ -40,6 +40,13 @@ class AIToolSafetyTest(TestCase):
                 'arguments': {'command': 'rm -rf /'},
             })
 
+    def test_unknown_arguments_are_rejected_for_registered_tool(self):
+        with self.assertRaisesRegex(AIToolValidationError, 'command, shell'):
+            normalize_tool_call({
+                'tool': 'service.status',
+                'arguments': {'service': 'sshd', 'command': 'id', 'shell': True},
+            })
+
 
 class AIContextSafetyTest(TestCase):
     pass
