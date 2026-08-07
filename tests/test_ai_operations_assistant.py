@@ -24,7 +24,12 @@ from osmanager.system_management.ai_tools import (
 
 
 class AIProviderTest(TestCase):
-    pass
+    def test_missing_provider_configuration_is_reported_without_key(self):
+        config = AIProviderConfig('', 'secret-key', '', 30)
+        result = provider_status(config)
+        self.assertFalse(result['available'])
+        self.assertEqual(result['reason'], '缺少配置: AI_BASE_URL, AI_MODEL')
+        self.assertNotIn('secret-key', str(result))
 
 
 class AIToolSafetyTest(TestCase):
