@@ -218,3 +218,18 @@ def skip_runbook_step(runbook, actor):
     step.save(update_fields=['status', 'finished_at'])
     advance_runbook_position(runbook)
     return step
+
+
+def cancel_runbook(runbook, actor):
+    require_runbook_owner(runbook, actor)
+    if runbook.status in ('completed', 'cancelled'):
+        raise AIRunbookError('Runbook 已经结束')
+    from django.utils import timezone
+    runbook.steps.filter(
+        position__gte=runbook.current_step,
+        status__in=('pending', 'awaiting_confirmation', 'failed'),
+    ).update(status='cancelled', confirmation_token_hash='', finished_at=timezone.now())
+    runbook.status = 'cancelled'
+    runbook.error = ''
+    runbook.save(update_fields=['status', 'error', 'updated_at'])
+    return runbook
