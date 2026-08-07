@@ -12,6 +12,7 @@ django.setup()
 from django.test import TestCase
 
 from osmanager.system_management.ai_context import prepare_context, wrap_untrusted_context
+from osmanager.system_management.ai_command_review import assess_linux_command
 from osmanager.system_management.ai_knowledge import allowed_document_paths
 from osmanager.system_management.ai_planner import AIPlanValidationError, execute_operation_plan, validate_plan_payload
 from osmanager.system_management.ai_provider import AIProviderConfig, get_provider_config, provider_status
@@ -173,7 +174,13 @@ class AIConfigReviewPermissionTest(TestCase):
 
 
 class AICommandReviewTest(TestCase):
-    pass
+    def test_readonly_pipeline_remains_readonly(self):
+        result = assess_linux_command('cat /etc/passwd | grep root')
+
+        self.assertEqual(result['risk'], 'readonly')
+        self.assertEqual(result['commands'], ['cat', 'grep'])
+        self.assertEqual(result['operators'], ['|'])
+        self.assertFalse(result['requires_admin_review'])
 
 
 class AIPlanSafetyTest(TestCase):
