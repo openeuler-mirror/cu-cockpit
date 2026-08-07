@@ -114,6 +114,25 @@
 					<el-empty v-else :image-size="72" description="等待分析" />
 				</article>
 			</section>
+
+			<section v-else-if="activeTab === 'alerts'" class="alerts-workspace">
+				<div class="metric-strip">
+					<div v-for="(label, key) in metricLabels" :key="key" class="metric-strip__item">
+						<span>{{ label }}</span>
+						<strong>{{ latestMetric[key] == null ? '—' : `${Number(latestMetric[key]).toFixed(1)}%` }}</strong>
+						<small>{{ metricSamples.length }} 个历史样本</small>
+					</div>
+				</div>
+
+				<div class="assistant-grid assistant-grid--alerts">
+					<article class="assistant-panel alert-rules-panel"></article>
+					<article class="assistant-panel alert-events-panel"></article>
+				</div>
+				<article v-if="alertAnalysis" class="assistant-panel alert-analysis-panel">
+					<div class="assistant-panel__head"><div><span class="panel-index">AI</span><h2>故障分析</h2></div></div>
+					<pre class="assistant-code assistant-code--analysis">{{ formatJson(alertAnalysis.analysis || alertAnalysis) }}</pre>
+				</article>
+			</section>
 		</main>
 	</div>
 </template>
