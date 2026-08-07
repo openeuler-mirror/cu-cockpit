@@ -156,3 +156,4 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = int(os.environ.get('DATA_UPLOAD_MAX_MEMORY_SIZE', 1024 * 1024))
+ENABLE_API_DOCS = _env_bool('ENABLE_API_DOCS', DEBUG)
