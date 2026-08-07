@@ -147,7 +147,7 @@ def advance_runbook(runbook, actor, is_admin):
     if step is None:
         complete_runbook(runbook)
         return {'action': 'completed', 'step': None, 'result': None}
-    if step.risk != 'readonly':
+    if step.risk != 'readonly' and step.confirmed_at is None:
         if step.status == 'awaiting_confirmation':
             return {
                 'action': 'confirmation_required',
