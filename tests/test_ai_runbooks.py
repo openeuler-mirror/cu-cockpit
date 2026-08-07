@@ -23,7 +23,14 @@ from osmanager.system_management.ai_runbooks import (
 
 
 class RunbookConfirmationTest(TestCase):
-    pass
+    def test_confirmation_token_is_stored_as_hash(self):
+        step = SimpleNamespace(status='pending', confirmation_token_hash='', save=Mock())
+        with patch('secrets.token_urlsafe', return_value='plain-token'):
+            token = issue_step_confirmation(step)
+        self.assertEqual(token, 'plain-token')
+        self.assertEqual(step.status, 'awaiting_confirmation')
+        self.assertEqual(step.confirmation_token_hash, hashlib.sha256(b'plain-token').hexdigest())
+        self.assertNotIn('plain-token', step.confirmation_token_hash)
 
 
 class RunbookStateMachineTest(TestCase):
