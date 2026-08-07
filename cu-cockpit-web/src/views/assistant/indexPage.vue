@@ -211,4 +211,14 @@ const toggleAlertRule = async (rule: any, enabled: string | number | boolean) =>
 		alertSaving.value = false;
 	}
 };
+
+const acknowledgeAlert = async (event: any) => {
+	try {
+		await assistantRequest(`/system/monitoring/alert-events/${event.id}/acknowledge`, 'post');
+		ElMessage.success('告警已确认，等待指标恢复');
+		await loadWorkspace();
+	} catch (error) {
+		console.error('acknowledge alert failed:', error);
+	}
+};
 </script>
