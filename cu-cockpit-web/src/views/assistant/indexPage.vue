@@ -446,6 +446,7 @@ const explainOutput = async () => {
 };
 
 const reviewCommand = async () => {
+	if (!commandInput.value.trim()) return ElMessage.warning('请输入要审查的 Linux 命令');
 	analysisLoading.value = true;
 	commandReview.value = null;
 	try {
