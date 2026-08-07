@@ -100,7 +100,19 @@
 					</div>
 				</article>
 
-				<article class="assistant-panel analysis-result"></article>
+				<article class="assistant-panel analysis-result">
+					<div class="assistant-panel__head">
+						<div><span class="panel-index">02</span><h2>分析结果</h2></div>
+						<el-tag v-if="analysisResult?.truncated" type="warning" effect="dark">输入已截断</el-tag>
+					</div>
+					<template v-if="analysisResult">
+						<pre class="assistant-code assistant-code--analysis">{{ formatJson(analysisResult.analysis || analysisResult.answer || analysisResult) }}</pre>
+						<div v-if="analysisResult.matches?.length" class="analysis-sources">
+							<span v-for="match in analysisResult.matches" :key="`${match.source}-${match.score}`">{{ match.source }}</span>
+						</div>
+					</template>
+					<el-empty v-else :image-size="72" description="等待分析" />
+				</article>
 			</section>
 		</main>
 	</div>
