@@ -614,3 +614,7 @@ onMounted(mountAssistantTheme);
 onMounted(loadWorkspace);
 onUnmounted(restoreAssistantTheme);
 </script>
+
+<style lang="scss">
+@use './tech-assistant.scss';
+</style>
