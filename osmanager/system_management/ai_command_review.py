@@ -171,3 +171,26 @@ def assess_linux_command(command):
         'wrappers': list(dict.fromkeys(wrappers)),
         'requires_admin_review': risk != 'readonly',
     }
+
+
+def validate_command_review_analysis(analysis):
+    if not isinstance(analysis, dict) or set(analysis) != COMMAND_REVIEW_FIELDS:
+        raise AIAnalysisError('AI 命令解释字段无效')
+    if not isinstance(analysis['explanation'], str) or not analysis['explanation'].strip():
+        raise AIAnalysisError('AI 命令解释不能为空')
+    if not isinstance(analysis['safer_alternative'], str):
+        raise AIAnalysisError('AI 安全替代方案必须为字符串')
+    if len(analysis['explanation']) > 4000 or len(analysis['safer_alternative']) > 2000:
+        raise AIAnalysisError('AI 命令解释文本超过限制')
+    normalized = {
+        'explanation': analysis['explanation'].strip(),
+        'safer_alternative': analysis['safer_alternative'].strip(),
+    }
+    for field in ('arguments', 'effects', 'risks', 'verification'):
+        values = analysis[field]
+        if not isinstance(values, list) or len(values) > 20:
+            raise AIAnalysisError(f'AI 命令解释字段 {field} 必须为不超过 20 项的数组')
+        if any(not isinstance(value, str) or len(value) > 500 for value in values):
+            raise AIAnalysisError(f'AI 命令解释字段 {field} 内容无效')
+        normalized[field] = [value.strip() for value in values if value.strip()]
+    return normalized
