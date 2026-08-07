@@ -98,3 +98,14 @@ class AIPlanSafetyTest(TestCase):
         }
         result = validate_plan_payload(payload)
         self.assertEqual(result['risk'], 'change')
+
+    def test_model_control_fields_are_rejected(self):
+        payload = {
+            'intent': 'check service',
+            'summary': 'read only',
+            'risk': 'readonly',
+            'command': 'systemctl status sshd',
+            'tool_calls': [{'tool': 'service.status', 'arguments': {'service': 'sshd'}}],
+        }
+        with self.assertRaisesRegex(AIPlanValidationError, 'command, risk'):
+            validate_plan_payload(payload)
