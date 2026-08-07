@@ -371,4 +371,7 @@ const mountAssistantTheme = () => document.documentElement.classList.add('theme-
 const restoreAssistantTheme = () => {
 	if (!themeConfig.value.isTechTheme) document.documentElement.classList.remove('theme-tech-dark');
 };
+onMounted(mountAssistantTheme);
+onMounted(loadWorkspace);
+onUnmounted(restoreAssistantTheme);
 </script>
