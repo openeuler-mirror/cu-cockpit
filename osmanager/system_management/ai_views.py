@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from osmanager.auth.decorators import login_required_api
 
 from .audit import record_audit
-from .ai_analysis import analyze_logs
+from .ai_analysis import AIAnalysisError, analyze_logs
 from .ai_planner import (
     AIPlanValidationError,
     create_operation_plan,
@@ -71,4 +71,7 @@ def ai_plan_execute(request, plan_id):
 @login_required_api
 @api_view(['POST'])
 def ai_logs_analyze(request):
-    return JsonResponse(analyze_logs(request.data.get('logs')))
+    try:
+        return JsonResponse(analyze_logs(request.data.get('logs')))
+    except (AIAnalysisError, AIProviderError) as error:
+        return _ai_error(error)
