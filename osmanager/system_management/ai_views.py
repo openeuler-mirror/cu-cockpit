@@ -12,7 +12,7 @@ from .ai_planner import (
     serialize_operation_plan,
 )
 from .ai_provider import AIProviderError, provider_status
-from .ai_tools import AIToolExecutionContext, tool_catalog
+from .ai_tools import AIToolExecutionContext, AIToolValidationError, tool_catalog
 from .models import AIOperationPlan
 from .permissions import get_session_identity
 
@@ -52,7 +52,14 @@ def ai_plan_execute(request, plan_id):
         is_admin=identity.is_admin,
         confirmed=request.data.get('confirmed') is True,
     )
-    execute_operation_plan(plan, context)
+    try:
+        execute_operation_plan(plan, context)
+    except (AIPlanValidationError, AIToolValidationError, RuntimeError) as error:
+        record_audit(
+            request, 'ai', 'execute_plan', str(plan.id), False, str(error),
+            {'plan_id': plan.id, 'tool': plan.tool_calls[0]['tool'], 'risk': plan.risk},
+        )
+        return _ai_error(error)
     record_audit(
         request, 'ai', 'execute_plan', str(plan.id), True, 'AI 计划执行成功',
         {'plan_id': plan.id, 'tool': plan.tool_calls[0]['tool'], 'risk': plan.risk},
