@@ -7,6 +7,11 @@ from .ai_provider import chat_completion
 ANALYSIS_PROMPTS = {
     'logs': '分析系统日志，返回摘要、关键证据、可能原因和按优先级排序的排查步骤。',
     'command_output': '解释 Linux 命令输出，返回结论、关键字段、异常点和下一步检查建议。',
+    'command_review': (
+        '解释 Linux 命令和每个参数，只返回 explanation、arguments、effects、risks、'
+        'safer_alternative、verification 字段；arguments、effects、risks、verification 为字符串数组，'
+        '其它字段为字符串。服务端风险判定不可降低，只分析，不执行命令、不调用工具。'
+    ),
     'config_diff': '审查配置差异，返回变更摘要、风险、验证步骤和回滚建议，不得直接修改配置。',
     'alert_context': '分析告警上下文，返回时间线、异常证据、可能原因和受控排查步骤。',
 }
