@@ -290,8 +290,8 @@
 	.assistant-sync { display: none; }
 	.assistant-summary,
 	.metric-strip { grid-template-columns: 1fr 1fr; }
-	.assistant-tabs { overflow-x: auto; }
-	.assistant-tabs button { flex: 0 0 auto; padding: 0 11px; }
+	.assistant-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	.assistant-tabs button { justify-content: center; min-width: 0; padding: 0 8px; }
 	.assistant-panel { padding: 12px; }
 	.plan-facts,
 	.alert-form-grid { grid-template-columns: 1fr; }
