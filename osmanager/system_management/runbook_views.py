@@ -9,6 +9,7 @@ from .ai_provider import AIProviderError
 from .ai_runbooks import (
     AIRunbookError,
     advance_runbook,
+    cancel_runbook,
     confirm_runbook_step,
     create_runbook,
     generate_runbook,
@@ -125,4 +126,13 @@ def runbook_skip(request, runbook_id):
         skip_runbook_step(runbook, identity.username)
     except AIRunbookError as error:
         return _runbook_error(error)
+    return JsonResponse({'runbook': serialize_runbook(runbook)})
+
+
+@login_required_api
+@api_view(['POST'])
+def runbook_cancel(request, runbook_id):
+    runbook = get_object_or_404(AIRunbook, id=runbook_id)
+    identity = get_session_identity(request)
+    cancel_runbook(runbook, identity.username)
     return JsonResponse({'runbook': serialize_runbook(runbook)})
