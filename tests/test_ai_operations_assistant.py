@@ -11,7 +11,7 @@ from django.test import TestCase
 
 from osmanager.system_management.ai_context import prepare_context, wrap_untrusted_context
 from osmanager.system_management.ai_planner import AIPlanValidationError, execute_operation_plan, validate_plan_payload
-from osmanager.system_management.ai_provider import AIProviderConfig, provider_status
+from osmanager.system_management.ai_provider import AIProviderConfig, get_provider_config, provider_status
 from osmanager.system_management.ai_tools import (
     AIToolExecutionContext,
     AIToolSpec,
@@ -24,6 +24,10 @@ from osmanager.system_management.ai_tools import (
 
 
 class AIProviderTest(TestCase):
+    def test_invalid_provider_timeout_uses_default(self):
+        with patch.dict(os.environ, {'AI_TIMEOUT_SECONDS': 'invalid'}):
+            self.assertEqual(get_provider_config().timeout_seconds, 30.0)
+
     def test_missing_provider_configuration_is_reported_without_key(self):
         config = AIProviderConfig('', 'secret-key', '', 30)
         result = provider_status(config)
