@@ -126,6 +126,10 @@ def execute_log_query(arguments, _context=None):
         'journalctl', '--no-pager', '-r', '-p', arguments['priority'],
         '-n', str(arguments['limit']), '-o', 'json',
     ]
+    if arguments.get('since'):
+        command.extend(['--since', str(arguments['since'])])
+    if arguments.get('until'):
+        command.extend(['--until', str(arguments['until'])])
     if arguments['service']:
         unit = arguments['service'] if arguments['service'].endswith('.service') else f'{arguments["service"]}.service'
         command.extend(['-u', unit])
