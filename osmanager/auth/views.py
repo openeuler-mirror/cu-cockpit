@@ -91,6 +91,7 @@ def login_view(request):
             )
         if auth_login:
             request.session.cycle_key()
+            request.session.set_expiry(30 * 60)
             # 登录成功，把用户名存入 Session
             request.session['username'] = username
             return Response({'code': 200, 'message': '登录成功', 'user': username})
