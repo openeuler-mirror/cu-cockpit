@@ -121,6 +121,10 @@ class AIContextSafetyTest(TestCase):
         self.assertTrue(wrapped.endswith('</untrusted-data>'))
 
 
+class AIKnowledgeSafetyTest(TestCase):
+    pass
+
+
 class AIPlanSafetyTest(TestCase):
     def test_policy_rejection_preserves_draft_plan(self):
         plan = SimpleNamespace(
