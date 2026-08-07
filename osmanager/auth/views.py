@@ -84,9 +84,9 @@ def login_view(request):
                 {'code': 500, 'message': '认证服务不可用，请安装系统包python3-pam'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        except PamAuthError as e:
+        except PamAuthError:
             return Response(
-                {'code': 500, 'message': str(e)},
+                {'code': 500, 'message': '认证服务发生内部错误'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         if auth_login:
