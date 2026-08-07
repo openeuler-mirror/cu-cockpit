@@ -11,8 +11,9 @@ django.setup()
 
 from django.test import TestCase
 
+from osmanager.system_management.ai_analysis import AIAnalysisError
 from osmanager.system_management.ai_context import prepare_context, wrap_untrusted_context
-from osmanager.system_management.ai_command_review import assess_linux_command
+from osmanager.system_management.ai_command_review import assess_linux_command, review_linux_command
 from osmanager.system_management.ai_knowledge import allowed_document_paths
 from osmanager.system_management.ai_planner import AIPlanValidationError, execute_operation_plan, validate_plan_payload
 from osmanager.system_management.ai_provider import AIProviderConfig, get_provider_config, provider_status
@@ -196,6 +197,13 @@ class AICommandReviewTest(TestCase):
         self.assertEqual(result['commands'], ['echo', 'rm'])
         self.assertEqual(result['wrappers'], ['sudo'])
         self.assertIn(';', result['operators'])
+
+    @patch('osmanager.system_management.ai_command_review.analyze_context')
+    def test_empty_command_is_rejected_before_ai(self, analyze_context):
+        with self.assertRaisesRegex(AIAnalysisError, '非空字符串'):
+            review_linux_command('')
+
+        analyze_context.assert_not_called()
 
 
 class AIPlanSafetyTest(TestCase):
