@@ -3,8 +3,8 @@ from rest_framework.decorators import api_view
 
 from osmanager.auth.decorators import login_required_api
 
-from .ai_planner import create_operation_plan, serialize_operation_plan
-from .ai_provider import provider_status
+from .ai_planner import AIPlanValidationError, create_operation_plan, serialize_operation_plan
+from .ai_provider import AIProviderError, provider_status
 from .ai_tools import tool_catalog
 from .permissions import get_session_identity
 
@@ -27,5 +27,8 @@ def ai_status(request):
 @api_view(['POST'])
 def ai_plan_create(request):
     identity = get_session_identity(request)
-    plan = create_operation_plan(request.data.get('request'), identity.username)
+    try:
+        plan = create_operation_plan(request.data.get('request'), identity.username)
+    except (AIPlanValidationError, AIProviderError) as error:
+        return _ai_error(error)
     return JsonResponse({'plan': serialize_operation_plan(plan)})
