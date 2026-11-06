@@ -6,12 +6,15 @@ import json
 import os
 import re
 import secrets
+import sqlite3
 import stat
+from contextlib import closing
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from .backup_center import (MAX_ARCHIVE_BYTES, MAX_CONFIG_TARGETS, read_backup_index,
-                            backup_lock, validate_backup_archive, write_backup_index)
+                            backup_lock, validate_backup_archive, verify_sqlite,
+                            write_backup_index)
 
 
 def _restore_targets(db_path: Path, configs: dict) -> dict:
@@ -161,3 +164,16 @@ def _pause_services(controller, services: list) -> list:
             raise RuntimeError('Service shutdown failed; manual restart required') from restart_error
         raise
     return active
+
+
+def _validate_restore_database(current: Path, candidate: Path) -> bool:
+    if not verify_sqlite(current) or not verify_sqlite(candidate):
+        raise ValueError('Restore database is damaged')
+    schema = "SELECT type, name, sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type, name"
+    with closing(sqlite3.connect(f'{current.as_uri()}?mode=ro', uri=True)) as original:
+        with closing(sqlite3.connect(f'{candidate.as_uri()}?mode=ro', uri=True)) as restored:
+            if original.execute(schema).fetchall() != restored.execute(schema).fetchall():
+                raise ValueError('Restore database schema differs from installed schema')
+            return restored.execute(
+                "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='django_session'"
+            ).fetchone()[0] == 1
