@@ -127,6 +127,26 @@ def encode_backup_index(index: dict) -> bytes:
     return payload
 
 
+def write_backup_index(root: Path, index: dict) -> None:
+    payload = encode_backup_index(index)
+    with backup_lock(root):
+        if os.path.lexists(root / 'index.json'):
+            read_backup_index(root)
+        with tempfile.TemporaryDirectory(dir=root, prefix='.index-') as staging:
+            temporary = Path(staging) / 'index.json'
+            descriptor = os.open(temporary, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+            with os.fdopen(descriptor, 'wb') as index_file:
+                index_file.write(payload)
+                index_file.flush()
+                os.fsync(index_file.fileno())
+            os.replace(temporary, root / 'index.json')
+            directory_fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+
+
 def backup_sqlite(source: Path, destination: Path) -> None:
     with closing(sqlite3.connect(f'{source.as_uri()}?mode=ro', uri=True)) as origin:
         with closing(sqlite3.connect(destination)) as snapshot:
