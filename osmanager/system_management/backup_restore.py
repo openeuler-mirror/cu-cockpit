@@ -274,3 +274,16 @@ def _checkpoint_restore_database(db_path: Path) -> None:
     with closing(sqlite3.connect(db_path)) as database:
         if database.execute('PRAGMA wal_checkpoint(TRUNCATE)').fetchone()[0]:
             raise RuntimeError('Restore database has active WAL writers')
+
+
+def _rollback_restore_targets(targets: dict, safety_staged: dict, changed: list) -> None:
+    for name in reversed(changed):
+        target = targets[name]
+        os.replace(safety_staged[name], target)
+        descriptor = os.open(target.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
+    if 'app.sqlite3' in changed and not verify_sqlite(targets['app.sqlite3']):
+        raise RuntimeError('Rolled back database failed integrity check')
