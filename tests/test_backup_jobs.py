@@ -3,6 +3,7 @@ import tempfile
 import unittest
 from contextlib import closing
 from pathlib import Path
+from unittest.mock import patch
 
 from osmanager.system_management.backup_center import (
     initialize_installation, read_backup_index, validate_backup_archive,
@@ -34,3 +35,22 @@ class BackupJobsTest(unittest.TestCase):
             self.assertEqual(validate_backup_archive(root, archive, '1.0')['archive_id'],
                              completed['archive_id'])
             self.assertIsNone(run_pending(root, database, {}, '1.0'))
+
+    def test_worker_failure_records_failed_without_archive(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initialize_installation(root, '1.0')
+            database = root / 'app.sqlite3'
+            with closing(sqlite3.connect(database)) as connection:
+                connection.execute('CREATE TABLE data (value INTEGER)')
+                connection.commit()
+            job = queue_backup(root, 'creator')
+
+            with patch('osmanager.system_management.backup_jobs.create_backup_archive',
+                       side_effect=RuntimeError('private failure')):
+                failed = run_pending(root, database, {}, '1.0')
+            self.assertEqual(failed['status'], 'failed')
+            self.assertEqual(failed['error'], 'Backup operation failed')
+            self.assertEqual(get_backup_task(root, job['id']), failed)
+            self.assertEqual(read_backup_index(root)['backups'], {})
+            self.assertEqual(list(root.glob('*.zip')), [])
