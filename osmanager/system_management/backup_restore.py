@@ -239,6 +239,8 @@ def _replace_targets(targets: dict, staged: dict, changed: list) -> None:
         temporary = staged[name]
         if temporary.parent != target.parent or not stat.S_ISREG(temporary.lstat().st_mode):
             raise ValueError('Restore staging file is unsafe')
+        if name == 'app.sqlite3':
+            _clear_sqlite_sidecars(target)
         os.replace(temporary, target)
         changed.append(name)
         descriptor = os.open(target.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
