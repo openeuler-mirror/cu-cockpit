@@ -71,6 +71,40 @@ class BackupIndexTest(unittest.TestCase):
 
 
 class BackupArchiveTest(unittest.TestCase):
+    def test_index_directory_sync_failure_preserves_published_archive(self):
+        import os
+        import stat
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initialize_installation(root, '1.0')
+            database = root / 'source.sqlite3'
+            with closing(sqlite3.connect(database)) as connection:
+                connection.execute('CREATE TABLE data (value INTEGER)')
+                connection.commit()
+            original_fsync = os.fsync
+            failed = False
+
+            def fail_directory_sync(descriptor):
+                nonlocal failed
+                if stat.S_ISDIR(os.fstat(descriptor).st_mode) and not failed:
+                    failed = True
+                    raise OSError('directory sync failed')
+                return original_fsync(descriptor)
+
+            with patch('osmanager.system_management.backup_center.os.fsync',
+                       side_effect=fail_directory_sync):
+                with self.assertRaisesRegex(OSError, 'directory sync failed'):
+                    create_backup_archive(root, database, {}, '1.0', 'creator')
+            self.assertTrue(failed)
+            published = read_backup_index(root)['backups']
+            self.assertEqual(len(published), 1)
+            archive_id = next(iter(published))
+            self.assertEqual(validate_backup_archive(
+                root, root / f'{archive_id}.zip', '1.0')['archive_id'], archive_id)
+            retry = create_backup_archive(root, database, {}, '1.0', 'creator')
+            self.assertIn(retry['archive_id'], read_backup_index(root)['backups'])
+
     def test_signed_archive_contains_sqlite_and_config(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve()
