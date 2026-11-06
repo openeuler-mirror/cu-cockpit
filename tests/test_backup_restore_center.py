@@ -4,7 +4,9 @@ import unittest
 from contextlib import closing
 from pathlib import Path
 
-from osmanager.system_management.backup_center import backup_sqlite, initialize_installation, verify_sqlite
+from osmanager.system_management.backup_center import (
+    backup_sqlite, initialize_installation, read_backup_index, verify_sqlite, write_backup_index,
+)
 
 
 class SqliteBackupTest(unittest.TestCase):
@@ -34,3 +36,17 @@ class BackupIdentityTest(unittest.TestCase):
             identity = initialize_installation(root, '1.0')
             self.assertEqual(initialize_installation(root, '1.0'), identity)
             self.assertEqual(len(identity['hmac_key']), 64)
+
+
+class BackupIndexTest(unittest.TestCase):
+    def test_private_index_atomic_round_trip(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            self.assertEqual(root.stat().st_mode & 0o777, 0o700)
+            initial = {'tasks': {}, 'backups': {}}
+            updated = {'tasks': {'task-1': {}}, 'backups': {}}
+            write_backup_index(root, initial)
+            self.assertEqual(read_backup_index(root), initial)
+            write_backup_index(root, updated)
+            self.assertEqual(read_backup_index(root), updated)
+            self.assertFalse(any(path.name.startswith('.index-') for path in root.iterdir()))
