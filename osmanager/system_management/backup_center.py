@@ -1,6 +1,11 @@
+import os
 import sqlite3
 from contextlib import closing
 from pathlib import Path
+
+
+def backup_root(base_dir: Path) -> Path:
+    return Path(os.environ.get('BACKUP_ROOT') or base_dir / 'var' / 'backups')
 
 
 def backup_sqlite(source: Path, destination: Path) -> None:
