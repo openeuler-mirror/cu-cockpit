@@ -30,3 +30,9 @@ def get_backup_task(root, task_id):
     index = read_backup_index(root) if os.path.lexists(root / 'index.json') else {
         'tasks': {}, 'backups': {}}
     return index['tasks'].get(task_id)
+
+
+def list_backup_tasks(root):
+    index = read_backup_index(root) if os.path.lexists(root / 'index.json') else {
+        'tasks': {}, 'backups': {}}
+    return sorted(index['tasks'].values(), key=lambda task: task['created_at'], reverse=True)
