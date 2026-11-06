@@ -1,6 +1,7 @@
 """Maintenance-only restore workflow for registered local backup targets."""
 
 import hashlib
+import hmac
 import json
 import os
 import re
@@ -108,3 +109,23 @@ def preflight_restore(root: Path, archive_id: str, db_path: Path, configs: dict,
                         'services': stopped, 'requires_maintenance': True,
                         'risks': ['Service downtime', 'Database and configuration replacement',
                                   'Existing sessions invalidated']}}
+
+
+def confirm_restore(root: Path, task_id: str, token: str, actor: str) -> dict:
+    if not isinstance(task_id, str) or not re.fullmatch(r'[0-9a-f]{32}', task_id):
+        raise ValueError('Invalid restore task ID')
+    with backup_lock(root):
+        index = read_backup_index(root)
+        task = index['tasks'].get(task_id)
+        if (not isinstance(task, dict) or task.get('kind') != 'restore' or
+                task.get('status') != 'awaiting_confirmation' or task.get('actor') != actor or
+                not isinstance(token, str) or not token.isascii() or
+                len(token) > 128 or
+                datetime.fromisoformat(task['expires_at']) <= datetime.now(timezone.utc) or
+                not hmac.compare_digest(task['token_hash'], _token_digest(token, task))):
+            raise ValueError('Restore confirmation rejected')
+        task['status'] = 'awaiting_maintenance'
+        task.pop('token_hash')
+        task['confirmed_at'] = datetime.now(timezone.utc).isoformat()
+        write_backup_index(root, index, locked=True)
+        return {'id': task_id, 'status': task['status']}
