@@ -194,7 +194,8 @@ def _clear_restored_sessions(candidate: Path) -> None:
 
 
 @contextmanager
-def _stage_restore(root: Path, archive_id: str, targets: dict, version: str):
+def _stage_restore(root: Path, archive_id: str, targets: dict, version: str,
+                   *, clear_sessions: bool = True):
     manifest, _ = _registered_archive(root, archive_id, version)
     if set(manifest['members']) != set(targets):
         raise ValueError('Restore target list differs from archive')
@@ -224,7 +225,7 @@ def _stage_restore(root: Path, archive_id: str, targets: dict, version: str):
                     os.fsync(output.fileno())
                 staged[name] = temporary
         has_sessions = _validate_restore_database(targets['app.sqlite3'], staged['app.sqlite3'])
-        if has_sessions:
+        if has_sessions and clear_sessions:
             _clear_restored_sessions(staged['app.sqlite3'])
         yield staged
 
