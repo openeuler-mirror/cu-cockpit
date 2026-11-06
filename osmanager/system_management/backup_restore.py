@@ -267,3 +267,9 @@ def _set_restore_state(root: Path, task_id: str, status: str, **details) -> None
     index = read_backup_index(root)
     index['tasks'][task_id].update(status=status, **details)
     write_backup_index(root, index, locked=True)
+
+
+def _checkpoint_restore_database(db_path: Path) -> None:
+    with closing(sqlite3.connect(db_path)) as database:
+        if database.execute('PRAGMA wal_checkpoint(TRUNCATE)').fetchone()[0]:
+            raise RuntimeError('Restore database has active WAL writers')
