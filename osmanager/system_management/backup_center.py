@@ -295,3 +295,32 @@ def create_backup_archive(root: Path, db_path: Path, config_targets: dict,
         with archive.open('rb') as archive_file:
             os.fsync(archive_file.fileno())
         return _publish_backup_archive(root, archive, manifest, actor)
+
+
+def _check_archive_members(package: zipfile.ZipFile) -> dict:
+    entries = package.infolist()
+    if not 2 <= len(entries) <= MAX_CONFIG_TARGETS + 2:
+        raise ValueError('Archive has invalid member count')
+    names = [entry.filename for entry in entries]
+    if len(set(names)) != len(names) or not {'manifest.json', 'app.sqlite3'} <= set(names):
+        raise ValueError('Archive has missing or duplicate members')
+    expanded = 0
+    for entry in entries:
+        name = entry.filename
+        if name not in ('manifest.json', 'app.sqlite3') and not re.fullmatch(
+                r'configs/[A-Za-z0-9_-]{1,48}\.bin', name):
+            raise ValueError('Archive contains an unexpected member')
+        mode = entry.external_attr >> 16
+        if (entry.flag_bits & 1 or entry.compress_type not in (
+                zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED) or
+                (entry.create_system == 3 and stat.S_IFMT(mode) not in (0, stat.S_IFREG))):
+            raise ValueError('Archive contains a special or encrypted member')
+        limit = (16384 if name == 'manifest.json' else
+                 MAX_DATABASE_BYTES if name == 'app.sqlite3' else MAX_CONFIG_BYTES)
+        if (entry.file_size > limit or entry.compress_size > MAX_ARCHIVE_BYTES or
+                entry.file_size > MAX_COMPRESSION_RATIO * max(1, entry.compress_size)):
+            raise ValueError('Archive member exceeds resource limits')
+        expanded += entry.file_size
+    if expanded > MAX_EXPANDED_BYTES:
+        raise ValueError('Archive exceeds expanded size limit')
+    return {entry.filename: entry for entry in entries}
