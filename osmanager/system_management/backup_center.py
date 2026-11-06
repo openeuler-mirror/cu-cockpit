@@ -10,5 +10,8 @@ def backup_sqlite(source: Path, destination: Path) -> None:
 
 
 def verify_sqlite(path: Path) -> bool:
-    with closing(sqlite3.connect(f'{path.as_uri()}?mode=ro', uri=True)) as database:
-        return database.execute('PRAGMA integrity_check').fetchone() == ('ok',)
+    try:
+        with closing(sqlite3.connect(f'{path.as_uri()}?mode=ro', uri=True)) as database:
+            return database.execute('PRAGMA integrity_check').fetchone() == ('ok',)
+    except sqlite3.DatabaseError:
+        return False
