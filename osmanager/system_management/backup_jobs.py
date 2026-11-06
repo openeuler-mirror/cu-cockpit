@@ -51,7 +51,17 @@ def run_pending(root, db_path, configs, version):
         task['status'] = 'running'
         task['started_at'] = datetime.now(timezone.utc).isoformat()
         write_backup_index(root, index, locked=True)
-        record = create_backup_archive(root, db_path, configs, version, task['actor'], locked=True)
+        try:
+            record = create_backup_archive(root, db_path, configs, version,
+                                           task['actor'], locked=True)
+        except Exception:
+            index = read_backup_index(root)
+            task = index['tasks'][task['id']]
+            task['status'] = 'failed'
+            task['error'] = 'Backup operation failed'
+            task['finished_at'] = datetime.now(timezone.utc).isoformat()
+            write_backup_index(root, index, locked=True)
+            return task.copy()
         index = read_backup_index(root)
         task = index['tasks'][task['id']]
         task['status'] = 'succeeded'
