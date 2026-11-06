@@ -5,7 +5,8 @@ import re
 import secrets
 from datetime import datetime, timezone
 
-from .backup_center import backup_lock, read_backup_index, write_backup_index
+from .backup_center import (backup_lock, create_backup_archive, read_backup_index,
+                            write_backup_index)
 
 
 def queue_backup(root, actor):
@@ -36,3 +37,25 @@ def list_backup_tasks(root):
     index = read_backup_index(root) if os.path.lexists(root / 'index.json') else {
         'tasks': {}, 'backups': {}}
     return sorted(index['tasks'].values(), key=lambda task: task['created_at'], reverse=True)
+
+
+def run_pending(root, db_path, configs, version):
+    with backup_lock(root):
+        index = read_backup_index(root) if os.path.lexists(root / 'index.json') else {
+            'tasks': {}, 'backups': {}}
+        queued = sorted((task for task in index['tasks'].values()
+                         if task['status'] == 'queued'), key=lambda task: task['created_at'])
+        if not queued:
+            return None
+        task = queued[0]
+        task['status'] = 'running'
+        task['started_at'] = datetime.now(timezone.utc).isoformat()
+        write_backup_index(root, index, locked=True)
+        record = create_backup_archive(root, db_path, configs, version, task['actor'], locked=True)
+        index = read_backup_index(root)
+        task = index['tasks'][task['id']]
+        task['status'] = 'succeeded'
+        task['archive_id'] = record['archive_id']
+        task['finished_at'] = datetime.now(timezone.utc).isoformat()
+        write_backup_index(root, index, locked=True)
+        return task.copy()
