@@ -379,6 +379,29 @@ class RestoreConfirmedTest(unittest.TestCase):
         self.controller.stop.assert_called_once_with('cu-cockpit.service')
         self.controller.start.assert_called_once_with('cu-cockpit.service')
 
+    def test_config_replacement_failure_rolls_back_database_and_config(self):
+        task_id = self._confirmed_task()
+        self.controller.is_active.side_effect = [True, False, False, True]
+        original_replace = os.replace
+        config_bytes = self.config.read_bytes()
+        with patch('osmanager.system_management.backup_restore.os.replace',
+                   side_effect=lambda source, target: (
+                       self.fail('config replacement failed') if target == self.config
+                       else original_replace(source, target))) as replace:
+            result = restore_confirmed(self.root, task_id, self.database,
+                                       {'service': self.config}, '1.0', self.controller)
+
+        self.assertEqual(result['status'], 'failed')
+        self.assertIn('config replacement failed', result['error'])
+        self.assertEqual(read_backup_index(self.root)['tasks'][task_id]['status'], 'failed')
+        self.assertEqual(sum(call.args[1] == self.config for call in replace.call_args_list), 1)
+        self.assertEqual(sum(call.args[1] == self.database for call in replace.call_args_list), 2)
+        with closing(sqlite3.connect(self.database)) as connection:
+            self.assertEqual(connection.execute('SELECT value FROM data').fetchone(), ('new',))
+        self.assertEqual(self.config.read_bytes(), config_bytes)
+        self.controller.stop.assert_called_once_with('cu-cockpit.service')
+        self.controller.start.assert_called_once_with('cu-cockpit.service')
+
     def test_wrong_token_preserves_task_state(self):
         preview = preflight_restore(self.root, self.archive['archive_id'], self.database,
                                     {'service': self.config}, '1.0', 'tester',
