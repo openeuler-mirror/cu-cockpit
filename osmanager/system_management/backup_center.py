@@ -375,6 +375,32 @@ def validate_backup_archive(root: Path, archive_path: Path, version: str) -> dic
         details = os.fstat(archive_file.fileno())
         if not stat.S_ISREG(details.st_mode) or details.st_size > MAX_ARCHIVE_BYTES:
             raise ValueError('Archive is not a bounded regular file')
+        import struct
+
+        archive_file.seek(max(0, details.st_size - 65557))
+        tail = archive_file.read(65557)
+        eocd = tail.rfind(b'PK\x05\x06')
+        if eocd < 0 or len(tail) - eocd < 22:
+            raise ValueError('Archive has invalid ZIP directory')
+        (_, disk, directory_disk, disk_entries, total_entries,
+         directory_size, directory_offset, comment_size) = struct.unpack_from(
+             '<4s4H2IH', tail, eocd)
+        eocd_offset = details.st_size - len(tail) + eocd
+        if (disk or directory_disk or disk_entries != total_entries or
+                not 2 <= total_entries <= MAX_CONFIG_TARGETS + 2 or
+                directory_size > 16384 or directory_size < total_entries * 46 or
+                directory_offset == 0xffffffff or directory_size == 0xffffffff or
+                directory_offset + directory_size != eocd_offset or
+                eocd + 22 + comment_size != len(tail)):
+            raise ValueError('Archive has invalid ZIP directory')
+        if eocd_offset >= 20:
+            archive_file.seek(eocd_offset - 20)
+            if archive_file.read(4) == b'PK\x06\x07':
+                raise ValueError('Archive has invalid ZIP directory')
+        archive_file.seek(directory_offset)
+        if archive_file.read(4) != b'PK\x01\x02':
+            raise ValueError('Archive has invalid ZIP directory')
+        archive_file.seek(0)
         with zipfile.ZipFile(archive_file) as package:
             entries = _check_archive_members(package)
             manifest = _read_signed_manifest(package, entries, identity)
