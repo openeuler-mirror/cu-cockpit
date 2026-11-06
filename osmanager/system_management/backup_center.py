@@ -3,6 +3,7 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import secrets
 import sqlite3
 import stat
@@ -256,3 +257,19 @@ def _publish_backup_archive(root: Path, staged: Path, manifest: dict, actor: str
             destination.unlink()
             raise
     return record
+
+
+def _check_backup_inputs(db_path: Path, config_targets: dict, actor: str) -> None:
+    if not isinstance(db_path, Path) or not db_path.is_absolute() or '..' in db_path.parts:
+        raise ValueError('Database path must be absolute')
+    if not stat.S_ISREG(db_path.lstat().st_mode):
+        raise ValueError('Database must be a regular file')
+    if not isinstance(config_targets, dict) or len(config_targets) > MAX_CONFIG_TARGETS:
+        raise ValueError('Too many configuration targets')
+    for name, path in config_targets.items():
+        if not isinstance(name, str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,48}', name):
+            raise ValueError('Invalid configuration target name')
+        if not isinstance(path, Path):
+            raise ValueError('Configuration path must be a Path')
+    if not isinstance(actor, str) or not actor or len(actor) > 128:
+        raise ValueError('Invalid backup actor')
