@@ -132,10 +132,16 @@ def confirm_restore(root: Path, task_id: str, token: str, actor: str) -> dict:
 
 
 def _resume_services(controller, active: list) -> None:
+    failed = []
     for service in reversed(active):
-        controller.start(service)
-        if not controller.is_active(service):
-            raise RuntimeError('Restore service did not restart')
+        try:
+            controller.start(service)
+            if not controller.is_active(service):
+                failed.append(service)
+        except Exception:
+            failed.append(service)
+    if failed:
+        raise RuntimeError(f'Manual service restart required: {", ".join(failed)}')
 
 
 def _pause_services(controller, services: list) -> list:
