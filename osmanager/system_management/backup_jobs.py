@@ -8,7 +8,7 @@ import secrets
 import stat
 import tempfile
 from contextlib import nullcontext
-from datetime import datetime, timezone
+from datetime import datetime, time as clock_time, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
@@ -113,7 +113,7 @@ def _validate_schedule(schedule):
             raise ValueError('Invalid backup schedule slot') from error
 
 
-def read_backup_schedule(root):
+def read_backup_schedule(root, now=None):
     validate_backup_root(root)
     if not os.path.lexists(root / 'schedule.json'):
         return {'enabled': False, 'time': '02:00', 'timezone': 'UTC',
@@ -127,7 +127,20 @@ def read_backup_schedule(root):
             raise ValueError('Backup schedule exceeds size limit')
         schedule = json.load(schedule_file)
     _validate_schedule(schedule)
-    return {**schedule, 'next_run': None}
+    next_run = None
+    if schedule['enabled']:
+        zone = ZoneInfo(schedule['timezone'])
+        instant = now if now is not None else datetime.now(timezone.utc)
+        if not isinstance(instant, datetime) or instant.tzinfo is None or (
+                instant.utcoffset() is None):
+            raise ValueError('Backup schedule requires an aware datetime')
+        local = instant.astimezone(zone)
+        day = local.date()
+        if schedule['last_slot'] == day.isoformat() or local.strftime('%H:%M') >= schedule['time']:
+            day += timedelta(days=1)
+        next_run = datetime.combine(day, clock_time.fromisoformat(schedule['time']),
+                                    tzinfo=zone).isoformat()
+    return {**schedule, 'next_run': next_run}
 
 
 def write_backup_schedule(root, schedule, *, locked=False):
