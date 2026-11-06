@@ -244,3 +244,20 @@ def _replace_targets(targets: dict, staged: dict, changed: list) -> None:
             os.fsync(descriptor)
         finally:
             os.close(descriptor)
+
+
+def _check_restore_task(root: Path, task_id: str, targets: dict, version: str) -> dict:
+    if not isinstance(task_id, str) or not re.fullmatch(r'[0-9a-f]{32}', task_id):
+        raise ValueError('Invalid restore task ID')
+    task = read_backup_index(root)['tasks'].get(task_id)
+    if (not isinstance(task, dict) or task.get('kind') != 'restore' or
+            task.get('status') != 'awaiting_maintenance' or task.get('version') != version or
+            task.get('targets') != {name: str(path) for name, path in targets.items()} or
+            datetime.fromisoformat(task['expires_at']) <= datetime.now(timezone.utc)):
+        raise ValueError('Restore task is not eligible for maintenance')
+    if task['services'] != _restore_services(task['services']):
+        raise ValueError('Restore service registry has changed')
+    manifest, digest = _registered_archive(root, task['archive_id'], version)
+    if digest != task['archive_hash'] or set(manifest['members']) != set(targets):
+        raise ValueError('Confirmed restore archive or targets have changed')
+    return task
