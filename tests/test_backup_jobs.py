@@ -102,3 +102,14 @@ class BackupJobsTest(unittest.TestCase):
             self.assertIsNone(queue_due_backup(root, due))
             self.assertEqual(list_backup_tasks(root), [])
             self.assertIsNone(read_backup_schedule(root)['last_slot'])
+
+    def test_invalid_schedule_time_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initialize_installation(root, '1.0')
+
+            for value in ('24:00', '2:00'):
+                with self.subTest(value=value):
+                    with self.assertRaisesRegex(ValueError, 'Invalid backup schedule settings'):
+                        save_backup_schedule(root, True, value)
+            self.assertFalse((root / 'schedule.json').exists())
