@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from osmanager.system_management.backup_center import (
-    initialize_installation, read_backup_index, validate_backup_archive,
+    backup_lock, initialize_installation, read_backup_index, validate_backup_archive,
 )
 from osmanager.system_management.backup_jobs import (
     get_backup_task, list_backup_tasks, queue_backup, queue_due_backup, read_backup_schedule,
@@ -53,4 +53,22 @@ class BackupJobsTest(unittest.TestCase):
             self.assertEqual(failed['error'], 'Backup operation failed')
             self.assertEqual(get_backup_task(root, job['id']), failed)
             self.assertEqual(read_backup_index(root)['backups'], {})
+            self.assertEqual(list(root.glob('*.zip')), [])
+
+    def test_running_with_held_lock_rejects_without_changing_queue(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initialize_installation(root, '1.0')
+            database = root / 'app.sqlite3'
+            with closing(sqlite3.connect(database)) as connection:
+                connection.execute('CREATE TABLE data (value INTEGER)')
+                connection.commit()
+            job = queue_backup(root, 'creator')
+            before = read_backup_index(root)
+
+            with backup_lock(root):
+                with self.assertRaises(BlockingIOError):
+                    run_pending(root, database, {}, '1.0')
+            self.assertEqual(get_backup_task(root, job['id']), job)
+            self.assertEqual(read_backup_index(root), before)
             self.assertEqual(list(root.glob('*.zip')), [])
