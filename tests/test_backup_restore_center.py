@@ -71,6 +71,21 @@ class BackupIndexTest(unittest.TestCase):
 
 
 class BackupArchiveTest(unittest.TestCase):
+    def test_create_archive_under_existing_backup_lock(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initialize_installation(root, '1.0')
+            database = root / 'source.sqlite3'
+            with closing(sqlite3.connect(database)) as connection:
+                connection.execute('CREATE TABLE data (value INTEGER)')
+                connection.commit()
+            with backup_lock(root):
+                record = create_backup_archive(root, database, {}, '1.0', 'creator', locked=True)
+            archive = root / f'{record["archive_id"]}.zip'
+            self.assertEqual(validate_backup_archive(root, archive, '1.0')['archive_id'],
+                             record['archive_id'])
+            self.assertEqual(read_backup_index(root)['backups'][record['archive_id']], record)
+
     def test_invalid_zip_directory_rejected_before_zipfile_construction(self):
         import struct
 
