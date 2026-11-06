@@ -359,6 +359,13 @@ def restore_confirmed(root: Path, task_id: str, db_path: Path, configs: dict,
             _checkpoint_restore_database(db_path)
             safety_id = _apply_confirmed_restore(root, task, targets, version, controller, active)
             return {'id': task_id, 'status': 'completed', 'safety_archive_id': safety_id}
+        except _ManualRecoveryRequired as error:
+            safety_id = read_backup_index(root)['tasks'][task_id]['safety_archive_id']
+            message = str(error)
+            _set_restore_state(root, task_id, 'manual_recovery_required', error=message,
+                               requires_manual_recovery=True)
+            return {'id': task_id, 'status': 'manual_recovery_required', 'error': message,
+                    'requires_manual_recovery': True, 'safety_archive_id': safety_id}
         except Exception as error:
             message = str(error)
             try:
