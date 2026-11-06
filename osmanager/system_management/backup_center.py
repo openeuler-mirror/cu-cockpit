@@ -1,4 +1,5 @@
 import fcntl
+import hashlib
 import json
 import os
 import secrets
@@ -189,3 +190,16 @@ def _read_backup_config(path: Path) -> bytes:
         if len(content) > MAX_CONFIG_BYTES:
             raise ValueError('Configuration exceeds size limit')
         return content
+
+
+def _hash_backup_stream(source, limit: int, destination=None) -> tuple[int, str]:
+    digest = hashlib.sha256()
+    size = 0
+    while chunk := source.read(65536):
+        size += len(chunk)
+        if size > limit:
+            raise ValueError('Archive member exceeds size limit')
+        digest.update(chunk)
+        if destination is not None:
+            destination.write(chunk)
+    return size, digest.hexdigest()
