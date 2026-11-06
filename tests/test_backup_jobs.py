@@ -2,6 +2,7 @@ import sqlite3
 import tempfile
 import unittest
 from contextlib import closing
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
@@ -72,3 +73,21 @@ class BackupJobsTest(unittest.TestCase):
             self.assertEqual(get_backup_task(root, job['id']), job)
             self.assertEqual(read_backup_index(root), before)
             self.assertEqual(list(root.glob('*.zip')), [])
+
+    def test_due_daily_backup_queues_once_per_slot(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initialize_installation(root, '1.0')
+            save_backup_schedule(root, True, '02:00')
+            due = datetime(2026, 1, 2, 2, 0, tzinfo=timezone.utc)
+
+            task = queue_due_backup(root, due)
+            self.assertEqual(task['status'], 'queued')
+            self.assertEqual(task['actor'], 'daily-schedule')
+            self.assertEqual(read_backup_schedule(root)['last_slot'], '2026-01-02')
+            before = read_backup_index(root)
+            self.assertIsNone(queue_due_backup(root, due))
+            self.assertIsNone(queue_due_backup(
+                root, datetime(2026, 1, 2, 23, 0, tzinfo=timezone.utc)))
+            self.assertEqual(read_backup_index(root), before)
+            self.assertEqual(list_backup_tasks(root), [task])
