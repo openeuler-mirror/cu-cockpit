@@ -124,3 +124,16 @@ class BackupJobsTest(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, 'Invalid backup schedule settings'):
                         save_backup_schedule(root, value, '02:00')
             self.assertFalse((root / 'schedule.json').exists())
+
+    def test_next_run_uses_schedule_timezone(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initialize_installation(root, '1.0')
+            save_backup_schedule(root, True, '02:00', 'Asia/Shanghai')
+
+            before = datetime(2026, 1, 2, 17, 0, tzinfo=timezone.utc)
+            after = datetime(2026, 1, 2, 19, 0, tzinfo=timezone.utc)
+            self.assertEqual(read_backup_schedule(root, before)['next_run'],
+                             '2026-01-03T02:00:00+08:00')
+            self.assertEqual(read_backup_schedule(root, after)['next_run'],
+                             '2026-01-04T02:00:00+08:00')
