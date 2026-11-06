@@ -4,6 +4,7 @@ import os
 import re
 import secrets
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .backup_center import (backup_lock, create_backup_archive, read_backup_index,
                             write_backup_index)
@@ -80,3 +81,27 @@ def run_pending(root, db_path, configs, version):
         task['finished_at'] = datetime.now(timezone.utc).isoformat()
         write_backup_index(root, index, locked=True)
         return task.copy()
+
+
+def _validate_schedule(schedule):
+    if not isinstance(schedule, dict) or set(schedule) != {
+            'enabled', 'time', 'timezone', 'last_slot'}:
+        raise ValueError('Invalid backup schedule fields')
+    if type(schedule['enabled']) is not bool or not isinstance(schedule['time'], str) or not re.fullmatch(
+            r'(?:[01][0-9]|2[0-3]):[0-5][0-9]', schedule['time']):
+        raise ValueError('Invalid backup schedule settings')
+    if not isinstance(schedule['timezone'], str) or len(schedule['timezone']) > 128:
+        raise ValueError('Invalid backup schedule timezone')
+    try:
+        ZoneInfo(schedule['timezone'])
+    except (ZoneInfoNotFoundError, ValueError) as error:
+        raise ValueError('Invalid backup schedule timezone') from error
+    slot = schedule['last_slot']
+    if slot is not None and (not isinstance(slot, str) or not re.fullmatch(
+            r'\d{4}-\d{2}-\d{2}', slot)):
+        raise ValueError('Invalid backup schedule slot')
+    if slot is not None:
+        try:
+            datetime.strptime(slot, '%Y-%m-%d')
+        except ValueError as error:
+            raise ValueError('Invalid backup schedule slot') from error
