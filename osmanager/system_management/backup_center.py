@@ -38,6 +38,8 @@ def initialize_backup_root(root: Path) -> Path:
 
 def initialize_installation(root: Path, application_version: str) -> dict:
     validate_backup_root(root)
+    if os.path.lexists(root / 'metadata.json'):
+        return read_installation(root, application_version)
     identity = {
         'installation_id': secrets.token_hex(16),
         'hmac_key': secrets.token_hex(32),
