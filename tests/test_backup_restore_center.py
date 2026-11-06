@@ -2,6 +2,7 @@ import json
 import sqlite3
 import tempfile
 import unittest
+import warnings
 import zipfile
 from contextlib import closing
 from pathlib import Path
@@ -144,3 +145,22 @@ class BackupArchiveTest(unittest.TestCase):
                             import_backup_archive(root, uploaded, '1.0', 'importer')
                     self.assertEqual(set(read_backup_index(root)['backups']), {record['archive_id']})
                     damaged.unlink()
+
+    def test_import_rejects_traversal_and_duplicate_zip_members(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initialize_installation(root, '1.0')
+            archive = root / 'candidate.zip'
+            for extra in ('../escape', 'app.sqlite3'):
+                with self.subTest(extra=extra):
+                    with warnings.catch_warnings(record=True), zipfile.ZipFile(
+                            archive, 'w') as package:
+                        package.writestr('manifest.json', '{}')
+                        package.writestr('app.sqlite3', b'not SQLite')
+                        package.writestr(extra, b'payload')
+                    with archive.open('rb') as uploaded:
+                        with self.assertRaises(ValueError):
+                            import_backup_archive(root, uploaded, '1.0', 'importer')
+                    self.assertFalse((root / 'index.json').exists())
+                    self.assertFalse((root.parent / 'escape').exists())
+                    archive.unlink()
