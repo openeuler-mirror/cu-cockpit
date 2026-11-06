@@ -1,3 +1,4 @@
+import json
 import sqlite3
 import tempfile
 import unittest
@@ -110,3 +111,36 @@ class BackupArchiveTest(unittest.TestCase):
             self.assertEqual(imported, read_backup_index(target)['backups'][record['archive_id']])
             self.assertEqual((target / archive.name).read_bytes(), archive.read_bytes())
             self.assertFalse(any(path.name.startswith('.import-') for path in target.iterdir()))
+
+    def test_import_rejects_tampered_signature_and_member(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initialize_installation(root, '1.0')
+            database = root / 'source.sqlite3'
+            with closing(sqlite3.connect(database)) as connection:
+                connection.execute('CREATE TABLE data (value INTEGER)')
+                connection.commit()
+            config = root / 'service.conf'
+            config.write_bytes(b'original')
+            record = create_backup_archive(root, database, {'service': config}, '1.0', 'creator')
+            archive = root / f'{record["archive_id"]}.zip'
+            for alteration in ('signature', 'member'):
+                with self.subTest(alteration=alteration):
+                    damaged = root / 'tampered.zip'
+                    with zipfile.ZipFile(archive) as original, zipfile.ZipFile(
+                            damaged, 'w') as modified:
+                        for name in original.namelist():
+                            payload = original.read(name)
+                            if alteration == 'signature' and name == 'manifest.json':
+                                manifest = json.loads(payload)
+                                manifest['signature'] = ('0' if manifest['signature'][0] != '0'
+                                                         else '1') * 64
+                                payload = json.dumps(manifest).encode()
+                            if alteration == 'member' and name == 'configs/service.bin':
+                                payload = b'altered!'
+                            modified.writestr(name, payload)
+                    with damaged.open('rb') as uploaded:
+                        with self.assertRaises(ValueError):
+                            import_backup_archive(root, uploaded, '1.0', 'importer')
+                    self.assertEqual(set(read_backup_index(root)['backups']), {record['archive_id']})
+                    damaged.unlink()
