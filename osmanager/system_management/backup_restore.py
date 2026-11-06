@@ -136,3 +136,22 @@ def _resume_services(controller, active: list) -> None:
         controller.start(service)
         if not controller.is_active(service):
             raise RuntimeError('Restore service did not restart')
+
+
+def _pause_services(controller, services: list) -> list:
+    active = []
+    try:
+        for service in services:
+            was_active = controller.is_active(service)
+            if was_active:
+                active.append(service)
+                controller.stop(service)
+            if controller.is_active(service):
+                raise RuntimeError('Restore service remains active')
+    except Exception:
+        try:
+            _resume_services(controller, active)
+        except Exception as restart_error:
+            raise RuntimeError('Service shutdown failed; manual restart required') from restart_error
+        raise
+    return active
