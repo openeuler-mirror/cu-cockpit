@@ -327,4 +327,15 @@ def restore_confirmed(root: Path, task_id: str, db_path: Path, configs: dict,
     targets = {name: Path(path) for name, path in _restore_targets(db_path, configs).items()}
     with backup_lock(root):
         _check_restore_task(root, task_id, targets, version)
-        raise RuntimeError('Restore execution is not yet available')
+        _set_restore_state(root, task_id, 'running')
+        active = []
+        try:
+            raise RuntimeError('Restore execution is not yet available')
+        except Exception as error:
+            message = str(error)
+            try:
+                _resume_services(controller, active)
+            except Exception as restart_error:
+                message = f'{message}; {restart_error}'
+            _set_restore_state(root, task_id, 'failed', error=message)
+            return {'id': task_id, 'status': 'failed', 'error': message}
