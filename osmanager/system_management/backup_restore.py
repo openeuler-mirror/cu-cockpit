@@ -320,3 +320,11 @@ def _apply_confirmed_restore(root: Path, task: dict, targets: dict, version: str
                     f'{rollback_error}') from error
             raise
     return safety_id
+
+
+def restore_confirmed(root: Path, task_id: str, db_path: Path, configs: dict,
+                      version: str, controller) -> dict:
+    targets = {name: Path(path) for name, path in _restore_targets(db_path, configs).items()}
+    with backup_lock(root):
+        _check_restore_task(root, task_id, targets, version)
+        raise RuntimeError('Restore execution is not yet available')
