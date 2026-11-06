@@ -71,6 +71,30 @@ class BackupIndexTest(unittest.TestCase):
 
 
 class BackupArchiveTest(unittest.TestCase):
+    def test_invalid_zip_directory_rejected_before_zipfile_construction(self):
+        import struct
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initialize_installation(root, '1.0')
+            archive = root / 'candidate.zip'
+            with zipfile.ZipFile(archive, 'w') as package:
+                package.writestr('manifest.json', '{}')
+                package.writestr('app.sqlite3', b'SQLite format 3\x00')
+            original = archive.read_bytes()
+            eocd = original.rfind(b'PK\x05\x06')
+            for label, offset, format_code, value in (
+                    ('directory bytes', 12, '<I', 16385),
+                    ('member count', 10, '<H', 65535)):
+                with self.subTest(label=label):
+                    damaged = bytearray(original)
+                    struct.pack_into(format_code, damaged, eocd + offset, value)
+                    archive.write_bytes(damaged)
+                    with patch('osmanager.system_management.backup_center.zipfile.ZipFile',
+                               side_effect=AssertionError('ZipFile constructed')):
+                        with self.assertRaisesRegex(ValueError, 'invalid ZIP directory'):
+                            validate_backup_archive(root, archive, '1.0')
+
     def test_index_directory_sync_failure_preserves_published_archive(self):
         import os
         import stat
