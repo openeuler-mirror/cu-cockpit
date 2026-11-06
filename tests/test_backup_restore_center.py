@@ -4,7 +4,7 @@ import unittest
 from contextlib import closing
 from pathlib import Path
 
-from osmanager.system_management.backup_center import backup_sqlite, verify_sqlite
+from osmanager.system_management.backup_center import backup_sqlite, initialize_installation, verify_sqlite
 
 
 class SqliteBackupTest(unittest.TestCase):
@@ -25,3 +25,12 @@ class SqliteBackupTest(unittest.TestCase):
             path = Path(directory).resolve() / 'damaged.sqlite3'
             path.write_bytes(b'not a SQLite database')
             self.assertFalse(verify_sqlite(path))
+
+
+class BackupIdentityTest(unittest.TestCase):
+    def test_same_version_reuses_installation_key(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            identity = initialize_installation(root, '1.0')
+            self.assertEqual(initialize_installation(root, '1.0'), identity)
+            self.assertEqual(len(identity['hmac_key']), 64)
