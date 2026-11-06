@@ -129,3 +129,10 @@ def confirm_restore(root: Path, task_id: str, token: str, actor: str) -> dict:
         task['confirmed_at'] = datetime.now(timezone.utc).isoformat()
         write_backup_index(root, index, locked=True)
         return {'id': task_id, 'status': task['status']}
+
+
+def _resume_services(controller, active: list) -> None:
+    for service in reversed(active):
+        controller.start(service)
+        if not controller.is_active(service):
+            raise RuntimeError('Restore service did not restart')
