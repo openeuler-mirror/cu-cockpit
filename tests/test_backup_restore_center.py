@@ -6,8 +6,9 @@ from contextlib import closing
 from pathlib import Path
 
 from osmanager.system_management.backup_center import (
-    backup_lock, backup_sqlite, create_backup_archive, initialize_installation,
-    read_backup_index, validate_backup_archive, verify_sqlite, write_backup_index,
+    backup_lock, backup_sqlite, create_backup_archive, import_backup_archive,
+    initialize_installation, read_backup_index, validate_backup_archive, verify_sqlite,
+    write_backup_index,
 )
 
 
@@ -86,3 +87,26 @@ class BackupArchiveTest(unittest.TestCase):
             with zipfile.ZipFile(archive) as package:
                 self.assertEqual(package.read('configs/service.bin'), b'enabled=true\n')
                 self.assertEqual(package.read('app.sqlite3')[:16], b'SQLite format 3\x00')
+
+    def test_import_same_installation_archive(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory).resolve()
+            source, target = base / 'source', base / 'target'
+            source.mkdir(mode=0o700)
+            target.mkdir(mode=0o700)
+            initialize_installation(source, '1.0')
+            identity = target / 'metadata.json'
+            identity.write_bytes((source / 'metadata.json').read_bytes())
+            identity.chmod(0o600)
+            database = source / 'source.sqlite3'
+            with closing(sqlite3.connect(database)) as connection:
+                connection.execute('CREATE TABLE data (value INTEGER)')
+                connection.commit()
+            record = create_backup_archive(source, database, {}, '1.0', 'creator')
+            archive = source / f'{record["archive_id"]}.zip'
+            with archive.open('rb') as uploaded:
+                imported = import_backup_archive(target, uploaded, '1.0', 'importer')
+            self.assertEqual(imported['actor'], 'importer')
+            self.assertEqual(imported, read_backup_index(target)['backups'][record['archive_id']])
+            self.assertEqual((target / archive.name).read_bytes(), archive.read_bytes())
+            self.assertFalse(any(path.name.startswith('.import-') for path in target.iterdir()))
