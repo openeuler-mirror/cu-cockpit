@@ -5,7 +5,10 @@ import os
 import re
 import secrets
 import stat
+import tempfile
+from contextlib import nullcontext
 from datetime import datetime, timezone
+from pathlib import Path
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .backup_center import (backup_lock, create_backup_archive, read_backup_index,
@@ -124,3 +127,25 @@ def read_backup_schedule(root):
         schedule = json.load(schedule_file)
     _validate_schedule(schedule)
     return {**schedule, 'next_run': None}
+
+
+def write_backup_schedule(root, schedule, *, locked=False):
+    _validate_schedule(schedule)
+    payload = json.dumps(schedule, allow_nan=False).encode('utf-8')
+    with nullcontext() if locked else backup_lock(root):
+        if os.path.lexists(root / 'schedule.json'):
+            read_backup_schedule(root)
+        with tempfile.TemporaryDirectory(dir=root, prefix='.schedule-') as staging:
+            temporary = Path(staging) / 'schedule.json'
+            descriptor = os.open(temporary, os.O_CREAT | os.O_EXCL | os.O_WRONLY |
+                                 os.O_NOFOLLOW, 0o600)
+            with os.fdopen(descriptor, 'wb') as schedule_file:
+                schedule_file.write(payload)
+                schedule_file.flush()
+                os.fsync(schedule_file.fileno())
+            os.replace(temporary, root / 'schedule.json')
+            directory_fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
