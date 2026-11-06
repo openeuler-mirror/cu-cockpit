@@ -14,6 +14,7 @@ from osmanager.system_management.backup_center import (
     initialize_installation, read_backup_index, validate_backup_archive, verify_sqlite,
     write_backup_index,
 )
+from osmanager.system_management.backup_restore import confirm_restore, preflight_restore
 
 
 class SqliteBackupTest(unittest.TestCase):
@@ -325,3 +326,10 @@ class RestoreConfirmedTest(unittest.TestCase):
         environment = patch.dict(os.environ, {'BACKUP_RESTORE_SERVICES': 'cu-cockpit.service'})
         environment.start()
         self.addCleanup(environment.stop)
+
+    def _confirmed_task(self):
+        preview = preflight_restore(self.root, self.archive['archive_id'], self.database,
+                                    {'service': self.config}, '1.0', 'tester',
+                                    ['cu-cockpit.service'])
+        confirm_restore(self.root, preview['task_id'], preview['token'], 'tester')
+        return preview['task_id']
