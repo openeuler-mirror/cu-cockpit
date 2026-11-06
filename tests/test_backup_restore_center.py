@@ -7,7 +7,7 @@ import warnings
 import zipfile
 from contextlib import closing
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from osmanager.system_management.backup_center import (
     backup_lock, backup_sqlite, create_backup_archive, import_backup_archive,
@@ -326,6 +326,8 @@ class RestoreConfirmedTest(unittest.TestCase):
         environment = patch.dict(os.environ, {'BACKUP_RESTORE_SERVICES': 'cu-cockpit.service'})
         environment.start()
         self.addCleanup(environment.stop)
+        self.controller = Mock()
+        self.controller.is_active.side_effect = [True, False, True]
 
     def _confirmed_task(self):
         preview = preflight_restore(self.root, self.archive['archive_id'], self.database,
