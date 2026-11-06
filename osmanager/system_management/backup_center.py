@@ -53,6 +53,18 @@ def initialize_installation(root: Path, application_version: str) -> dict:
     return identity
 
 
+def read_installation(root: Path) -> dict:
+    validate_backup_root(root)
+    descriptor = os.open(root / 'metadata.json', os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(descriptor, 'r', encoding='utf-8') as metadata:
+        details = os.fstat(metadata.fileno())
+        if not stat.S_ISREG(details.st_mode) or details.st_mode & 0o077:
+            raise PermissionError('Installation metadata must be a private regular file')
+        if details.st_size > 4096:
+            raise ValueError('Installation metadata exceeds the size limit')
+        return json.load(metadata)
+
+
 def backup_sqlite(source: Path, destination: Path) -> None:
     with closing(sqlite3.connect(f'{source.as_uri()}?mode=ro', uri=True)) as origin:
         with closing(sqlite3.connect(destination)) as snapshot:
