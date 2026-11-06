@@ -333,3 +333,12 @@ class RestoreConfirmedTest(unittest.TestCase):
                                     ['cu-cockpit.service'])
         confirm_restore(self.root, preview['task_id'], preview['token'], 'tester')
         return preview['task_id']
+
+    def test_wrong_token_preserves_task_state(self):
+        preview = preflight_restore(self.root, self.archive['archive_id'], self.database,
+                                    {'service': self.config}, '1.0', 'tester',
+                                    ['cu-cockpit.service'])
+        original = read_backup_index(self.root)
+        with self.assertRaisesRegex(ValueError, 'confirmation rejected'):
+            confirm_restore(self.root, preview['task_id'], 'wrong-token', 'tester')
+        self.assertEqual(read_backup_index(self.root), original)
