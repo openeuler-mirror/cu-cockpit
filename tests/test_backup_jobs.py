@@ -1,0 +1,36 @@
+import sqlite3
+import tempfile
+import unittest
+from contextlib import closing
+from pathlib import Path
+
+from osmanager.system_management.backup_center import (
+    initialize_installation, read_backup_index, validate_backup_archive,
+)
+from osmanager.system_management.backup_jobs import (
+    get_backup_task, list_backup_tasks, queue_backup, queue_due_backup, read_backup_schedule,
+    run_pending, save_backup_schedule,
+)
+
+
+class BackupJobsTest(unittest.TestCase):
+    def test_queue_runs_once_and_publishes_archive(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initialize_installation(root, '1.0')
+            database = root / 'app.sqlite3'
+            with closing(sqlite3.connect(database)) as connection:
+                connection.execute('CREATE TABLE data (value INTEGER)')
+                connection.commit()
+            job = queue_backup(root, 'creator')
+            self.assertEqual(list_backup_tasks(root), [job])
+
+            completed = run_pending(root, database, {}, '1.0')
+            self.assertEqual(completed['status'], 'succeeded')
+            self.assertEqual(get_backup_task(root, job['id']), completed)
+            self.assertEqual(completed['result'], read_backup_index(root)['backups'][
+                completed['archive_id']])
+            archive = root / f'{completed["archive_id"]}.zip'
+            self.assertEqual(validate_backup_archive(root, archive, '1.0')['archive_id'],
+                             completed['archive_id'])
+            self.assertIsNone(run_pending(root, database, {}, '1.0'))
