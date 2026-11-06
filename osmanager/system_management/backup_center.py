@@ -1,5 +1,6 @@
 import fcntl
 import hashlib
+import hmac
 import json
 import os
 import secrets
@@ -203,3 +204,9 @@ def _hash_backup_stream(source, limit: int, destination=None) -> tuple[int, str]
         if destination is not None:
             destination.write(chunk)
     return size, digest.hexdigest()
+
+
+def _backup_signature(manifest: dict, key: str) -> str:
+    payload = json.dumps(manifest, sort_keys=True, separators=(',', ':'),
+                         ensure_ascii=True, allow_nan=False).encode('utf-8')
+    return hmac.new(bytes.fromhex(key), payload, hashlib.sha256).hexdigest()
