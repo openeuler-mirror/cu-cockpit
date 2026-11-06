@@ -5,7 +5,8 @@ from contextlib import closing
 from pathlib import Path
 
 from osmanager.system_management.backup_center import (
-    backup_sqlite, initialize_installation, read_backup_index, verify_sqlite, write_backup_index,
+    backup_lock, backup_sqlite, initialize_installation, read_backup_index, verify_sqlite,
+    write_backup_index,
 )
 
 
@@ -50,3 +51,15 @@ class BackupIndexTest(unittest.TestCase):
             write_backup_index(root, updated)
             self.assertEqual(read_backup_index(root), updated)
             self.assertFalse(any(path.name.startswith('.index-') for path in root.iterdir()))
+
+    def test_locked_index_rejects_second_write_without_changes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initial = {'tasks': {}, 'backups': {}}
+            updated = {'tasks': {'task-1': {}}, 'backups': {}}
+            write_backup_index(root, initial)
+            with backup_lock(root):
+                with self.assertRaises(BlockingIOError):
+                    write_backup_index(root, updated)
+                self.assertEqual(read_backup_index(root), initial)
+            self.assertEqual(read_backup_index(root), initial)
