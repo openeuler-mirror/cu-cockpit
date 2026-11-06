@@ -4,11 +4,13 @@ import hashlib
 import json
 import os
 import re
+import secrets
 import stat
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from .backup_center import (MAX_ARCHIVE_BYTES, MAX_CONFIG_TARGETS, read_backup_index,
-                            validate_backup_archive)
+                            backup_lock, validate_backup_archive, write_backup_index)
 
 
 def _restore_targets(db_path: Path, configs: dict) -> dict:
@@ -75,3 +77,34 @@ def _token_digest(token: str, task: dict) -> str:
         'archive_id', 'archive_hash', 'version', 'actor', 'targets', 'services')}
     payload = json.dumps(binding, sort_keys=True, separators=(',', ':')).encode('utf-8')
     return hashlib.sha256(token.encode('ascii') + payload).hexdigest()
+
+
+def preflight_restore(root: Path, archive_id: str, db_path: Path, configs: dict,
+                      version: str, actor: str, services) -> dict:
+    if not isinstance(actor, str) or not actor or len(actor) > 128:
+        raise ValueError('Invalid restore actor')
+    targets = _restore_targets(db_path, configs)
+    stopped = _restore_services(services)
+    with backup_lock(root):
+        manifest, archive_hash = _registered_archive(root, archive_id, version)
+        if set(manifest['members']) != set(targets):
+            raise ValueError('Archive members differ from registered targets')
+        index = read_backup_index(root)
+        if len(index['tasks']) >= 256:
+            raise ValueError('Restore task history is full')
+        token = secrets.token_urlsafe(32)
+        task_id = secrets.token_hex(16)
+        task = {'id': task_id, 'kind': 'restore', 'archive_id': archive_id,
+                'archive_hash': archive_hash, 'version': version, 'actor': actor,
+                'targets': targets, 'services': stopped, 'status': 'awaiting_confirmation',
+                'expires_at': (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()}
+        task['token_hash'] = _token_digest(token, task)
+        index['tasks'][task_id] = task
+        write_backup_index(root, index, locked=True)
+    return {'task_id': task_id, 'token': token, 'expires_at': task['expires_at'],
+            'preview': {'members': manifest['members'],
+                        'total_size': sum(member['size'] for member in manifest['members'].values()),
+                        'targets': [path.name for path in (db_path, *configs.values())],
+                        'services': stopped, 'requires_maintenance': True,
+                        'risks': ['Service downtime', 'Database and configuration replacement',
+                                  'Existing sessions invalidated']}}
