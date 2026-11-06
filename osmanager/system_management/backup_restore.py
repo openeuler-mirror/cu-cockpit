@@ -1,9 +1,13 @@
 """Maintenance-only restore workflow for registered local backup targets."""
 
+import hashlib
+import os
+import re
 import stat
 from pathlib import Path
 
-from .backup_center import MAX_CONFIG_TARGETS
+from .backup_center import (MAX_ARCHIVE_BYTES, MAX_CONFIG_TARGETS, read_backup_index,
+                            validate_backup_archive)
 
 
 def _restore_targets(db_path: Path, configs: dict) -> dict:
@@ -28,3 +32,24 @@ def _restore_targets(db_path: Path, configs: dict) -> dict:
         if not stat.S_ISREG(details.st_mode) or details.st_nlink != 1:
             raise ValueError('Restore target must be an unlinked regular file')
     return {name: str(path) for name, path in targets.items()}
+
+
+def _registered_archive(root: Path, archive_id: str, version: str) -> tuple:
+    if not isinstance(archive_id, str) or not re.fullmatch(r'[0-9a-f]{32}', archive_id):
+        raise ValueError('Invalid registered archive ID')
+    index = read_backup_index(root)
+    record = index['backups'].get(archive_id)
+    if not isinstance(record, dict) or record.get('archive_id') != archive_id:
+        raise ValueError('Archive is not registered')
+    path = root / f'{archive_id}.zip'
+    manifest = validate_backup_archive(root, path, version)
+    if manifest['archive_id'] != archive_id or record['size'] != path.stat().st_size:
+        raise ValueError('Registered archive has changed')
+    digest = hashlib.sha256()
+    descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(descriptor, 'rb') as archive:
+        if os.fstat(archive.fileno()).st_size > MAX_ARCHIVE_BYTES:
+            raise ValueError('Registered archive is too large')
+        for chunk in iter(lambda: archive.read(1024 * 1024), b''):
+            digest.update(chunk)
+    return manifest, digest.hexdigest()
