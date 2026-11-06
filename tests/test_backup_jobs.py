@@ -91,3 +91,14 @@ class BackupJobsTest(unittest.TestCase):
                 root, datetime(2026, 1, 2, 23, 0, tzinfo=timezone.utc)))
             self.assertEqual(read_backup_index(root), before)
             self.assertEqual(list_backup_tasks(root), [task])
+
+    def test_disabled_daily_backup_does_not_queue(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initialize_installation(root, '1.0')
+            save_backup_schedule(root, False, '02:00')
+            due = datetime(2026, 1, 2, 2, 0, tzinfo=timezone.utc)
+
+            self.assertIsNone(queue_due_backup(root, due))
+            self.assertEqual(list_backup_tasks(root), [])
+            self.assertIsNone(read_backup_schedule(root)['last_slot'])
