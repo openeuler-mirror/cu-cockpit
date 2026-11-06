@@ -273,3 +273,25 @@ def _check_backup_inputs(db_path: Path, config_targets: dict, actor: str) -> Non
             raise ValueError('Configuration path must be a Path')
     if not isinstance(actor, str) or not actor or len(actor) > 128:
         raise ValueError('Invalid backup actor')
+
+
+def create_backup_archive(root: Path, db_path: Path, config_targets: dict,
+                          app_version: str, actor: str) -> dict:
+    _check_backup_inputs(db_path, config_targets, actor)
+    identity = read_installation(root, app_version)
+    if db_path.stat().st_size > MAX_DATABASE_BYTES:
+        raise ValueError('Database exceeds size limit')
+    manifest = {'format': ARCHIVE_FORMAT, 'application_version': app_version,
+                'installation_id': identity['installation_id'],
+                'archive_id': secrets.token_hex(16)}
+    with tempfile.TemporaryDirectory(dir=root, prefix='.archive-') as staging:
+        directory = Path(staging)
+        snapshot = directory / 'snapshot.sqlite3'
+        archive = directory / 'archive.zip'
+        backup_sqlite(db_path, snapshot)
+        if snapshot.stat().st_size > MAX_DATABASE_BYTES or not verify_sqlite(snapshot):
+            raise ValueError('Database snapshot is too large or damaged')
+        _write_backup_archive(archive, snapshot, config_targets, manifest, identity['hmac_key'])
+        with archive.open('rb') as archive_file:
+            os.fsync(archive_file.fileno())
+        return _publish_backup_archive(root, archive, manifest, actor)
