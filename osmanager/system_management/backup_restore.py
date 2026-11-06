@@ -1,6 +1,7 @@
 """Maintenance-only restore workflow for registered local backup targets."""
 
 import hashlib
+import json
 import os
 import re
 import stat
@@ -67,3 +68,10 @@ def _restore_services(services) -> list:
             not all(isinstance(service, str) for service in services)):
         raise ValueError('Restore services must match the local registry')
     return sorted(configured)
+
+
+def _token_digest(token: str, task: dict) -> str:
+    binding = {name: task[name] for name in (
+        'archive_id', 'archive_hash', 'version', 'actor', 'targets', 'services')}
+    payload = json.dumps(binding, sort_keys=True, separators=(',', ':')).encode('utf-8')
+    return hashlib.sha256(token.encode('ascii') + payload).hexdigest()
