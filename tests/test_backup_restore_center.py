@@ -4,7 +4,7 @@ import unittest
 from contextlib import closing
 from pathlib import Path
 
-from osmanager.system_management.backup_center import backup_sqlite
+from osmanager.system_management.backup_center import backup_sqlite, verify_sqlite
 
 
 class SqliteBackupTest(unittest.TestCase):
@@ -19,3 +19,9 @@ class SqliteBackupTest(unittest.TestCase):
                 backup_sqlite(source, destination)
             with closing(sqlite3.connect(destination)) as snapshot:
                 self.assertEqual(snapshot.execute('SELECT length(value) FROM data').fetchone()[0], 1200000)
+
+    def test_damaged_sqlite_returns_false(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory).resolve() / 'damaged.sqlite3'
+            path.write_bytes(b'not a SQLite database')
+            self.assertFalse(verify_sqlite(path))
