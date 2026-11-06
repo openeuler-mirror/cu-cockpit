@@ -7,6 +7,7 @@ import secrets
 import sqlite3
 import stat
 import tempfile
+import zipfile
 from contextlib import closing, contextmanager
 from pathlib import Path
 
@@ -210,3 +211,26 @@ def _backup_signature(manifest: dict, key: str) -> str:
     payload = json.dumps(manifest, sort_keys=True, separators=(',', ':'),
                          ensure_ascii=True, allow_nan=False).encode('utf-8')
     return hmac.new(bytes.fromhex(key), payload, hashlib.sha256).hexdigest()
+
+
+def _write_backup_archive(archive: Path, snapshot: Path, configs: dict,
+                          manifest: dict, key: str) -> None:
+    members = {}
+    with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_DEFLATED) as package:
+        for name, path in [('app.sqlite3', snapshot), *[
+                (f'configs/{name}.bin', value) for name, value in sorted(configs.items())]]:
+            if name == 'app.sqlite3':
+                with path.open('rb') as source, package.open(name, 'w', force_zip64=True) as target:
+                    size, digest = _hash_backup_stream(source, MAX_DATABASE_BYTES, target)
+            else:
+                content = _read_backup_config(path)
+                with package.open(name, 'w') as target:
+                    target.write(content)
+                size, digest = len(content), hashlib.sha256(content).hexdigest()
+            members[name] = {'size': size, 'sha256': digest}
+        manifest['members'] = members
+        signed = {**manifest, 'signature': _backup_signature(manifest, key)}
+        package.writestr('manifest.json', json.dumps(signed, sort_keys=True,
+                                                     separators=(',', ':')))
+    if archive.stat().st_size > MAX_ARCHIVE_BYTES:
+        raise ValueError('Archive exceeds size limit')
