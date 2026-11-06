@@ -100,6 +100,18 @@ def backup_lock(root: Path):
         yield
 
 
+def read_backup_index(root: Path) -> dict:
+    validate_backup_root(root)
+    descriptor = os.open(root / 'index.json', os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(descriptor, 'r', encoding='utf-8') as index_file:
+        details = os.fstat(index_file.fileno())
+        if not stat.S_ISREG(details.st_mode) or details.st_mode & 0o077:
+            raise PermissionError('Backup index must be a private regular file')
+        if details.st_size > 1048576:
+            raise ValueError('Backup index exceeds the size limit')
+        return json.load(index_file)
+
+
 def backup_sqlite(source: Path, destination: Path) -> None:
     with closing(sqlite3.connect(f'{source.as_uri()}?mode=ro', uri=True)) as origin:
         with closing(sqlite3.connect(destination)) as snapshot:
