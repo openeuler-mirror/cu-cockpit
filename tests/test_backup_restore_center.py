@@ -6,6 +6,7 @@ import warnings
 import zipfile
 from contextlib import closing
 from pathlib import Path
+from unittest.mock import patch
 
 from osmanager.system_management.backup_center import (
     backup_lock, backup_sqlite, create_backup_archive, import_backup_archive,
@@ -188,3 +189,18 @@ class BackupArchiveTest(unittest.TestCase):
                             import_backup_archive(root, uploaded, version, 'importer')
                     self.assertFalse((target / 'index.json').exists())
                     self.assertEqual(set(read_backup_index(source)['backups']), {record['archive_id']})
+
+    def test_import_rejects_excessive_expanded_size(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initialize_installation(root, '1.0')
+            archive = root / 'candidate.zip'
+            with zipfile.ZipFile(archive, 'w') as package:
+                package.writestr('manifest.json', '{}')
+                package.writestr('app.sqlite3', b'SQLite format 3\x00')
+            with patch('osmanager.system_management.backup_center.MAX_EXPANDED_BYTES', 17):
+                with archive.open('rb') as uploaded:
+                    with self.assertRaisesRegex(ValueError, 'expanded size limit'):
+                        import_backup_archive(root, uploaded, '1.0', 'importer')
+            self.assertFalse((root / 'index.json').exists())
+            self.assertFalse(any(path.name.startswith('.import-') for path in root.iterdir()))
