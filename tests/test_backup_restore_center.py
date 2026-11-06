@@ -164,3 +164,27 @@ class BackupArchiveTest(unittest.TestCase):
                     self.assertFalse((root / 'index.json').exists())
                     self.assertFalse((root.parent / 'escape').exists())
                     archive.unlink()
+
+    def test_import_rejects_other_installation_and_version(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory).resolve()
+            source, target = base / 'source', base / 'target'
+            source.mkdir(mode=0o700)
+            target.mkdir(mode=0o700)
+            initialize_installation(source, '1.0')
+            initialize_installation(target, '1.0')
+            database = source / 'source.sqlite3'
+            with closing(sqlite3.connect(database)) as connection:
+                connection.execute('CREATE TABLE data (value INTEGER)')
+                connection.commit()
+            record = create_backup_archive(source, database, {}, '1.0', 'creator')
+            archive = source / f'{record["archive_id"]}.zip'
+            cases = ((target, '1.0', 'different format or installation'),
+                     (source, '2.0', 'another application version'))
+            for root, version, message in cases:
+                with self.subTest(version=version, root=root):
+                    with archive.open('rb') as uploaded:
+                        with self.assertRaisesRegex(ValueError, message):
+                            import_backup_archive(root, uploaded, version, 'importer')
+                    self.assertFalse((target / 'index.json').exists())
+                    self.assertEqual(set(read_backup_index(source)['backups']), {record['archive_id']})
