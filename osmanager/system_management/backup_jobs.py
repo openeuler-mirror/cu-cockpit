@@ -1,13 +1,15 @@
 """Persistent backup jobs and daily scheduling."""
 
+import json
 import os
 import re
 import secrets
+import stat
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .backup_center import (backup_lock, create_backup_archive, read_backup_index,
-                            write_backup_index)
+                            validate_backup_root, write_backup_index)
 
 
 def queue_backup(root, actor):
@@ -105,3 +107,20 @@ def _validate_schedule(schedule):
             datetime.strptime(slot, '%Y-%m-%d')
         except ValueError as error:
             raise ValueError('Invalid backup schedule slot') from error
+
+
+def read_backup_schedule(root):
+    validate_backup_root(root)
+    if not os.path.lexists(root / 'schedule.json'):
+        return {'enabled': False, 'time': '02:00', 'timezone': 'UTC',
+                'last_slot': None, 'next_run': None}
+    descriptor = os.open(root / 'schedule.json', os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(descriptor, 'r', encoding='utf-8') as schedule_file:
+        details = os.fstat(schedule_file.fileno())
+        if not stat.S_ISREG(details.st_mode) or details.st_mode & 0o077:
+            raise PermissionError('Backup schedule must be a private regular file')
+        if details.st_size > 4096:
+            raise ValueError('Backup schedule exceeds size limit')
+        schedule = json.load(schedule_file)
+    _validate_schedule(schedule)
+    return {**schedule, 'next_run': None}
