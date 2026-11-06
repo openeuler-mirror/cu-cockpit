@@ -1,4 +1,5 @@
 import json
+import os
 import sqlite3
 import tempfile
 import unittest
@@ -300,3 +301,27 @@ class BackupArchiveTest(unittest.TestCase):
                         import_backup_archive(root, uploaded, '1.0', 'importer')
             self.assertFalse((root / 'index.json').exists())
             self.assertFalse(any(path.name.startswith('.import-') for path in root.iterdir()))
+
+
+class RestoreConfirmedTest(unittest.TestCase):
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.root = Path(directory.name).resolve()
+        initialize_installation(self.root, '1.0')
+        self.database = self.root / 'app.sqlite3'
+        with closing(sqlite3.connect(self.database)) as connection:
+            connection.execute('CREATE TABLE data (value TEXT)')
+            connection.execute('INSERT INTO data VALUES (?)', ('old',))
+            connection.commit()
+        self.config = self.root / 'service.conf'
+        self.config.write_bytes(b'old config')
+        self.archive = create_backup_archive(
+            self.root, self.database, {'service': self.config}, '1.0', 'tester')
+        with closing(sqlite3.connect(self.database)) as connection:
+            connection.execute('UPDATE data SET value = ?', ('new',))
+            connection.commit()
+        self.config.write_bytes(b'new config')
+        environment = patch.dict(os.environ, {'BACKUP_RESTORE_SERVICES': 'cu-cockpit.service'})
+        environment.start()
+        self.addCleanup(environment.stop)
