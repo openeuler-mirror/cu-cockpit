@@ -112,6 +112,19 @@ def read_backup_index(root: Path) -> dict:
         return json.load(index_file)
 
 
+def encode_backup_index(index: dict) -> bytes:
+    if not isinstance(index, dict) or set(index) != {'tasks', 'backups'}:
+        raise ValueError('Backup index requires task and backup mappings')
+    for entries in index.values():
+        if not isinstance(entries, dict) or len(entries) > 256 or not all(
+                isinstance(key, str) for key in entries):
+            raise ValueError('Backup index has invalid or excessive entries')
+    payload = json.dumps(index, allow_nan=False).encode('utf-8')
+    if len(payload) > 1048576:
+        raise ValueError('Backup index exceeds the size limit')
+    return payload
+
+
 def backup_sqlite(source: Path, destination: Path) -> None:
     with closing(sqlite3.connect(f'{source.as_uri()}?mode=ro', uri=True)) as origin:
         with closing(sqlite3.connect(destination)) as snapshot:
