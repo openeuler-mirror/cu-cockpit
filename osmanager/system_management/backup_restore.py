@@ -177,3 +177,14 @@ def _validate_restore_database(current: Path, candidate: Path) -> bool:
             return restored.execute(
                 "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='django_session'"
             ).fetchone()[0] == 1
+
+
+def _clear_restored_sessions(candidate: Path) -> None:
+    with closing(sqlite3.connect(candidate)) as database:
+        columns = {row[1] for row in database.execute('PRAGMA table_info(django_session)')}
+        if not {'session_key', 'session_data', 'expire_date'} <= columns:
+            raise ValueError('Invalid Django session schema')
+        with database:
+            database.execute('DELETE FROM django_session')
+    if not verify_sqlite(candidate):
+        raise ValueError('Restored database failed integrity check after session cleanup')
