@@ -342,3 +342,13 @@ class RestoreConfirmedTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'confirmation rejected'):
             confirm_restore(self.root, preview['task_id'], 'wrong-token', 'tester')
         self.assertEqual(read_backup_index(self.root), original)
+
+    def test_consumed_confirmation_token_cannot_be_replayed(self):
+        preview = preflight_restore(self.root, self.archive['archive_id'], self.database,
+                                    {'service': self.config}, '1.0', 'tester',
+                                    ['cu-cockpit.service'])
+        confirm_restore(self.root, preview['task_id'], preview['token'], 'tester')
+        original = read_backup_index(self.root)
+        with self.assertRaisesRegex(ValueError, 'confirmation rejected'):
+            confirm_restore(self.root, preview['task_id'], preview['token'], 'tester')
+        self.assertEqual(read_backup_index(self.root), original)
