@@ -22,3 +22,11 @@ def queue_backup(root, actor):
         index['tasks'][task_id] = task
         write_backup_index(root, index, locked=True)
         return task.copy()
+
+
+def get_backup_task(root, task_id):
+    if not isinstance(task_id, str) or not re.fullmatch(r'[0-9a-f]{32}', task_id):
+        raise ValueError('Invalid backup task ID')
+    index = read_backup_index(root) if os.path.lexists(root / 'index.json') else {
+        'tasks': {}, 'backups': {}}
+    return index['tasks'].get(task_id)
