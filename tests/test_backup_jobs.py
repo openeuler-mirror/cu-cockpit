@@ -113,3 +113,14 @@ class BackupJobsTest(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, 'Invalid backup schedule settings'):
                         save_backup_schedule(root, True, value)
             self.assertFalse((root / 'schedule.json').exists())
+
+    def test_non_boolean_schedule_enabled_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initialize_installation(root, '1.0')
+
+            for value in (1, 'true', None):
+                with self.subTest(value=value):
+                    with self.assertRaisesRegex(ValueError, 'Invalid backup schedule settings'):
+                        save_backup_schedule(root, value, '02:00')
+            self.assertFalse((root / 'schedule.json').exists())
