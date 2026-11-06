@@ -21,6 +21,10 @@ from .backup_center import (MAX_ARCHIVE_BYTES, MAX_CONFIG_BYTES, MAX_CONFIG_TARG
                             write_backup_index)
 
 
+class _ManualRecoveryRequired(RuntimeError):
+    pass
+
+
 def _restore_targets(db_path: Path, configs: dict) -> dict:
     if not isinstance(configs, dict) or len(configs) > MAX_CONFIG_TARGETS:
         raise ValueError('Invalid restore configuration registry')
