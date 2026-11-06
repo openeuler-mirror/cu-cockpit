@@ -43,6 +43,29 @@ class BackupIdentityTest(unittest.TestCase):
             self.assertEqual(initialize_installation(root, '1.0'), identity)
             self.assertEqual(len(identity['hmac_key']), 64)
 
+    def test_explicit_version_update_preserves_identity_and_rejects_old_archive(self):
+        from osmanager.system_management.backup_center import (
+            read_installation, update_installation_version,
+        )
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            identity = initialize_installation(root, '1.0')
+            database = root / 'source.sqlite3'
+            with closing(sqlite3.connect(database)) as connection:
+                connection.execute('CREATE TABLE data (value INTEGER)')
+                connection.commit()
+            record = create_backup_archive(root, database, {}, '1.0', 'creator')
+            with backup_lock(root):
+                updated = update_installation_version(root, '1.0', '2.0')
+            self.assertEqual(updated, {**identity, 'application_version': '2.0'})
+            self.assertEqual(read_installation(root, '2.0'), updated)
+            self.assertEqual((root / 'metadata.json').stat().st_mode & 0o777, 0o600)
+            with self.assertRaisesRegex(ValueError, 'another application version'):
+                read_installation(root, '1.0')
+            with self.assertRaisesRegex(ValueError, 'different format or installation'):
+                validate_backup_archive(root, root / f'{record["archive_id"]}.zip', '2.0')
+
 
 class BackupIndexTest(unittest.TestCase):
     def test_private_index_atomic_round_trip(self):
