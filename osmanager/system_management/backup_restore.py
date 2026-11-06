@@ -300,11 +300,23 @@ def _apply_confirmed_restore(root: Path, task: dict, targets: dict, version: str
     _set_restore_state(root, task['id'], 'running', safety_archive_id=safety_id)
     changed = []
     with _stage_restore(root, safety_id, targets, version, clear_sessions=False) as rollback:
-        with _stage_restore(root, task['archive_id'], targets, version) as staged:
-            _replace_targets(targets, staged, changed)
-            if not verify_sqlite(targets['app.sqlite3']):
-                raise RuntimeError('Restored database failed integrity check')
-        _resume_services(controller, active)
-        _set_restore_state(root, task['id'], 'completed',
-                           completed_at=datetime.now(timezone.utc).isoformat())
+        try:
+            with _stage_restore(root, task['archive_id'], targets, version) as staged:
+                _replace_targets(targets, staged, changed)
+                if not verify_sqlite(targets['app.sqlite3']):
+                    raise RuntimeError('Restored database failed integrity check')
+            _resume_services(controller, active)
+            _set_restore_state(root, task['id'], 'completed',
+                               completed_at=datetime.now(timezone.utc).isoformat())
+        except Exception as error:
+            try:
+                if changed:
+                    if any(controller.is_active(service) for service in task['services']):
+                        _pause_services(controller, task['services'])
+                    _rollback_restore_targets(targets, rollback, changed)
+            except Exception as rollback_error:
+                raise RuntimeError(
+                    f'Restore failed; manual rollback from {safety_id} required: '
+                    f'{rollback_error}') from error
+            raise
     return safety_id
