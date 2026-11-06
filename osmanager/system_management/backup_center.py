@@ -324,3 +324,36 @@ def _check_archive_members(package: zipfile.ZipFile) -> dict:
     if expanded > MAX_EXPANDED_BYTES:
         raise ValueError('Archive exceeds expanded size limit')
     return {entry.filename: entry for entry in entries}
+
+
+def _read_signed_manifest(package: zipfile.ZipFile, entries: dict, identity: dict) -> dict:
+    raw = package.read('manifest.json')
+    if len(raw) > 16384:
+        raise ValueError('Manifest exceeds size limit')
+    manifest = json.loads(raw)
+    required = {'format', 'application_version', 'installation_id',
+                'archive_id', 'members', 'signature'}
+    if not isinstance(manifest, dict) or set(manifest) != required:
+        raise ValueError('Invalid manifest fields')
+    if (type(manifest['format']) is not int or manifest['format'] != ARCHIVE_FORMAT or
+            manifest['application_version'] != identity['application_version'] or
+            manifest['installation_id'] != identity['installation_id']):
+        raise ValueError('Archive belongs to a different format or installation')
+    if not isinstance(manifest['archive_id'], str) or not re.fullmatch(
+            r'[0-9a-f]{32}', manifest['archive_id']):
+        raise ValueError('Invalid archive ID')
+    members = manifest['members']
+    if not isinstance(members, dict) or set(members) != set(entries) - {'manifest.json'}:
+        raise ValueError('Archive member list differs from manifest')
+    for name, metadata in members.items():
+        if (not isinstance(metadata, dict) or set(metadata) != {'size', 'sha256'} or
+                type(metadata['size']) is not int or metadata['size'] != entries[name].file_size or
+                not isinstance(metadata['sha256'], str) or not re.fullmatch(
+                    r'[0-9a-f]{64}', metadata['sha256'])):
+            raise ValueError('Invalid archive member metadata')
+    signature = manifest['signature']
+    unsigned = {key: value for key, value in manifest.items() if key != 'signature'}
+    if not isinstance(signature, str) or not hmac.compare_digest(
+            signature, _backup_signature(unsigned, identity['hmac_key'])):
+        raise ValueError('Invalid archive signature')
+    return manifest
