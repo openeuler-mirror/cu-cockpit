@@ -23,6 +23,16 @@ def validate_backup_root(root: Path) -> None:
             raise PermissionError('Backup root must be private')
 
 
+def initialize_backup_root(root: Path) -> Path:
+    validate_backup_root(root)
+    for path in reversed((root, *root.parents)):
+        if not path.exists():
+            path.mkdir(mode=0o700)
+            validate_backup_root(root)
+    validate_backup_root(root)
+    return root
+
+
 def backup_sqlite(source: Path, destination: Path) -> None:
     with closing(sqlite3.connect(f'{source.as_uri()}?mode=ro', uri=True)) as origin:
         with closing(sqlite3.connect(destination)) as snapshot:
