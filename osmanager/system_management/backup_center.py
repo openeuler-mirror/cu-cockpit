@@ -237,13 +237,14 @@ def _write_backup_archive(archive: Path, snapshot: Path, configs: dict,
         raise ValueError('Archive exceeds size limit')
 
 
-def _publish_backup_archive(root: Path, staged: Path, manifest: dict, actor: str) -> dict:
+def _publish_backup_archive(root: Path, staged: Path, manifest: dict, actor: str,
+                            *, locked: bool = False) -> dict:
     archive_id = manifest['archive_id']
     destination = root / f'{archive_id}.zip'
     record = {'archive_id': archive_id, 'application_version': manifest['application_version'],
               'installation_id': manifest['installation_id'], 'actor': actor,
               'size': staged.stat().st_size}
-    with backup_lock(root):
+    with nullcontext() if locked else backup_lock(root):
         index = read_backup_index(root) if os.path.lexists(root / 'index.json') else {
             'tasks': {}, 'backups': {}}
         if len(index['backups']) >= 256 or archive_id in index['backups']:
