@@ -8,12 +8,15 @@ import re
 import secrets
 import sqlite3
 import stat
-from contextlib import closing
+import tempfile
+import zipfile
+from contextlib import ExitStack, closing, contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from .backup_center import (MAX_ARCHIVE_BYTES, MAX_CONFIG_TARGETS, read_backup_index,
-                            backup_lock, validate_backup_archive, verify_sqlite,
+from .backup_center import (MAX_ARCHIVE_BYTES, MAX_CONFIG_BYTES, MAX_CONFIG_TARGETS,
+                            MAX_DATABASE_BYTES, _hash_backup_stream, backup_lock,
+                            read_backup_index, validate_backup_archive, verify_sqlite,
                             write_backup_index)
 
 
@@ -188,3 +191,39 @@ def _clear_restored_sessions(candidate: Path) -> None:
             database.execute('DELETE FROM django_session')
     if not verify_sqlite(candidate):
         raise ValueError('Restored database failed integrity check after session cleanup')
+
+
+@contextmanager
+def _stage_restore(root: Path, archive_id: str, targets: dict, version: str):
+    manifest, _ = _registered_archive(root, archive_id, version)
+    if set(manifest['members']) != set(targets):
+        raise ValueError('Restore target list differs from archive')
+    with ExitStack() as staging:
+        staged = {}
+        descriptor = os.open(root / f'{archive_id}.zip', os.O_RDONLY | os.O_NOFOLLOW)
+        with os.fdopen(descriptor, 'rb') as archive, zipfile.ZipFile(archive) as package:
+            for name, target in targets.items():
+                original = target.lstat()
+                if not stat.S_ISREG(original.st_mode) or original.st_nlink != 1:
+                    raise ValueError('Restore target changed type')
+                with tempfile.NamedTemporaryFile(dir=target.parent, prefix='.restore-',
+                                                 delete=False) as output:
+                    temporary = Path(output.name)
+                    staging.callback(temporary.unlink, missing_ok=True)
+                    os.fchmod(output.fileno(), stat.S_IMODE(original.st_mode))
+                    if (os.fstat(output.fileno()).st_uid, os.fstat(output.fileno()).st_gid) != (
+                            original.st_uid, original.st_gid):
+                        os.fchown(output.fileno(), original.st_uid, original.st_gid)
+                    with package.open(name) as source:
+                        limit = MAX_DATABASE_BYTES if name == 'app.sqlite3' else MAX_CONFIG_BYTES
+                        size, digest = _hash_backup_stream(source, limit, output)
+                    if (size != manifest['members'][name]['size'] or
+                            not hmac.compare_digest(digest, manifest['members'][name]['sha256'])):
+                        raise ValueError('Restore member hash or size mismatch')
+                    output.flush()
+                    os.fsync(output.fileno())
+                staged[name] = temporary
+        has_sessions = _validate_restore_database(targets['app.sqlite3'], staged['app.sqlite3'])
+        if has_sessions:
+            _clear_restored_sessions(staged['app.sqlite3'])
+        yield staged
