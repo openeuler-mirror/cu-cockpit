@@ -100,6 +100,11 @@ def read_installation(root: Path, application_version: str) -> dict:
         return identity
 
 
+def _check_installation_version(version: str) -> None:
+    if not isinstance(version, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._+-]{0,127}', version):
+        raise ValueError('Invalid installation version')
+
+
 @contextmanager
 def backup_lock(root: Path):
     validate_backup_root(root)
