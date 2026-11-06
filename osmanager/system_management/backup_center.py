@@ -168,3 +168,24 @@ def verify_sqlite(path: Path) -> bool:
             return database.execute('PRAGMA integrity_check').fetchone() == ('ok',)
     except sqlite3.DatabaseError:
         return False
+
+
+def _read_backup_config(path: Path) -> bytes:
+    if not isinstance(path, Path) or not path.is_absolute() or '..' in path.parts:
+        raise ValueError('Configuration path must be absolute')
+    for parent in path.parents:
+        details = parent.lstat()
+        if not stat.S_ISDIR(details.st_mode) or (
+                details.st_mode & 0o022 and not details.st_mode & stat.S_ISVTX):
+            raise ValueError('Configuration parent is unsafe')
+    descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(descriptor, 'rb') as config_file:
+        details = os.fstat(config_file.fileno())
+        if not stat.S_ISREG(details.st_mode) or details.st_nlink != 1:
+            raise ValueError('Configuration must be an unlinked regular file')
+        if details.st_size > MAX_CONFIG_BYTES:
+            raise ValueError('Configuration exceeds size limit')
+        content = config_file.read(MAX_CONFIG_BYTES + 1)
+        if len(content) > MAX_CONFIG_BYTES:
+            raise ValueError('Configuration exceeds size limit')
+        return content
