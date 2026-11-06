@@ -338,6 +338,15 @@ class RestoreConfirmedTest(unittest.TestCase):
         confirm_restore(self.root, preview['task_id'], preview['token'], 'tester')
         return preview['task_id']
 
+    def _write_uncheckpointed_wal(self, value):
+        connection = sqlite3.connect(self.database)
+        self.addCleanup(connection.close)
+        connection.execute('PRAGMA journal_mode=WAL')
+        connection.execute('UPDATE data SET value = ?', (value,))
+        connection.commit()
+        self.assertTrue(Path(str(self.database) + '-wal').is_file())
+        self.assertTrue(Path(str(self.database) + '-shm').is_file())
+
     def test_confirmed_restore_preserves_new_state_in_safety_archive(self):
         task_id = self._confirmed_task()
         result = restore_confirmed(self.root, task_id, self.database,
