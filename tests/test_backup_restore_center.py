@@ -14,7 +14,9 @@ from osmanager.system_management.backup_center import (
     initialize_installation, read_backup_index, validate_backup_archive, verify_sqlite,
     write_backup_index,
 )
-from osmanager.system_management.backup_restore import confirm_restore, preflight_restore
+from osmanager.system_management.backup_restore import (
+    confirm_restore, preflight_restore, restore_confirmed,
+)
 
 
 class SqliteBackupTest(unittest.TestCase):
@@ -335,6 +337,30 @@ class RestoreConfirmedTest(unittest.TestCase):
                                     ['cu-cockpit.service'])
         confirm_restore(self.root, preview['task_id'], preview['token'], 'tester')
         return preview['task_id']
+
+    def test_confirmed_restore_preserves_new_state_in_safety_archive(self):
+        task_id = self._confirmed_task()
+        result = restore_confirmed(self.root, task_id, self.database,
+                                   {'service': self.config}, '1.0', self.controller)
+
+        self.assertEqual(result['status'], 'completed')
+        task = read_backup_index(self.root)['tasks'][task_id]
+        self.assertEqual(task['status'], 'completed')
+        self.assertEqual(task['safety_archive_id'], result['safety_archive_id'])
+        with closing(sqlite3.connect(self.database)) as connection:
+            self.assertEqual(connection.execute('SELECT value FROM data').fetchone(), ('old',))
+        self.assertEqual(self.config.read_bytes(), b'old config')
+        safety_archive = self.root / f"{result['safety_archive_id']}.zip"
+        self.assertEqual(validate_backup_archive(self.root, safety_archive, '1.0')[
+            'archive_id'], result['safety_archive_id'])
+        snapshot = (self.root / 'safety.sqlite3').resolve()
+        with zipfile.ZipFile(safety_archive) as package:
+            snapshot.write_bytes(package.read('app.sqlite3'))
+            self.assertEqual(package.read('configs/service.bin'), b'new config')
+        with closing(sqlite3.connect(snapshot)) as connection:
+            self.assertEqual(connection.execute('SELECT value FROM data').fetchone(), ('new',))
+        self.controller.stop.assert_called_once_with('cu-cockpit.service')
+        self.controller.start.assert_called_once_with('cu-cockpit.service')
 
     def test_wrong_token_preserves_task_state(self):
         preview = preflight_restore(self.root, self.archive['archive_id'], self.database,
