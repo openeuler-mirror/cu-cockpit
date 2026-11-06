@@ -53,3 +53,17 @@ def _registered_archive(root: Path, archive_id: str, version: str) -> tuple:
         for chunk in iter(lambda: archive.read(1024 * 1024), b''):
             digest.update(chunk)
     return manifest, digest.hexdigest()
+
+
+def _restore_services(services) -> list:
+    allowed = {'cu-cockpit.service', 'cu-cockpit-metrics.service',
+               'cu-cockpit-metrics.timer', 'cu-cockpit-inspection.service',
+               'cu-cockpit-inspection.timer'}
+    configured = set(filter(None, os.environ.get('BACKUP_RESTORE_SERVICES', '').split(',')))
+    if not configured or not configured <= allowed:
+        raise ValueError('Restore services are not safely configured')
+    if (not isinstance(services, (list, tuple)) or not services or
+            len(services) != len(set(services)) or set(services) != configured or
+            not all(isinstance(service, str) for service in services)):
+        raise ValueError('Restore services must match the local registry')
+    return sorted(configured)
