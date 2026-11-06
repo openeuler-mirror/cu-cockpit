@@ -1,6 +1,9 @@
+import json
 import os
+import secrets
 import sqlite3
 import stat
+import tempfile
 from contextlib import closing
 from pathlib import Path
 
@@ -31,6 +34,23 @@ def initialize_backup_root(root: Path) -> Path:
             validate_backup_root(root)
     validate_backup_root(root)
     return root
+
+
+def initialize_installation(root: Path, application_version: str) -> dict:
+    validate_backup_root(root)
+    identity = {
+        'installation_id': secrets.token_hex(16),
+        'hmac_key': secrets.token_hex(32),
+        'application_version': application_version,
+    }
+    with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=root,
+                                     prefix='.metadata-', delete=True) as temporary:
+        os.chmod(temporary.name, 0o600)
+        json.dump(identity, temporary)
+        temporary.flush()
+        os.fsync(temporary.fileno())
+        os.link(temporary.name, root / 'metadata.json', follow_symlinks=False)
+    return identity
 
 
 def backup_sqlite(source: Path, destination: Path) -> None:
