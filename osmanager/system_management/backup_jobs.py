@@ -1,5 +1,6 @@
 """Persistent backup jobs and daily scheduling."""
 
+import hashlib
 import json
 import os
 import re
@@ -158,3 +159,36 @@ def save_backup_schedule(root, enabled, time, timezone_name='UTC'):
                     'last_slot': previous['last_slot']}
         write_backup_schedule(root, schedule, locked=True)
         return read_backup_schedule(root)
+
+
+def queue_due_backup(root, now=None):
+    with backup_lock(root):
+        schedule = read_backup_schedule(root)
+        if not schedule['enabled']:
+            return None
+        instant = now if now is not None else datetime.now(timezone.utc)
+        if not isinstance(instant, datetime) or instant.tzinfo is None or (
+                instant.utcoffset() is None):
+            raise ValueError('Backup schedule requires an aware datetime')
+        local = instant.astimezone(ZoneInfo(schedule['timezone']))
+        slot = local.date().isoformat()
+        if schedule['last_slot'] == slot or local.strftime('%H:%M') < schedule['time']:
+            return None
+        task_id = hashlib.sha256(f'daily:{slot}'.encode('ascii')).hexdigest()[:32]
+        index = read_backup_index(root) if os.path.lexists(root / 'index.json') else {
+            'tasks': {}, 'backups': {}}
+        if task_id not in index['tasks']:
+            if len(index['tasks']) >= 256:
+                completed = next((key for key, task in index['tasks'].items()
+                                  if task['status'] in ('succeeded', 'failed')), None)
+                if completed is None:
+                    raise ValueError('Backup task history is full')
+                del index['tasks'][completed]
+            task = {'id': task_id, 'actor': 'daily-schedule', 'status': 'queued',
+                    'created_at': instant.astimezone(timezone.utc).isoformat()}
+            index['tasks'][task_id] = task
+            write_backup_index(root, index, locked=True)
+        schedule.pop('next_run')
+        schedule['last_slot'] = slot
+        write_backup_schedule(root, schedule, locked=True)
+        return index['tasks'][task_id].copy()
