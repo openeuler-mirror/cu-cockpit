@@ -16,6 +16,7 @@ from pathlib import Path
 
 from .backup_center import (MAX_ARCHIVE_BYTES, MAX_CONFIG_BYTES, MAX_CONFIG_TARGETS,
                             MAX_DATABASE_BYTES, _hash_backup_stream, backup_lock,
+                            create_backup_archive,
                             read_backup_index, validate_backup_archive, verify_sqlite,
                             write_backup_index)
 
@@ -287,3 +288,23 @@ def _rollback_restore_targets(targets: dict, safety_staged: dict, changed: list)
             os.close(descriptor)
     if 'app.sqlite3' in changed and not verify_sqlite(targets['app.sqlite3']):
         raise RuntimeError('Rolled back database failed integrity check')
+
+
+def _apply_confirmed_restore(root: Path, task: dict, targets: dict, version: str,
+                             controller, active: list) -> str:
+    configs = {name[len('configs/'):-len('.bin')]: path for name, path in targets.items()
+               if name != 'app.sqlite3'}
+    safety = create_backup_archive(root, targets['app.sqlite3'], configs, version,
+                                   f"restore-safety:{task['actor']}", locked=True)
+    safety_id = safety['archive_id']
+    _set_restore_state(root, task['id'], 'running', safety_archive_id=safety_id)
+    changed = []
+    with _stage_restore(root, safety_id, targets, version, clear_sessions=False) as rollback:
+        with _stage_restore(root, task['archive_id'], targets, version) as staged:
+            _replace_targets(targets, staged, changed)
+            if not verify_sqlite(targets['app.sqlite3']):
+                raise RuntimeError('Restored database failed integrity check')
+        _resume_services(controller, active)
+        _set_restore_state(root, task['id'], 'completed',
+                           completed_at=datetime.now(timezone.utc).isoformat())
+    return safety_id
