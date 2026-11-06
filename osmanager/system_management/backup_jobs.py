@@ -16,7 +16,11 @@ def queue_backup(root, actor):
         index = read_backup_index(root) if os.path.lexists(root / 'index.json') else {
             'tasks': {}, 'backups': {}}
         if len(index['tasks']) >= 256:
-            raise ValueError('Backup task history is full')
+            completed = next((task_id for task_id, task in index['tasks'].items()
+                              if task['status'] in ('succeeded', 'failed')), None)
+            if completed is None:
+                raise ValueError('Backup task history is full')
+            del index['tasks'][completed]
         task_id = secrets.token_hex(16)
         task = {'id': task_id, 'actor': actor, 'status': 'queued',
                 'created_at': datetime.now(timezone.utc).isoformat()}
