@@ -100,6 +100,27 @@ def read_installation(root: Path, application_version: str) -> dict:
         return identity
 
 
+def update_installation_version(root: Path, current_version: str, new_version: str) -> dict:
+    _check_installation_version(current_version)
+    _check_installation_version(new_version)
+    identity = read_installation(root, current_version)
+    updated = {**identity, 'application_version': new_version}
+    with tempfile.TemporaryDirectory(dir=root, prefix='.metadata-') as staging:
+        temporary = Path(staging) / 'metadata.json'
+        descriptor = os.open(temporary, os.O_CREAT | os.O_EXCL | os.O_WRONLY | os.O_NOFOLLOW, 0o600)
+        with os.fdopen(descriptor, 'w', encoding='utf-8') as metadata:
+            json.dump(updated, metadata)
+            metadata.flush()
+            os.fsync(metadata.fileno())
+        os.replace(temporary, root / 'metadata.json')
+        directory_fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
+    return updated
+
+
 def _check_installation_version(version: str) -> None:
     if not isinstance(version, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._+-]{0,127}', version):
         raise ValueError('Invalid installation version')
