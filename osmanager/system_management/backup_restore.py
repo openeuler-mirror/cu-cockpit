@@ -297,6 +297,8 @@ def _clear_sqlite_sidecars(db_path: Path) -> None:
 def _rollback_restore_targets(targets: dict, safety_staged: dict, changed: list) -> None:
     for name in reversed(changed):
         target = targets[name]
+        if name == 'app.sqlite3':
+            _clear_sqlite_sidecars(target)
         os.replace(safety_staged[name], target)
         descriptor = os.open(target.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
         try:
