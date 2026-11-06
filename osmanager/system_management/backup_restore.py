@@ -261,3 +261,9 @@ def _check_restore_task(root: Path, task_id: str, targets: dict, version: str) -
     if digest != task['archive_hash'] or set(manifest['members']) != set(targets):
         raise ValueError('Confirmed restore archive or targets have changed')
     return task
+
+
+def _set_restore_state(root: Path, task_id: str, status: str, **details) -> None:
+    index = read_backup_index(root)
+    index['tasks'][task_id].update(status=status, **details)
+    write_backup_index(root, index, locked=True)
