@@ -51,7 +51,10 @@ def initialize_installation(root: Path, application_version: str) -> dict:
         json.dump(identity, temporary)
         temporary.flush()
         os.fsync(temporary.fileno())
-        os.link(temporary.name, root / 'metadata.json', follow_symlinks=False)
+        try:
+            os.link(temporary.name, root / 'metadata.json', follow_symlinks=False)
+        except FileExistsError:
+            return read_installation(root, application_version)
     return identity
 
 
