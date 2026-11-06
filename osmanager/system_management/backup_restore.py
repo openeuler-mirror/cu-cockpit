@@ -227,3 +227,20 @@ def _stage_restore(root: Path, archive_id: str, targets: dict, version: str):
         if has_sessions:
             _clear_restored_sessions(staged['app.sqlite3'])
         yield staged
+
+
+def _replace_targets(targets: dict, staged: dict, changed: list) -> None:
+    configs = {name[len('configs/'):-len('.bin')]: path for name, path in targets.items()
+               if name != 'app.sqlite3'}
+    for name, target in targets.items():
+        _restore_targets(targets['app.sqlite3'], configs)
+        temporary = staged[name]
+        if temporary.parent != target.parent or not stat.S_ISREG(temporary.lstat().st_mode):
+            raise ValueError('Restore staging file is unsafe')
+        os.replace(temporary, target)
+        changed.append(name)
+        descriptor = os.open(target.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
