@@ -8,7 +8,7 @@ import sqlite3
 import stat
 import tempfile
 import zipfile
-from contextlib import closing, contextmanager
+from contextlib import closing, contextmanager, nullcontext
 from pathlib import Path
 
 
@@ -139,9 +139,9 @@ def encode_backup_index(index: dict) -> bytes:
     return payload
 
 
-def write_backup_index(root: Path, index: dict) -> None:
+def write_backup_index(root: Path, index: dict, *, locked: bool = False) -> None:
     payload = encode_backup_index(index)
-    with backup_lock(root):
+    with nullcontext() if locked else backup_lock(root):
         if os.path.lexists(root / 'index.json'):
             read_backup_index(root)
         with tempfile.TemporaryDirectory(dir=root, prefix='.index-') as staging:
