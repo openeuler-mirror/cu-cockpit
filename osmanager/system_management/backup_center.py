@@ -109,7 +109,9 @@ def read_backup_index(root: Path) -> dict:
             raise PermissionError('Backup index must be a private regular file')
         if details.st_size > 1048576:
             raise ValueError('Backup index exceeds the size limit')
-        return json.load(index_file)
+        index = json.load(index_file)
+        encode_backup_index(index)
+        return index
 
 
 def encode_backup_index(index: dict) -> bytes:
