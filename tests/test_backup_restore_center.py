@@ -411,6 +411,34 @@ class RestoreConfirmedTest(unittest.TestCase):
         self.controller.stop.assert_called_once_with('cu-cockpit.service')
         self.controller.start.assert_called_once_with('cu-cockpit.service')
 
+    def test_worker_wal_does_not_mask_rolled_back_database(self):
+        with closing(sqlite3.connect(self.database)) as connection:
+            connection.execute('UPDATE data SET value = ?', ('safe-current',))
+            connection.commit()
+        task_id = self._confirmed_task()
+        self.controller.is_active.side_effect = [True, False, False, True]
+        starts = []
+
+        def start_service(service):
+            starts.append(service)
+            if len(starts) == 1:
+                self._write_uncheckpointed_wal('restored-worker-write')
+                raise OSError('another service failed to start')
+
+        self.controller.start.side_effect = start_service
+        result = restore_confirmed(self.root, task_id, self.database,
+                                   {'service': self.config}, '1.0', self.controller)
+
+        self.assertEqual(result['status'], 'failed')
+        self.assertEqual(len(starts), 2)
+        self.assertEqual(read_backup_index(self.root)['tasks'][task_id]['status'], 'failed')
+        with closing(sqlite3.connect(self.database)) as connection:
+            self.assertEqual(connection.execute('SELECT value FROM data').fetchone(),
+                             ('safe-current',))
+            self.assertEqual(connection.execute('PRAGMA integrity_check').fetchone(), ('ok',))
+        self.assertFalse(Path(str(self.database) + '-wal').exists())
+        self.assertFalse(Path(str(self.database) + '-shm').exists())
+
     def test_wrong_token_preserves_task_state(self):
         preview = preflight_restore(self.root, self.archive['archive_id'], self.database,
                                     {'service': self.config}, '1.0', 'tester',
