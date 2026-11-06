@@ -149,3 +149,12 @@ def write_backup_schedule(root, schedule, *, locked=False):
                 os.fsync(directory_fd)
             finally:
                 os.close(directory_fd)
+
+
+def save_backup_schedule(root, enabled, time, timezone_name='UTC'):
+    with backup_lock(root):
+        previous = read_backup_schedule(root)
+        schedule = {'enabled': enabled, 'time': time, 'timezone': timezone_name,
+                    'last_slot': previous['last_slot']}
+        write_backup_schedule(root, schedule, locked=True)
+        return read_backup_schedule(root)
