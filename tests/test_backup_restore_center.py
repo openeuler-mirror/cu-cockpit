@@ -1,12 +1,13 @@
 import sqlite3
 import tempfile
 import unittest
+import zipfile
 from contextlib import closing
 from pathlib import Path
 
 from osmanager.system_management.backup_center import (
-    backup_lock, backup_sqlite, initialize_installation, read_backup_index, verify_sqlite,
-    write_backup_index,
+    backup_lock, backup_sqlite, create_backup_archive, initialize_installation,
+    read_backup_index, validate_backup_archive, verify_sqlite, write_backup_index,
 )
 
 
@@ -63,3 +64,25 @@ class BackupIndexTest(unittest.TestCase):
                     write_backup_index(root, updated)
                 self.assertEqual(read_backup_index(root), initial)
             self.assertEqual(read_backup_index(root), initial)
+
+
+class BackupArchiveTest(unittest.TestCase):
+    def test_signed_archive_contains_sqlite_and_config(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initialize_installation(root, '1.0')
+            database = root / 'source.sqlite3'
+            with closing(sqlite3.connect(database)) as connection:
+                connection.execute('CREATE TABLE data (value TEXT)')
+                connection.execute('INSERT INTO data VALUES (?)', ('saved',))
+                connection.commit()
+            config = root / 'service.conf'
+            config.write_bytes(b'enabled=true\n')
+            record = create_backup_archive(root, database, {'service': config}, '1.0', 'creator')
+            archive = root / f'{record["archive_id"]}.zip'
+            manifest = validate_backup_archive(root, archive, '1.0')
+            self.assertEqual(set(manifest['members']), {'app.sqlite3', 'configs/service.bin'})
+            self.assertEqual(manifest['archive_id'], record['archive_id'])
+            with zipfile.ZipFile(archive) as package:
+                self.assertEqual(package.read('configs/service.bin'), b'enabled=true\n')
+                self.assertEqual(package.read('app.sqlite3')[:16], b'SQLite format 3\x00')
