@@ -340,7 +340,7 @@ def _apply_confirmed_restore(root: Path, task: dict, targets: dict, version: str
                         _pause_services(controller, task['services'])
                     _rollback_restore_targets(targets, rollback, changed)
             except Exception as rollback_error:
-                raise RuntimeError(
+                raise _ManualRecoveryRequired(
                     f'Restore failed; manual rollback from {safety_id} required: '
                     f'{rollback_error}') from error
             raise
