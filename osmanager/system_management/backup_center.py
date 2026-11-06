@@ -1,10 +1,11 @@
+import fcntl
 import json
 import os
 import secrets
 import sqlite3
 import stat
 import tempfile
-from contextlib import closing
+from contextlib import closing, contextmanager
 from pathlib import Path
 
 
@@ -84,6 +85,19 @@ def read_installation(root: Path, application_version: str) -> dict:
         if identity['application_version'] != application_version:
             raise ValueError('Installation metadata belongs to another application version')
         return identity
+
+
+@contextmanager
+def backup_lock(root: Path):
+    validate_backup_root(root)
+    descriptor = os.open(root / '.backup.lock', os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW |
+                         os.O_NONBLOCK, 0o600)
+    with os.fdopen(descriptor, 'r+b') as lockfile:
+        details = os.fstat(lockfile.fileno())
+        if not stat.S_ISREG(details.st_mode) or details.st_mode & 0o077:
+            raise PermissionError('Backup lock must be a private regular file')
+        fcntl.flock(lockfile, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        yield
 
 
 def backup_sqlite(source: Path, destination: Path) -> None:
