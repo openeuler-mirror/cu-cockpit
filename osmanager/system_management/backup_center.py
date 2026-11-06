@@ -9,6 +9,15 @@ from contextlib import closing, contextmanager
 from pathlib import Path
 
 
+ARCHIVE_FORMAT = 1
+MAX_CONFIG_TARGETS = 4
+MAX_CONFIG_BYTES = 1024 * 1024
+MAX_DATABASE_BYTES = 128 * 1024 * 1024
+MAX_ARCHIVE_BYTES = 256 * 1024 * 1024
+MAX_EXPANDED_BYTES = 256 * 1024 * 1024
+MAX_COMPRESSION_RATIO = 100
+
+
 def backup_root(base_dir: Path) -> Path:
     return Path(os.environ.get('BACKUP_ROOT') or base_dir / 'var' / 'backups')
 
