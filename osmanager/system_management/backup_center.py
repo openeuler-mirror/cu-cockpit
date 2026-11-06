@@ -53,7 +53,7 @@ def initialize_installation(root: Path, application_version: str) -> dict:
     return identity
 
 
-def read_installation(root: Path) -> dict:
+def read_installation(root: Path, application_version: str) -> dict:
     validate_backup_root(root)
     descriptor = os.open(root / 'metadata.json', os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
     with os.fdopen(descriptor, 'r', encoding='utf-8') as metadata:
@@ -76,6 +76,8 @@ def read_installation(root: Path) -> dict:
                 raise ValueError('Installation metadata has invalid identity') from error
         if not isinstance(identity['application_version'], str) or not identity['application_version']:
             raise ValueError('Installation metadata has invalid version')
+        if identity['application_version'] != application_version:
+            raise ValueError('Installation metadata belongs to another application version')
         return identity
 
 
