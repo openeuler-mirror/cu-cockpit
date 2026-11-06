@@ -84,6 +84,7 @@ def run_pending(root, db_path, configs, version):
         task = index['tasks'][task['id']]
         task['status'] = 'succeeded'
         task['archive_id'] = record['archive_id']
+        task['result'] = record
         task['finished_at'] = datetime.now(timezone.utc).isoformat()
         write_backup_index(root, index, locked=True)
         return task.copy()
