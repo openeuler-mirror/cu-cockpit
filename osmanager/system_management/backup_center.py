@@ -62,7 +62,21 @@ def read_installation(root: Path) -> dict:
             raise PermissionError('Installation metadata must be a private regular file')
         if details.st_size > 4096:
             raise ValueError('Installation metadata exceeds the size limit')
-        return json.load(metadata)
+        identity = json.load(metadata)
+        if not isinstance(identity, dict) or set(identity) != {
+                'installation_id', 'hmac_key', 'application_version'}:
+            raise ValueError('Installation metadata has invalid fields')
+        for field, size in (('installation_id', 16), ('hmac_key', 32)):
+            value = identity[field]
+            if not isinstance(value, str) or len(value) != size * 2:
+                raise ValueError('Installation metadata has invalid identity')
+            try:
+                bytes.fromhex(value)
+            except ValueError as error:
+                raise ValueError('Installation metadata has invalid identity') from error
+        if not isinstance(identity['application_version'], str) or not identity['application_version']:
+            raise ValueError('Installation metadata has invalid version')
+        return identity
 
 
 def backup_sqlite(source: Path, destination: Path) -> None:
