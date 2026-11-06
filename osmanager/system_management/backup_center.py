@@ -217,7 +217,7 @@ def _backup_signature(manifest: dict, key: str) -> str:
 def _write_backup_archive(archive: Path, snapshot: Path, configs: dict,
                           manifest: dict, key: str) -> None:
     members = {}
-    with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_DEFLATED) as package:
+    with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_STORED) as package:
         for name, path in [('app.sqlite3', snapshot), *[
                 (f'configs/{name}.bin', value) for name, value in sorted(configs.items())]]:
             if name == 'app.sqlite3':
