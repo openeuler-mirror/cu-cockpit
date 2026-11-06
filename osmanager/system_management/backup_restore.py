@@ -277,6 +277,23 @@ def _checkpoint_restore_database(db_path: Path) -> None:
             raise RuntimeError('Restore database has active WAL writers')
 
 
+def _clear_sqlite_sidecars(db_path: Path) -> None:
+    descriptor = os.open(db_path.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        for suffix in ('-wal', '-shm'):
+            name = db_path.name + suffix
+            try:
+                details = os.stat(name, dir_fd=descriptor, follow_symlinks=False)
+            except FileNotFoundError:
+                continue
+            if not stat.S_ISREG(details.st_mode) or details.st_nlink != 1:
+                raise ValueError('Restore database sidecar is unsafe')
+            os.unlink(name, dir_fd=descriptor)
+        os.fsync(descriptor)
+    finally:
+        os.close(descriptor)
+
+
 def _rollback_restore_targets(targets: dict, safety_staged: dict, changed: list) -> None:
     for name in reversed(changed):
         target = targets[name]
