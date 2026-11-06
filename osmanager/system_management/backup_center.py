@@ -1,11 +1,26 @@
 import os
 import sqlite3
+import stat
 from contextlib import closing
 from pathlib import Path
 
 
 def backup_root(base_dir: Path) -> Path:
     return Path(os.environ.get('BACKUP_ROOT') or base_dir / 'var' / 'backups')
+
+
+def validate_backup_root(root: Path) -> None:
+    if not root.is_absolute() or '..' in root.parts:
+        raise ValueError('Backup root must be an absolute path without traversal')
+    for path in (root, *root.parents):
+        try:
+            details = path.lstat()
+        except FileNotFoundError:
+            continue
+        if not stat.S_ISDIR(details.st_mode):
+            raise ValueError('Backup root must not contain links or non-directories')
+        if path == root and details.st_mode & 0o077:
+            raise PermissionError('Backup root must be private')
 
 
 def backup_sqlite(source: Path, destination: Path) -> None:
