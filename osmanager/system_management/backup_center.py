@@ -357,3 +357,34 @@ def _read_signed_manifest(package: zipfile.ZipFile, entries: dict, identity: dic
             signature, _backup_signature(unsigned, identity['hmac_key'])):
         raise ValueError('Invalid archive signature')
     return manifest
+
+
+def validate_backup_archive(root: Path, archive_path: Path, version: str) -> dict:
+    identity = read_installation(root, version)
+    if not isinstance(archive_path, Path) or not archive_path.is_absolute():
+        raise ValueError('Archive path must be absolute')
+    descriptor = os.open(archive_path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(descriptor, 'rb') as archive_file:
+        details = os.fstat(archive_file.fileno())
+        if not stat.S_ISREG(details.st_mode) or details.st_size > MAX_ARCHIVE_BYTES:
+            raise ValueError('Archive is not a bounded regular file')
+        with zipfile.ZipFile(archive_file) as package:
+            entries = _check_archive_members(package)
+            manifest = _read_signed_manifest(package, entries, identity)
+            with tempfile.TemporaryDirectory(dir=root, prefix='.verify-') as staging:
+                snapshot = Path(staging) / 'app.sqlite3'
+                for name, metadata in manifest['members'].items():
+                    limit = MAX_DATABASE_BYTES if name == 'app.sqlite3' else MAX_CONFIG_BYTES
+                    with package.open(entries[name]) as source:
+                        if name == 'app.sqlite3':
+                            with snapshot.open('xb') as destination:
+                                size, digest = _hash_backup_stream(source, limit, destination)
+                        else:
+                            size, digest = _hash_backup_stream(source, limit)
+                    if size != metadata['size'] or not hmac.compare_digest(
+                            digest, metadata['sha256']):
+                        raise ValueError('Archive member hash or size mismatch')
+                with snapshot.open('rb') as database_file:
+                    if database_file.read(16) != b'SQLite format 3\x00' or not verify_sqlite(snapshot):
+                        raise ValueError('Archive database is damaged')
+            return manifest
