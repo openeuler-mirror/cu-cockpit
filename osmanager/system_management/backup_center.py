@@ -254,7 +254,14 @@ def _publish_backup_archive(root: Path, staged: Path, manifest: dict, actor: str
             index['backups'][archive_id] = record
             write_backup_index(root, index, locked=True)
         except Exception:
-            destination.unlink()
+            try:
+                published = read_backup_index(root)['backups'] if os.path.lexists(
+                    root / 'index.json') else {}
+            except Exception:
+                pass
+            else:
+                if archive_id not in published:
+                    destination.unlink()
             raise
     return record
 
