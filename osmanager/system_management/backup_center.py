@@ -388,3 +388,20 @@ def validate_backup_archive(root: Path, archive_path: Path, version: str) -> dic
                     if database_file.read(16) != b'SQLite format 3\x00' or not verify_sqlite(snapshot):
                         raise ValueError('Archive database is damaged')
             return manifest
+
+
+def import_backup_archive(root: Path, uploaded_file, version: str, actor: str) -> dict:
+    read_installation(root, version)
+    if not callable(getattr(uploaded_file, 'read', None)):
+        raise ValueError('Upload must be a readable file object')
+    if not isinstance(actor, str) or not actor or len(actor) > 128:
+        raise ValueError('Invalid backup actor')
+    with tempfile.TemporaryDirectory(dir=root, prefix='.import-') as staging:
+        staged = Path(staging) / 'upload.zip'
+        descriptor = os.open(staged, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+        with os.fdopen(descriptor, 'wb') as destination:
+            _hash_backup_stream(uploaded_file, MAX_ARCHIVE_BYTES, destination)
+            destination.flush()
+            os.fsync(destination.fileno())
+        manifest = validate_backup_archive(root, staged, version)
+        return _publish_backup_archive(root, staged, manifest, actor)
