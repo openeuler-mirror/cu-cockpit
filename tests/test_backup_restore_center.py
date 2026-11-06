@@ -362,6 +362,23 @@ class RestoreConfirmedTest(unittest.TestCase):
         self.controller.stop.assert_called_once_with('cu-cockpit.service')
         self.controller.start.assert_called_once_with('cu-cockpit.service')
 
+    def test_safety_backup_failure_preserves_targets_and_resumes_service(self):
+        task_id = self._confirmed_task()
+        database_bytes = self.database.read_bytes()
+        config_bytes = self.config.read_bytes()
+        with patch('osmanager.system_management.backup_restore.create_backup_archive',
+                   side_effect=OSError('safety backup failed')):
+            result = restore_confirmed(self.root, task_id, self.database,
+                                       {'service': self.config}, '1.0', self.controller)
+
+        self.assertEqual(result['status'], 'failed')
+        self.assertIn('safety backup failed', result['error'])
+        self.assertEqual(read_backup_index(self.root)['tasks'][task_id]['status'], 'failed')
+        self.assertEqual(self.database.read_bytes(), database_bytes)
+        self.assertEqual(self.config.read_bytes(), config_bytes)
+        self.controller.stop.assert_called_once_with('cu-cockpit.service')
+        self.controller.start.assert_called_once_with('cu-cockpit.service')
+
     def test_wrong_token_preserves_task_state(self):
         preview = preflight_restore(self.root, self.archive['archive_id'], self.database,
                                     {'service': self.config}, '1.0', 'tester',
