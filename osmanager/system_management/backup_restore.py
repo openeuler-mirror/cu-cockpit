@@ -326,11 +326,14 @@ def restore_confirmed(root: Path, task_id: str, db_path: Path, configs: dict,
                       version: str, controller) -> dict:
     targets = {name: Path(path) for name, path in _restore_targets(db_path, configs).items()}
     with backup_lock(root):
-        _check_restore_task(root, task_id, targets, version)
+        task = _check_restore_task(root, task_id, targets, version)
         _set_restore_state(root, task_id, 'running')
         active = []
         try:
-            raise RuntimeError('Restore execution is not yet available')
+            active = _pause_services(controller, task['services'])
+            _checkpoint_restore_database(db_path)
+            safety_id = _apply_confirmed_restore(root, task, targets, version, controller, active)
+            return {'id': task_id, 'status': 'completed', 'safety_archive_id': safety_id}
         except Exception as error:
             message = str(error)
             try:
