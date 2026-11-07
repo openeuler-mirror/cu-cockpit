@@ -86,5 +86,7 @@ def backup_create(request):
         if str(error) == 'Backup task history is full':
             return _error(409, 'Backup task history is full')
         return _error(503, 'Backup task index is unavailable')
+    except OSError:
+        return _error(503, 'Backup queue storage is unavailable')
     return JsonResponse({'task': {key: task[key] for key in (
         'id', 'kind', 'status', 'created_at')}}, status=202)
