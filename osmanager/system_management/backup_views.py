@@ -115,7 +115,10 @@ def backup_verify(request):
         archive_id = _verify_request(request)
     except (ValueError, UnicodeDecodeError):
         return _error(400, 'Expected only a valid archive_id')
-    root = require_installation()
+    try:
+        root = require_installation()
+    except (OSError, ValueError):
+        return _error(503, 'Backup installation is unavailable')
     manifest, _ = _registered_archive(root, archive_id, BACKUP_COMPAT_VERSION)
     return JsonResponse({'archive_id': archive_id, 'members': sorted(manifest['members']),
                          'total_size': sum(member['size'] for member in
