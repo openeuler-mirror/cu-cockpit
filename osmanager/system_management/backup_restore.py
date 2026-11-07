@@ -158,14 +158,23 @@ def _resume_services(controller, active: list) -> None:
 def _pause_services(controller, services: list) -> list:
     active = []
     try:
-        for service in services:
-            was_active = controller.is_active(service)
-            if was_active:
-                active.append(service)
+        for service in sorted(services, key=lambda name: not name.endswith('.timer')):
+            state = controller.is_active(service)
+            if state is not False and state != 'inactive':
+                if state is True or state == 'active':
+                    active.append(service)
                 controller.stop(service)
-            if controller.is_active(service):
-                raise RuntimeError('Restore service remains active')
+        states = [controller.is_active(service) for service in services]
+        if any(state is not False and state != 'inactive' for state in states):
+            raise RuntimeError('Restore service remains active')
     except Exception:
+        try:
+            stopped = all((state is False or state == 'inactive') for state in
+                          (controller.is_active(service) for service in services))
+        except Exception:
+            stopped = False
+        if not stopped:
+            raise RuntimeError('Service shutdown failed; manual restart required')
         try:
             _resume_services(controller, active)
         except Exception as restart_error:
