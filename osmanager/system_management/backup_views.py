@@ -74,7 +74,10 @@ def backup_create(request):
             raise ValueError('Backup creation accepts no client options')
     except (ValueError, UnicodeDecodeError):
         return _error(400, 'Expected an empty JSON object')
-    root = require_installation()
+    try:
+        root = require_installation()
+    except (OSError, ValueError):
+        return _error(503, 'Backup installation is unavailable')
     task = queue_backup(root, get_session_identity(request).username)
     return JsonResponse({'task': {key: task[key] for key in (
         'id', 'kind', 'status', 'created_at')}}, status=202)
