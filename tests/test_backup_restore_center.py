@@ -491,6 +491,25 @@ class RestoreConfirmedTest(unittest.TestCase):
         self.assertEqual(outside.read_bytes(), b'unrelated data')
         self.assertTrue(shm.is_symlink())
 
+    def test_backup_queue_retains_manual_recovery_task(self):
+        from osmanager.system_management.backup_jobs import queue_backup
+
+        task_id = self._confirmed_task()
+        index = read_backup_index(self.root)
+        index['tasks'][task_id].update(status='manual_recovery_required',
+                                       requires_manual_recovery=True,
+                                       safety_archive_id=self.archive['archive_id'])
+        index['tasks'].update({f'old-{number}': {'status': 'failed'}
+                               for number in range(255)})
+        write_backup_index(self.root, index)
+
+        self.assertEqual(queue_backup(self.root, 'later backup')['status'], 'queued')
+        tasks = read_backup_index(self.root)['tasks']
+        self.assertEqual(len(tasks), 256)
+        self.assertTrue(tasks[task_id]['requires_manual_recovery'])
+        self.assertEqual(tasks[task_id]['safety_archive_id'], self.archive['archive_id'])
+        self.assertTrue((self.root / f"{self.archive['archive_id']}.zip").is_file())
+
     def test_wrong_token_preserves_task_state(self):
         preview = preflight_restore(self.root, self.archive['archive_id'], self.database,
                                     {'service': self.config}, '1.0', 'tester',
