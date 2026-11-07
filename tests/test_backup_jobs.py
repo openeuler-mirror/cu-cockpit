@@ -103,6 +103,27 @@ class BackupJobsTest(unittest.TestCase):
 
             self.assertEqual(list_backup_tasks(root), [current, legacy])
 
+    def test_manual_queue_full_reclaims_only_backup_and_keeps_restore_recovery(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initialize_installation(root, '1.0')
+            failed_restore = {'id': 'a' * 32, 'kind': 'restore', 'status': 'failed'}
+            recovery = {'id': 'b' * 32, 'kind': 'restore',
+                        'status': 'manual_recovery_required', 'requires_manual_recovery': True,
+                        'safety_archive_id': 'c' * 32}
+            tasks = {failed_restore['id']: failed_restore, recovery['id']: recovery}
+            tasks.update({f'pending-{number}': {'status': 'queued'} for number in range(253)})
+            tasks['old-backup'] = {'status': 'failed'}
+            write_backup_index(root, {'tasks': tasks, 'backups': {}})
+
+            new_task = queue_backup(root, 'creator')
+            updated = read_backup_index(root)['tasks']
+            self.assertEqual(len(updated), 256)
+            self.assertEqual(updated[failed_restore['id']], failed_restore)
+            self.assertEqual(updated[recovery['id']], recovery)
+            self.assertNotIn('old-backup', updated)
+            self.assertEqual(updated[new_task['id']]['kind'], 'backup')
+
     def test_due_daily_backup_queues_once_per_slot(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve()
