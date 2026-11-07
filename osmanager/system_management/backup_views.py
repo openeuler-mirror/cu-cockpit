@@ -32,7 +32,12 @@ def _payload(request):
 @ensure_csrf_cookie
 @require_GET
 def backup_overview(request):
-    root = require_installation()
+    try:
+        root = require_installation()
+    except FileNotFoundError:
+        return JsonResponse({'available': False, 'reason': 'Backup installation is not initialized',
+                             'capabilities': {'create': False, 'verify': False, 'schedule': False}},
+                            status=503)
     index = read_backup_index(root) if os.path.lexists(root / 'index.json') else {
         'backups': {}, 'tasks': {}}
     backups = [{key: record[key] for key in (
