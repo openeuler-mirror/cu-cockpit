@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -15,6 +16,12 @@ from .permissions import admin_required_api, audited_admin_api, get_session_iden
 
 def _error(code, message):
     return JsonResponse({'code': code, 'message': message}, status=code)
+
+
+def _archive_id(value):
+    if not isinstance(value, str) or not re.fullmatch(r'[0-9a-f]{32}', value):
+        raise ValueError('Invalid archive ID')
+    return value
 
 
 def _payload(request):
