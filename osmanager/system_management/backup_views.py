@@ -52,10 +52,15 @@ def backup_overview(request):
         if key in task} for task in index['tasks'].values()
         if task.get('kind', 'backup') == 'backup']
     schedule = read_backup_schedule(root)
+    try:
+        can_create = backup_database().is_file() and bool(backup_configs())
+    except (OSError, ValueError):
+        can_create = False
     return JsonResponse({
         'available': True, 'backups': backups, 'tasks': tasks,
         'schedule': {key: schedule[key] for key in (
             'enabled', 'time', 'timezone', 'next_run')},
-        'capabilities': {'create': backup_database().is_file() and bool(backup_configs()),
-                         'verify': True, 'schedule': True},
+        'capabilities': {'create': can_create, 'verify': True, 'schedule': True,
+                         'create_reason': None if can_create else
+                         'Backup database or registered configuration is unavailable'},
     })
