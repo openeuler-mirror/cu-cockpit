@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 from osmanager.system_management.backup_center import (
     backup_lock, initialize_installation, read_backup_index, validate_backup_archive,
+    write_backup_index,
 )
 from osmanager.system_management.backup_jobs import (
     get_backup_task, list_backup_tasks, queue_backup, queue_due_backup, read_backup_schedule,
@@ -73,6 +74,20 @@ class BackupJobsTest(unittest.TestCase):
             self.assertEqual(get_backup_task(root, job['id']), job)
             self.assertEqual(read_backup_index(root), before)
             self.assertEqual(list(root.glob('*.zip')), [])
+
+    def test_worker_leaves_running_and_queued_restore_tasks_untouched(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initialize_installation(root, '1.0')
+            running = {'id': 'a' * 32, 'kind': 'restore', 'status': 'running'}
+            queued = {'id': 'b' * 32, 'kind': 'restore', 'status': 'queued'}
+            index = {'tasks': {running['id']: running, queued['id']: queued}, 'backups': {}}
+            write_backup_index(root, index)
+
+            with patch('osmanager.system_management.backup_jobs.create_backup_archive') as create:
+                self.assertIsNone(run_pending(root, root / 'missing.sqlite3', {}, '1.0'))
+            create.assert_not_called()
+            self.assertEqual(read_backup_index(root), index)
 
     def test_due_daily_backup_queues_once_per_slot(self):
         with tempfile.TemporaryDirectory() as directory:
