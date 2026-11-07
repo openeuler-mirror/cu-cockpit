@@ -5,12 +5,12 @@ import os
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 
 from .backup_center import read_backup_index
-from .backup_jobs import read_backup_schedule
+from .backup_jobs import queue_backup, read_backup_schedule
 from .backup_runtime import backup_configs, backup_database, require_installation
-from .permissions import admin_required_api
+from .permissions import admin_required_api, audited_admin_api, get_session_identity
 
 
 def _error(code, message):
@@ -64,3 +64,13 @@ def backup_overview(request):
                          'create_reason': None if can_create else
                          'Backup database or registered configuration is unavailable'},
     })
+
+
+@audited_admin_api('backup', 'create')
+@require_POST
+def backup_create(request):
+    _payload(request)
+    root = require_installation()
+    task = queue_backup(root, get_session_identity(request).username)
+    return JsonResponse({'task': {key: task[key] for key in (
+        'id', 'kind', 'status', 'created_at')}}, status=202)
