@@ -424,9 +424,9 @@ class RestoreConfirmedTest(unittest.TestCase):
                                     ['cu-cockpit.service', 'cu-cockpit-metrics.service'])
         task_id = preview['task_id']
         confirm_restore(self.root, task_id, preview['token'], 'tester')
-        self.controller.is_active.side_effect = [True, False, True, False, True,
-                             True, True, False, True, False,
-                                                 True, True]
+        states = {'cu-cockpit.service': True, 'cu-cockpit-metrics.service': True}
+        self.controller.is_active.side_effect = lambda service: states[service]
+        self.controller.stop.side_effect = lambda service: states.__setitem__(service, False)
         starts = []
 
         def start_service(service):
@@ -435,6 +435,7 @@ class RestoreConfirmedTest(unittest.TestCase):
                 self._write_uncheckpointed_wal('restored-worker-write')
             if service == 'cu-cockpit-metrics.service' and len(starts) == 2:
                 raise OSError('another service failed to start')
+            states[service] = True
 
         self.controller.start.side_effect = start_service
         result = restore_confirmed(self.root, task_id, self.database,
