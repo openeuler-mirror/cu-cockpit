@@ -199,11 +199,12 @@ def queue_due_backup(root, now=None):
         if task_id not in index['tasks']:
             if len(index['tasks']) >= 256:
                 completed = next((key for key, task in index['tasks'].items()
-                                  if task['status'] in ('succeeded', 'failed')), None)
+                                  if task.get('kind', 'backup') == 'backup' and
+                                  task['status'] in ('succeeded', 'failed')), None)
                 if completed is None:
                     raise ValueError('Backup task history is full')
                 del index['tasks'][completed]
-            task = {'id': task_id, 'actor': 'daily-schedule', 'status': 'queued',
+            task = {'id': task_id, 'kind': 'backup', 'actor': 'daily-schedule', 'status': 'queued',
                     'created_at': instant.astimezone(timezone.utc).isoformat()}
             index['tasks'][task_id] = task
             write_backup_index(root, index, locked=True)
