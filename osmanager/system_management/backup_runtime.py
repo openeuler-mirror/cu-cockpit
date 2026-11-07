@@ -5,7 +5,7 @@ from pathlib import Path
 
 from django.conf import settings
 
-from .backup_center import backup_root
+from .backup_center import backup_root, read_installation
 from .config_center import CHRONY_PATH, CHRONY_TARGET
 from .backup_restore import _restore_services
 from .snapshots import registered_targets
@@ -15,6 +15,12 @@ BACKUP_COMPAT_VERSION = '1'
 
 def backup_location() -> Path:
 	return backup_root(settings.BASE_DIR)
+
+
+def require_installation() -> Path:
+	root = backup_location()
+	read_installation(root, BACKUP_COMPAT_VERSION)
+	return root
 
 
 def backup_database() -> Path:
