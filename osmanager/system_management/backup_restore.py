@@ -73,7 +73,8 @@ def _registered_archive(root: Path, archive_id: str, version: str) -> tuple:
 def _restore_services(services) -> list:
     allowed = {'cu-cockpit.service', 'cu-cockpit-metrics.service',
                'cu-cockpit-metrics.timer', 'cu-cockpit-inspection.service',
-               'cu-cockpit-inspection.timer'}
+               'cu-cockpit-inspection.timer', 'cu-cockpit-backup.service',
+               'cu-cockpit-backup.timer'}
     configured = set(filter(None, os.environ.get('BACKUP_RESTORE_SERVICES', '').split(',')))
     if not configured or not configured <= allowed:
         raise ValueError('Restore services are not safely configured')
