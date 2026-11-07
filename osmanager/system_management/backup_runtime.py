@@ -4,6 +4,9 @@ from pathlib import Path
 
 from django.conf import settings
 
+from .config_center import CHRONY_PATH, CHRONY_TARGET
+from .snapshots import registered_targets
+
 BACKUP_COMPAT_VERSION = '1'
 
 
@@ -15,3 +18,10 @@ def backup_database() -> Path:
 	if not path.is_absolute() or str(path) == ':memory:':
 		raise ValueError('Backup requires an absolute on-disk SQLite database')
 	return path
+
+
+def backup_configs() -> dict:
+	registered = registered_targets().get(CHRONY_TARGET)
+	if registered != str(CHRONY_PATH.resolve(strict=False)):
+		raise ValueError('Chrony is not registered at its deployment target')
+	return {CHRONY_TARGET: Path(registered)}
