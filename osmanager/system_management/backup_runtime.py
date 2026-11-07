@@ -24,4 +24,6 @@ def backup_configs() -> dict:
 	registered = registered_targets().get(CHRONY_TARGET)
 	if registered != str(CHRONY_PATH.resolve(strict=False)):
 		raise ValueError('Chrony is not registered at its deployment target')
+	if not Path(registered).is_file():
+		raise FileNotFoundError('Chrony configuration is unavailable on this host')
 	return {CHRONY_TARGET: Path(registered)}
