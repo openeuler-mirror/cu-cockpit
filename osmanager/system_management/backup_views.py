@@ -129,3 +129,15 @@ def backup_verify(request):
     return JsonResponse({'archive_id': archive_id, 'members': sorted(manifest['members']),
                          'total_size': sum(member['size'] for member in
                                            manifest['members'].values())})
+
+
+@audited_admin_api('backup', 'download')
+@require_GET
+def backup_download(request, archive_id):
+    try:
+        if request.GET:
+            raise ValueError('Download does not accept query parameters')
+        _archive_id(archive_id)
+    except ValueError:
+        return _error(400, 'Expected only a valid archive_id')
+    return _error(503, 'Backup download is unavailable')
