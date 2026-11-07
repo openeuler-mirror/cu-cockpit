@@ -57,7 +57,8 @@ def run_pending(root, db_path, configs, version):
     with backup_lock(root):
         index = read_backup_index(root) if os.path.lexists(root / 'index.json') else {
             'tasks': {}, 'backups': {}}
-        interrupted = [task for task in index['tasks'].values() if task['status'] == 'running']
+        interrupted = [task for task in index['tasks'].values()
+                   if task.get('kind', 'backup') == 'backup' and task['status'] == 'running']
         for task in interrupted:
             task['status'] = 'failed'
             task['error'] = 'Backup worker interrupted'
@@ -65,7 +66,8 @@ def run_pending(root, db_path, configs, version):
         if interrupted:
             write_backup_index(root, index, locked=True)
         queued = sorted((task for task in index['tasks'].values()
-                         if task['status'] == 'queued'), key=lambda task: task['created_at'])
+                         if task.get('kind', 'backup') == 'backup' and
+                         task['status'] == 'queued'), key=lambda task: task['created_at'])
         if not queued:
             return None
         task = queued[0]
