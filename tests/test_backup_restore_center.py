@@ -439,6 +439,41 @@ class RestoreConfirmedTest(unittest.TestCase):
         self.assertFalse(Path(str(self.database) + '-wal').exists())
         self.assertFalse(Path(str(self.database) + '-shm').exists())
 
+    def test_failed_rollback_requires_manual_recovery_without_restart(self):
+        task_id = self._confirmed_task()
+        self.controller.is_active.side_effect = [True, False, False]
+        original_replace = os.replace
+        db_replacements = []
+
+        def fail_rollback(source, target):
+            if target == self.database:
+                db_replacements.append(target)
+                if len(db_replacements) == 2:
+                    raise OSError('safety database replacement failed')
+            if target == self.config:
+                raise OSError('config replacement failed')
+            return original_replace(source, target)
+
+        with patch('osmanager.system_management.backup_restore.os.replace',
+                   side_effect=fail_rollback):
+            result = restore_confirmed(self.root, task_id, self.database,
+                                       {'service': self.config}, '1.0', self.controller)
+
+        task = read_backup_index(self.root)['tasks'][task_id]
+        self.assertEqual(len(db_replacements), 2)
+        self.controller.stop.assert_called_once_with('cu-cockpit.service')
+        self.controller.start.assert_not_called()
+        self.assertEqual(result['status'], task['status'])
+        self.assertEqual(task['status'], 'manual_recovery_required')
+        self.assertTrue(result['requires_manual_recovery'])
+        self.assertTrue(task['requires_manual_recovery'])
+        self.assertEqual(result['safety_archive_id'], task['safety_archive_id'])
+        self.assertIn('manual rollback', task['error'])
+        self.assertIn(task['safety_archive_id'], task['error'])
+        self.assertEqual(validate_backup_archive(
+            self.root, self.root / f"{task['safety_archive_id']}.zip", '1.0')[
+                'archive_id'], task['safety_archive_id'])
+
     def test_wrong_token_preserves_task_state(self):
         preview = preflight_restore(self.root, self.archive['archive_id'], self.database,
                                     {'service': self.config}, '1.0', 'tester',
