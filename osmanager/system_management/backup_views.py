@@ -82,7 +82,9 @@ def backup_create(request):
         task = queue_backup(root, get_session_identity(request).username)
     except BlockingIOError:
         return _error(409, 'Backup service is busy')
-    except ValueError:
-        return _error(409, 'Backup task history is full')
+    except ValueError as error:
+        if str(error) == 'Backup task history is full':
+            return _error(409, 'Backup task history is full')
+        return _error(503, 'Backup task index is unavailable')
     return JsonResponse({'task': {key: task[key] for key in (
         'id', 'kind', 'status', 'created_at')}}, status=202)
