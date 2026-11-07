@@ -474,6 +474,23 @@ class RestoreConfirmedTest(unittest.TestCase):
             self.root, self.root / f"{task['safety_archive_id']}.zip", '1.0')[
                 'archive_id'], task['safety_archive_id'])
 
+    def test_unsafe_sidecar_preserves_wal_and_external_file(self):
+        from osmanager.system_management.backup_restore import _clear_sqlite_sidecars
+
+        wal = Path(str(self.database) + '-wal')
+        shm = Path(str(self.database) + '-shm')
+        outside = self.root / 'unrelated'
+        wal.write_bytes(b'pending WAL')
+        outside.write_bytes(b'unrelated data')
+        shm.symlink_to(outside)
+
+        with self.assertRaisesRegex(ValueError, 'sidecar is unsafe'):
+            _clear_sqlite_sidecars(self.database)
+
+        self.assertEqual(wal.read_bytes(), b'pending WAL')
+        self.assertEqual(outside.read_bytes(), b'unrelated data')
+        self.assertTrue(shm.is_symlink())
+
     def test_wrong_token_preserves_task_state(self):
         preview = preflight_restore(self.root, self.archive['archive_id'], self.database,
                                     {'service': self.config}, '1.0', 'tester',
