@@ -15,7 +15,7 @@ from osmanager.system_management.backup_center import (
     write_backup_index,
 )
 from osmanager.system_management.backup_restore import (
-    confirm_restore, preflight_restore, restore_confirmed,
+    _pause_services, confirm_restore, preflight_restore, restore_confirmed,
 )
 
 
@@ -346,6 +346,26 @@ class RestoreConfirmedTest(unittest.TestCase):
         connection.commit()
         self.assertTrue(Path(str(self.database) + '-wal').is_file())
         self.assertTrue(Path(str(self.database) + '-shm').is_file())
+
+    def test_pause_stops_timer_before_writer_and_rechecks_all_services(self):
+        services = ['cu-cockpit.service', 'cu-cockpit-metrics.timer']
+        states = {service: True for service in services}
+        controller = Mock()
+        controller.is_active.side_effect = lambda service: states[service]
+
+        def stop(service):
+            states[service] = False
+            if service.endswith('.service') and states['cu-cockpit-metrics.timer']:
+                states[service] = True
+
+        controller.stop.side_effect = stop
+        active = _pause_services(controller, services)
+
+        self.assertEqual(active, ['cu-cockpit-metrics.timer', 'cu-cockpit.service'])
+        self.assertEqual([call.args[0] for call in controller.stop.call_args_list], active)
+        self.assertEqual([call.args[0] for call in controller.is_active.call_args_list],
+                         ['cu-cockpit-metrics.timer', 'cu-cockpit.service', *services])
+        self.assertEqual(states, {service: False for service in services})
 
     def test_confirmed_restore_preserves_new_state_in_safety_archive(self):
         task_id = self._confirmed_task()
