@@ -69,7 +69,11 @@ def backup_overview(request):
 @audited_admin_api('backup', 'create')
 @require_POST
 def backup_create(request):
-    _payload(request)
+    try:
+        if _payload(request):
+            raise ValueError('Backup creation accepts no client options')
+    except (ValueError, UnicodeDecodeError):
+        return _error(400, 'Expected an empty JSON object')
     root = require_installation()
     task = queue_backup(root, get_session_identity(request).username)
     return JsonResponse({'task': {key: task[key] for key in (
