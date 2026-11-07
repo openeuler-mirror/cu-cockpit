@@ -142,6 +142,30 @@ class BackupJobsTest(unittest.TestCase):
             self.assertEqual(read_backup_index(root), before)
             self.assertEqual(list_backup_tasks(root), [task])
 
+    def test_daily_queue_full_reclaims_only_backup_and_keeps_restore_recovery(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initialize_installation(root, '1.0')
+            save_backup_schedule(root, True, '02:00')
+            failed_restore = {'id': 'a' * 32, 'kind': 'restore', 'status': 'failed'}
+            recovery = {'id': 'b' * 32, 'kind': 'restore',
+                        'status': 'manual_recovery_required', 'requires_manual_recovery': True,
+                        'safety_archive_id': 'c' * 32}
+            tasks = {failed_restore['id']: failed_restore, recovery['id']: recovery}
+            tasks.update({f'pending-{number}': {'status': 'queued'} for number in range(253)})
+            tasks['old-backup'] = {'kind': 'backup', 'status': 'succeeded'}
+            write_backup_index(root, {'tasks': tasks, 'backups': {}})
+
+            due = datetime(2026, 1, 2, 2, 0, tzinfo=timezone.utc)
+            new_task = queue_due_backup(root, due)
+            updated = read_backup_index(root)['tasks']
+            self.assertEqual(len(updated), 256)
+            self.assertEqual(updated[failed_restore['id']], failed_restore)
+            self.assertEqual(updated[recovery['id']], recovery)
+            self.assertNotIn('old-backup', updated)
+            self.assertEqual(updated[new_task['id']]['kind'], 'backup')
+            self.assertEqual(read_backup_schedule(root)['last_slot'], '2026-01-02')
+
     def test_disabled_daily_backup_does_not_queue(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve()
