@@ -10,6 +10,9 @@ def _error(code, message):
 
 
 def _payload(request):
+    if (request.content_type != 'application/json' or
+            len(request.body) > 4096):
+        raise ValueError('Bounded application/json body required')
     value = json.loads(request.body)
     if not isinstance(value, dict):
         raise ValueError('JSON object required')
