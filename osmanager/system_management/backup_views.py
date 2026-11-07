@@ -38,6 +38,10 @@ def backup_overview(request):
         return JsonResponse({'available': False, 'reason': 'Backup installation is not initialized',
                              'capabilities': {'create': False, 'verify': False, 'schedule': False}},
                             status=503)
+    except (OSError, ValueError):
+        return JsonResponse({'available': False, 'reason': 'Backup installation is invalid or inaccessible',
+                             'capabilities': {'create': False, 'verify': False, 'schedule': False}},
+                            status=503)
     index = read_backup_index(root) if os.path.lexists(root / 'index.json') else {
         'backups': {}, 'tasks': {}}
     backups = [{key: record[key] for key in (
