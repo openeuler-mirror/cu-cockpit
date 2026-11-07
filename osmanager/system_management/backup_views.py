@@ -104,3 +104,13 @@ def backup_create(request):
         return _error(503, 'Backup queue storage is unavailable')
     return JsonResponse({'task': {key: task[key] for key in (
         'id', 'kind', 'status', 'created_at')}}, status=202)
+
+
+@audited_admin_api('backup', 'verify')
+@require_POST
+def backup_verify(request):
+    try:
+        _verify_request(request)
+    except (ValueError, UnicodeDecodeError):
+        return _error(400, 'Expected only a valid archive_id')
+    return _error(503, 'Backup verification is unavailable')
