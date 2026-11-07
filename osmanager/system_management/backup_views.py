@@ -78,6 +78,9 @@ def backup_create(request):
         root = require_installation()
     except (OSError, ValueError):
         return _error(503, 'Backup installation is unavailable')
-    task = queue_backup(root, get_session_identity(request).username)
+    try:
+        task = queue_backup(root, get_session_identity(request).username)
+    except BlockingIOError:
+        return _error(409, 'Backup service is busy')
     return JsonResponse({'task': {key: task[key] for key in (
         'id', 'kind', 'status', 'created_at')}}, status=202)
