@@ -1,10 +1,12 @@
 """Deployment-owned inputs for the local backup service."""
 
+import os
 from pathlib import Path
 
 from django.conf import settings
 
 from .config_center import CHRONY_PATH, CHRONY_TARGET
+from .backup_restore import _restore_services
 from .snapshots import registered_targets
 
 BACKUP_COMPAT_VERSION = '1'
@@ -27,3 +29,8 @@ def backup_configs() -> dict:
 	if not Path(registered).is_file():
 		raise FileNotFoundError('Chrony configuration is unavailable on this host')
 	return {CHRONY_TARGET: Path(registered)}
+
+
+def maintenance_services() -> list:
+	configured = os.environ.get('BACKUP_RESTORE_SERVICES', '').split(',')
+	return _restore_services(configured)
