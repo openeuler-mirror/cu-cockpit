@@ -48,7 +48,9 @@ def get_backup_task(root, task_id):
 def list_backup_tasks(root):
     index = read_backup_index(root) if os.path.lexists(root / 'index.json') else {
         'tasks': {}, 'backups': {}}
-    return sorted(index['tasks'].values(), key=lambda task: task['created_at'], reverse=True)
+    return sorted((task for task in index['tasks'].values()
+                   if task.get('kind', 'backup') == 'backup'),
+                  key=lambda task: task['created_at'], reverse=True)
 
 
 def run_pending(root, db_path, configs, version):
