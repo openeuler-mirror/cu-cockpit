@@ -89,6 +89,20 @@ class BackupJobsTest(unittest.TestCase):
             create.assert_not_called()
             self.assertEqual(read_backup_index(root), index)
 
+    def test_list_skips_restore_without_created_at_and_keeps_legacy_backups(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            initialize_installation(root, '1.0')
+            restore = {'id': 'a' * 32, 'kind': 'restore', 'status': 'queued'}
+            legacy = {'id': 'b' * 32, 'status': 'failed', 'created_at': '2026-01-01'}
+            current = {'id': 'c' * 32, 'kind': 'backup', 'status': 'queued',
+                       'created_at': '2026-01-02'}
+            index = {'tasks': {restore['id']: restore, legacy['id']: legacy,
+                               current['id']: current}, 'backups': {}}
+            write_backup_index(root, index)
+
+            self.assertEqual(list_backup_tasks(root), [current, legacy])
+
     def test_due_daily_backup_queues_once_per_slot(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve()
