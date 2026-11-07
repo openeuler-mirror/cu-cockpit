@@ -10,7 +10,9 @@ from django.views.decorators.http import require_GET, require_POST
 
 from .backup_center import read_backup_index
 from .backup_jobs import queue_backup, read_backup_schedule
-from .backup_runtime import backup_configs, backup_database, require_installation
+from .backup_restore import _registered_archive
+from .backup_runtime import (BACKUP_COMPAT_VERSION, backup_configs, backup_database,
+                             require_installation)
 from .permissions import admin_required_api, audited_admin_api, get_session_identity
 
 
@@ -110,7 +112,11 @@ def backup_create(request):
 @require_POST
 def backup_verify(request):
     try:
-        _verify_request(request)
+        archive_id = _verify_request(request)
     except (ValueError, UnicodeDecodeError):
         return _error(400, 'Expected only a valid archive_id')
-    return _error(503, 'Backup verification is unavailable')
+    root = require_installation()
+    manifest, _ = _registered_archive(root, archive_id, BACKUP_COMPAT_VERSION)
+    return JsonResponse({'archive_id': archive_id, 'members': sorted(manifest['members']),
+                         'total_size': sum(member['size'] for member in
+                                           manifest['members'].values())})
