@@ -124,6 +124,8 @@ def backup_verify(request):
         manifest, _ = _registered_archive(root, archive_id, BACKUP_COMPAT_VERSION)
     except (ValueError, KeyError, zipfile.BadZipFile):
         return _error(422, 'Archive is not registered or failed verification')
+    except OSError:
+        return _error(503, 'Backup archive storage is unavailable')
     return JsonResponse({'archive_id': archive_id, 'members': sorted(manifest['members']),
                          'total_size': sum(member['size'] for member in
                                            manifest['members'].values())})
