@@ -24,12 +24,13 @@ def queue_backup(root, actor):
             'tasks': {}, 'backups': {}}
         if len(index['tasks']) >= 256:
             completed = next((task_id for task_id, task in index['tasks'].items()
-                              if task['status'] in ('succeeded', 'failed')), None)
+                              if task.get('kind', 'backup') == 'backup' and
+                              task['status'] in ('succeeded', 'failed')), None)
             if completed is None:
                 raise ValueError('Backup task history is full')
             del index['tasks'][completed]
         task_id = secrets.token_hex(16)
-        task = {'id': task_id, 'actor': actor, 'status': 'queued',
+        task = {'id': task_id, 'kind': 'backup', 'actor': actor, 'status': 'queued',
                 'created_at': datetime.now(timezone.utc).isoformat()}
         index['tasks'][task_id] = task
         write_backup_index(root, index, locked=True)
