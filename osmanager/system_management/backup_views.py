@@ -35,6 +35,13 @@ def _payload(request):
     return value
 
 
+def _verify_request(request):
+    payload = _payload(request)
+    if set(payload) != {'archive_id'}:
+        raise ValueError('Expected only archive_id')
+    return _archive_id(payload['archive_id'])
+
+
 @admin_required_api
 @ensure_csrf_cookie
 @require_GET
