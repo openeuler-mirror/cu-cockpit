@@ -3,6 +3,7 @@
 import json
 import os
 import re
+import zipfile
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -119,7 +120,10 @@ def backup_verify(request):
         root = require_installation()
     except (OSError, ValueError):
         return _error(503, 'Backup installation is unavailable')
-    manifest, _ = _registered_archive(root, archive_id, BACKUP_COMPAT_VERSION)
+    try:
+        manifest, _ = _registered_archive(root, archive_id, BACKUP_COMPAT_VERSION)
+    except (ValueError, KeyError, zipfile.BadZipFile):
+        return _error(422, 'Archive is not registered or failed verification')
     return JsonResponse({'archive_id': archive_id, 'members': sorted(manifest['members']),
                          'total_size': sum(member['size'] for member in
                                            manifest['members'].values())})
