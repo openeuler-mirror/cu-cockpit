@@ -286,6 +286,7 @@ def _checkpoint_restore_database(db_path: Path) -> None:
 def _clear_sqlite_sidecars(db_path: Path) -> None:
     descriptor = os.open(db_path.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
     try:
+        present = []
         for suffix in ('-wal', '-shm'):
             name = db_path.name + suffix
             try:
@@ -294,6 +295,8 @@ def _clear_sqlite_sidecars(db_path: Path) -> None:
                 continue
             if not stat.S_ISREG(details.st_mode) or details.st_nlink != 1:
                 raise ValueError('Restore database sidecar is unsafe')
+            present.append(name)
+        for name in present:
             os.unlink(name, dir_fd=descriptor)
         os.fsync(descriptor)
     finally:
