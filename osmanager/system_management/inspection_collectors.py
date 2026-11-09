@@ -83,6 +83,11 @@ def _metric_runner(args, allowed_commands, timeout=5, evidence=None):
 
 def percent_result(value, evidence):
     """Classify a utilization value against the immutable template thresholds."""
+    import math
+
+    if (isinstance(value, bool) or not isinstance(value, (int, float)) or
+            not math.isfinite(value) or not 0 <= value <= 100):
+        raise ValueError('Inspection utilization must be finite and within 0-100')
     warning = INSPECTION_TEMPLATE['warning']
     failure = INSPECTION_TEMPLATE['fail']
     status = 'fail' if value >= failure else 'warning' if value >= warning else 'pass'
