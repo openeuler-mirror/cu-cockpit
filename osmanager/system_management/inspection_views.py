@@ -14,3 +14,10 @@ def _payload(request):
     if not isinstance(data, dict):
         raise ValueError('JSON object required')
     return data
+
+
+def _respond(operation, status=200):
+    """Produce a private JSON response from one inspection operation."""
+    response = JsonResponse(operation(), status=status)
+    response['Cache-Control'] = 'private, no-store'
+    return response
