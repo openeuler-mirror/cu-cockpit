@@ -152,6 +152,8 @@ def backup_download(request, archive_id):
         _, expected_hash = _registered_archive(root, archive_id, BACKUP_COMPAT_VERSION)
     except (ValueError, KeyError, zipfile.BadZipFile):
         return _error(422, 'Archive is not registered or failed verification')
+    except OSError:
+        return _error(503, 'Backup archive storage is unavailable')
     descriptor = os.open(root / f'{archive_id}.zip', os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
     with ExitStack() as opened:
         archive = opened.enter_context(os.fdopen(descriptor, 'rb'))
