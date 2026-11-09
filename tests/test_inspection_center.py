@@ -37,6 +37,15 @@ class InspectionCenterTest(unittest.TestCase):
             alerts, 'evaluate_alert_rules', side_effect=AssertionError('Unexpected alert'),
         ))
 
+    def _start_child(self, *args, **kwargs):
+        process = self.popen(*args, **kwargs)
+        self.children.append(process)
+        if process.stdout is not None:
+            self.addCleanup(process.stdout.close)
+        self.addCleanup(process.wait)
+        self.addCleanup(lambda: process.kill() if process.poll() is None else None)
+        return process
+
 
 if __name__ == '__main__':
     unittest.main()
