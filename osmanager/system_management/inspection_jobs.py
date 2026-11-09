@@ -73,4 +73,6 @@ def queue_run(actor, *, parameters=None, plan_id=None):
                 plan=plan, phase__in=['queued', 'running']).first()
             if active is not None:
                 return active
+        if InspectionRun.objects.filter(phase__in=['queued', 'running']).count() >= 64:
+            raise ValueError('Inspection queue limit reached (64)')
         return InspectionRun.objects.create(plan=plan, trigger='manual', **values)
