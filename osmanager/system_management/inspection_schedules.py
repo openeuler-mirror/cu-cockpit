@@ -17,6 +17,11 @@ def normalize_schedule(kind, options, timezone):
                 not re.fullmatch(r'(?:[01][0-9]|2[0-3]):[0-5][0-9]', value)):
             raise ValueError('Daily time must be HH:MM')
         return {'time': value}
+    if kind == 'interval':
+        value = options.get('minutes')
+        if set(options) != {'minutes'} or type(value) is not int or value not in (15, 30, 60):
+            raise ValueError('Interval minutes must be 15, 30 or 60')
+        return {'minutes': value}
     if kind != 'manual' or options:
         raise ValueError('Invalid inspection schedule')
     return {}
