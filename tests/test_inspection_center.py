@@ -203,6 +203,24 @@ class InspectionCenterTest(unittest.TestCase):
                         self.run_readonly(command)
             spawn.assert_not_called()
 
+    def test_output_over_limit_terminates_real_child(self):
+        command = (sys.executable, '-c',
+                   'import sys\nsys.stdout.write("x" * 16385)\nsys.stdout.flush()\n'
+                   'while True: pass')
+        with patch.object(inspection_collectors, '_validate_command',
+                          return_value=command) as validate:
+            with patch('subprocess.Popen', side_effect=self._start_child) as spawn:
+                with self.assertRaisesRegex(RuntimeError, 'output exceeds 16 KiB'):
+                    self.run_readonly(command)
+        validate.assert_called_once_with(command)
+        self.assertEqual(len(self.children), 1)
+        process = self.children[0]
+        self.assertIsNotNone(process.poll())
+        self.assertLess(process.returncode, 0)
+        self.assertTrue(process.stdout.closed)
+        self.assertEqual(spawn.call_args.args[0], command)
+        self.assertIs(spawn.call_args.kwargs['shell'], False)
+
 
 if __name__ == '__main__':
     unittest.main()
