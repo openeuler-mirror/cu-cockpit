@@ -183,3 +183,19 @@ class InspectionJobsTest(TestCase):
         self.assertEqual((queued.parameters, queued.plan_snapshot), (parameters, snapshot))
         self.assertEqual((queued.template_id, queued.version), ('local-host', 'v1'))
         self.assertEqual(queued.items, expected['items'])
+
+    def test_worker_reentry_is_rejected_before_claim_or_collection(self):
+        from unittest.mock import patch
+        from osmanager.system_management import inspection_jobs as jobs
+
+        queued = jobs.queue_run('operator')
+        with patch('osmanager.system_management.inspection.run_inspection') as collect:
+            with jobs.inspection_lock():
+                with self.assertRaises(BlockingIOError):
+                    jobs.run_next(now=self.now)
+        collect.assert_not_called()
+        queued.refresh_from_db()
+        self.assertEqual(queued.phase, 'queued')
+        self.assertIsNone(queued.started_at)
+        self.assertIsNone(queued.finished_at)
+        self.assertIsNone(queued.health)
