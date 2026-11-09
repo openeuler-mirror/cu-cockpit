@@ -75,11 +75,18 @@ def _run_item(item_id, label, collector, deadline):
     }
 
 
-def _overall_status(items):
+def _overall_status(items, required=INSPECTION_TEMPLATE['items']):
     """Reduce completed health states without conflating them with job phases."""
-    statuses = {item['status'] for item in items}
+    item_ids = [item.get('id') for item in items]
+    if set(required) - set(item_ids) or len(item_ids) != len(set(item_ids)):
+        return 'error'
+    statuses = {item.get('status') for item in items}
+    if statuses - {'error', 'fail', 'warning', 'pass', 'skipped'}:
+        return 'error'
     if statuses == {'skipped'}:
         return 'skipped'
+    if 'skipped' in statuses:
+        return 'error'
     for status in ('error', 'fail', 'warning', 'pass'):
         if status in statuses:
             return status
