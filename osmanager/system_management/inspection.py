@@ -21,3 +21,22 @@ INSPECTION_TEMPLATE = MappingProxyType({
     'item_timeout': 5,
     'run_timeout': 60,
 })
+
+
+def normalize_parameters(parameters=None):
+    """Return immutable, registered service selections or reject unsafe input."""
+    if parameters is None:
+        parameters = {}
+    if not isinstance(parameters, dict) or set(parameters) - {'services'}:
+        raise ValueError('Only inspection services may be configured')
+    services = parameters.get('services', INSPECTION_TEMPLATE['default_services'])
+    if not isinstance(services, (list, tuple)):
+        raise ValueError('Services must be a list of registered unit names')
+    if len(services) > INSPECTION_TEMPLATE['max_services']:
+        raise ValueError('At most 16 services may be inspected')
+    if any(not isinstance(service, str) or
+           service not in INSPECTION_TEMPLATE['registered_services'] for service in services):
+        raise ValueError('Service unit is not registered')
+    if len(set(services)) != len(services):
+        raise ValueError('Duplicate service units are not allowed')
+    return tuple(services)
