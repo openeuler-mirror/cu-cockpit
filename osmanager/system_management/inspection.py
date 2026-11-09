@@ -51,6 +51,13 @@ def _run_item(item_id, label, collector, deadline):
     token = _ITEM_DEADLINE.set(min(deadline, started + INSPECTION_TEMPLATE['item_timeout']))
     try:
         result = dict(collector())
+    except Exception as error:
+        result = {
+            'status': 'error', 'value': None, 'unit': None, 'threshold': None,
+            'evidence': {'error': type(error).__name__,
+                         'output': str(getattr(error, 'output', '') or '')[:16384]},
+            'reason': str(error)[:16384] or type(error).__name__,
+        }
     finally:
         _ITEM_DEADLINE.reset(token)
     return {
