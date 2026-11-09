@@ -1,11 +1,15 @@
 """Administrator-only HTTP facade for local backup jobs."""
 
+import hashlib
+import hmac
 import json
 import os
 import re
+import stat
 import zipfile
+from contextlib import ExitStack
 
-from django.http import JsonResponse
+from django.http import FileResponse, JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_GET, require_POST
 
@@ -140,4 +144,19 @@ def backup_download(request, archive_id):
         _archive_id(archive_id)
     except ValueError:
         return _error(400, 'Expected only a valid archive_id')
-    return _error(503, 'Backup download is unavailable')
+    root = require_installation()
+    _, expected_hash = _registered_archive(root, archive_id, BACKUP_COMPAT_VERSION)
+    descriptor = os.open(root / f'{archive_id}.zip', os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with ExitStack() as opened:
+        archive = opened.enter_context(os.fdopen(descriptor, 'rb'))
+        details = os.fstat(archive.fileno())
+        if not stat.S_ISREG(details.st_mode) or details.st_nlink != 1:
+            raise ValueError('Archive file is not a standalone regular file')
+        if not hmac.compare_digest(hashlib.file_digest(archive, 'sha256').hexdigest(),
+                                   expected_hash):
+            raise ValueError('Archive file changed after verification')
+        archive.seek(0)
+        response = FileResponse(archive, as_attachment=True, filename=f'{archive_id}.zip')
+        response['Cache-Control'] = 'private, no-store'
+        opened.pop_all()
+        return response
