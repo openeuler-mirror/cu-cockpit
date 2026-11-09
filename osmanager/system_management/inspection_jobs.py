@@ -76,3 +76,34 @@ def queue_run(actor, *, parameters=None, plan_id=None):
         if InspectionRun.objects.filter(phase__in=['queued', 'running']).count() >= 64:
             raise ValueError('Inspection queue limit reached (64)')
         return InspectionRun.objects.create(plan=plan, trigger='manual', **values)
+
+
+def queue_due(*, now=None):
+    """Coalesce overdue slots; busy plans skip a slot, full queues retry later."""
+    from django.db import transaction
+    from django.db.models import F
+    from django.utils import timezone
+    from .inspection_schedules import next_slot
+    from .models import InspectionPlan, InspectionRun
+
+    now = now or timezone.now()
+    queued = []
+    with transaction.atomic():
+        InspectionRun.objects.filter(pk=0).update(actor=F('actor'))
+        plans = InspectionPlan.objects.filter(enabled=True, next_run__lte=now).order_by('id')[:64]
+        for plan in plans:
+            slot = plan.next_run
+            previous = InspectionRun.objects.filter(plan=plan, scheduled_slot=slot).exists()
+            busy = InspectionRun.objects.filter(plan=plan, phase__in=['queued', 'running']).exists()
+            if not previous and not busy and (plan.cursor is None or slot > plan.cursor):
+                if InspectionRun.objects.filter(phase__in=['queued', 'running']).count() >= 64:
+                    break
+                run = queue_run(plan.actor, plan_id=plan.pk)
+                run.trigger = 'scheduled'
+                run.scheduled_slot = slot
+                run.save(update_fields=['trigger', 'scheduled_slot'])
+                queued.append(run)
+            plan.cursor = max(slot, plan.cursor or slot)
+            plan.next_run = next_slot(plan, max(now, plan.cursor))
+            plan.save(update_fields=['cursor', 'next_run'])
+    return queued
