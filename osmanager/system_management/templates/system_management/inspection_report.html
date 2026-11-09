@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inspection {{ report.id }} - {{ report.template_id }}</title>
+</head>
+<body>
+  <h1>Inspection {{ report.id }}</h1>
+  <p>Template: {{ report.template_id }} / {{ report.version }}</p>
+  <p>Phase: {{ report.phase }}; Health: {{ report.health|default_if_none:"not evaluated" }}</p>
+  <h2>Persisted snapshot</h2>
+  <pre>{{ snapshot }}</pre>
+</body>
+</html>
