@@ -102,3 +102,28 @@ class InspectionJobsTest(TestCase):
         self.assertGreaterEqual(queued.duration, 0)
         self.assertEqual(queued.started_at, self.now)
         self.assertIsNotNone(queued.finished_at)
+
+    def test_due_slot_is_unique_and_idempotent_after_reload(self):
+        import importlib
+        from django.db import IntegrityError, transaction
+        from osmanager.system_management import inspection_jobs as jobs
+        from osmanager.system_management.models import InspectionPlan, InspectionRun
+
+        plan = self._plan()
+        slot = plan.next_run
+        queued, = jobs.queue_due(now=slot)
+        self.assertEqual((queued.trigger, queued.scheduled_slot), ('scheduled', slot))
+        self.assertEqual(jobs.queue_due(now=slot), [])
+        InspectionRun.objects.filter(pk=queued.pk).update(
+            phase='finished', health='pass', finished_at=slot)
+        InspectionPlan.objects.filter(pk=plan.pk).update(next_run=slot)
+        restarted = importlib.reload(jobs)
+        self.assertEqual(restarted.queue_due(now=slot), [])
+        self.assertEqual(InspectionRun.objects.filter(plan=plan, scheduled_slot=slot).count(), 1)
+        plan.refresh_from_db()
+        self.assertEqual(plan.cursor, slot)
+        self.assertGreater(plan.next_run, slot)
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            InspectionRun.objects.create(
+                plan=plan, scheduled_slot=slot, trigger='scheduled', actor='operator',
+                template_id='local-host', version='v1', phase='finished')
