@@ -140,3 +140,17 @@ class InspectionJobsTest(TestCase):
         plan.refresh_from_db()
         self.assertIsNone(plan.cursor)
         self.assertFalse(plan.enabled)
+
+    def test_plan_triggers_deduplicate_queued_and_running_work(self):
+        from osmanager.system_management import inspection_jobs as jobs
+        from osmanager.system_management.models import InspectionRun
+
+        plan = self._plan()
+        queued = jobs.queue_run('operator', plan_id=plan.pk)
+        self.assertEqual(jobs.queue_run('operator', plan_id=plan.pk).pk, queued.pk)
+        with jobs.inspection_lock():
+            claimed = jobs._claim_next(self.now)
+        self.assertEqual(claimed.pk, queued.pk)
+        active = jobs.queue_run('operator', plan_id=plan.pk)
+        self.assertEqual((active.pk, active.phase), (queued.pk, 'running'))
+        self.assertEqual(InspectionRun.objects.filter(plan=plan).count(), 1)
