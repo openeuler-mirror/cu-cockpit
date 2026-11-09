@@ -3,6 +3,12 @@
 import json
 
 from django.http import JsonResponse
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.http import require_GET
+
+from osmanager.auth.decorators import login_required_api
+
+from .permissions import get_session_identity
 
 
 def _payload(request):
@@ -55,3 +61,18 @@ def _page(request, queryset, serializer):
     offset = (page - 1) * limit
     return {'items': [serializer(item) for item in queryset[offset:offset + limit]],
             'total': queryset.count(), 'page': page, 'limit': limit}
+
+
+@login_required_api
+@ensure_csrf_cookie
+@require_GET
+def overview(request):
+    """Describe inspection availability without collecting host evidence."""
+    from .inspection import INSPECTION_TEMPLATE
+    from .inspection_runtime import worker_status
+
+    identity = get_session_identity(request)
+    return _respond(lambda: {
+        'template': dict(INSPECTION_TEMPLATE), 'worker': worker_status(),
+        'identity': identity.to_dict(), 'can_manage': identity.is_admin,
+    })
