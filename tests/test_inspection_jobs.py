@@ -154,3 +154,32 @@ class InspectionJobsTest(TestCase):
         active = jobs.queue_run('operator', plan_id=plan.pk)
         self.assertEqual((active.pk, active.phase), (queued.pk, 'running'))
         self.assertEqual(InspectionRun.objects.filter(plan=plan).count(), 1)
+
+    def test_plan_updates_preserve_queued_and_finished_snapshots(self):
+        from copy import deepcopy
+        from unittest.mock import patch
+        from osmanager.system_management import inspection_jobs as jobs
+        from osmanager.system_management.inspection_schedules import update_plan
+
+        plan = self._plan()
+        queued = jobs.queue_run('operator', plan_id=plan.pk)
+        snapshot = deepcopy(queued.plan_snapshot)
+        parameters = deepcopy(queued.parameters)
+        updated = update_plan(plan.pk, {
+            'name': 'Changed plan', 'parameters': {'services': ['sshd.service']},
+            'enabled': True, 'schedule_kind': 'interval',
+            'schedule_settings': {'minutes': 30}, 'timezone': 'Asia/Shanghai',
+        }, 'operator', now=self.now)
+        queued.refresh_from_db()
+        self.assertEqual((queued.parameters, queued.plan_snapshot), (parameters, snapshot))
+        self.assertEqual(updated.revision, 2)
+        expected = self._result()
+        with patch('osmanager.system_management.inspection.run_inspection',
+                   return_value=expected) as collect:
+            jobs.run_next(now=self.now)
+        collect.assert_called_once_with(parameters)
+        queued.refresh_from_db()
+        self.assertEqual(queued.phase, 'finished')
+        self.assertEqual((queued.parameters, queued.plan_snapshot), (parameters, snapshot))
+        self.assertEqual((queued.template_id, queued.version), ('local-host', 'v1'))
+        self.assertEqual(queued.items, expected['items'])
