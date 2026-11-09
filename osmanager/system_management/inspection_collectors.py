@@ -62,3 +62,20 @@ def _run_readonly(args, timeout=5):
             process.kill()
         process.wait()
         process.stdout.close()
+
+
+def _metric_runner(args, allowed_commands, timeout=5, evidence=None):
+    """Adapt bounded command results to the existing raw metric calculations."""
+    import re
+    from types import SimpleNamespace
+
+    command = ['top', '-bn2', '-d0.2'] if args[0] == 'top' else args
+    result = _run_readonly(command, timeout=timeout)
+    stdout = result.stdout
+    if args[0] == 'top':
+        snapshots = [line for line in stdout.splitlines() if re.search(r'\s*id\b', line)]
+        stdout = snapshots[-1] if len(snapshots) >= 2 else ''
+    if evidence is not None:
+        evidence.update(command=list(result.args), output=result.stdout,
+                        returncode=result.returncode)
+    return SimpleNamespace(success=result.returncode == 0, stdout=stdout)
