@@ -145,11 +145,17 @@ def run_next(*, now=None):
         run = _claim_next(now or timezone.now())
         if run is None:
             return None
-        result = run_inspection(run.parameters)
-        run.items = result['items']
-        run.health = result['status']
-        run.duration = result['duration']
-        run.error = ''
+        try:
+            result = run_inspection(run.parameters)
+            run.items = result['items']
+            run.health = result['status']
+            run.duration = result['duration']
+            run.error = ''
+        except Exception as error:
+            run.items = []
+            run.health = 'error'
+            run.duration = max(0.0, (timezone.now() - run.started_at).total_seconds())
+            run.error = f'{type(error).__name__}: {error}'[:512]
         run.phase = 'finished'
         run.finished_at = timezone.now()
         run.save(update_fields=['items', 'health', 'duration', 'error', 'phase', 'finished_at'])
