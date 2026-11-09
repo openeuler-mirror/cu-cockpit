@@ -49,8 +49,8 @@ def collect_root_percent(runner=None):
     return parse_df_percent(result.stdout)
 
 
-def collect_inode_percent():
-    result = run_safe(['df', '-Pi', '--', '/'], {'df'}, timeout=5)
+def collect_inode_percent(runner=None):
+    result = (runner or run_safe)(['df', '-Pi', '--', '/'], {'df'}, timeout=5)
     if not result.success:
         raise MetricCollectionError('无法采集根 inode 使用率')
     return parse_df_percent(result.stdout)
