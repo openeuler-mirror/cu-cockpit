@@ -113,6 +113,22 @@ class InspectionCenterTest(unittest.TestCase):
         self.assertNotIn('error', result['evidence'])
         self.query.assert_called_once_with(command)
 
+    def test_time_sync_without_synchronization_evidence_returns_error(self):
+        command = ['timedatectl', 'show', '--no-pager',
+                   '--property=NTPSynchronized,NTP,CanNTP']
+        self.query.side_effect = None
+        self.query.return_value = subprocess.CompletedProcess(
+            command, 0, stdout='NTP=yes\nCanNTP=yes\n',
+        )
+        result = inspection_collectors.collect_time_sync()
+        self.assertEqual(result['id'], 'time_sync')
+        self.assertEqual(result['status'], 'error')
+        self.assertIsNone(result['value'])
+        self.assertIsNone(result['threshold'])
+        self.assertEqual(result['evidence']['error'], 'ValueError')
+        self.assertIn('Invalid or missing systemd properties', result['reason'])
+        self.query.assert_called_once_with(command)
+
 
 if __name__ == '__main__':
     unittest.main()
