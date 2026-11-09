@@ -87,3 +87,14 @@ def plans(request):
 
     return _respond(lambda: _page(request, InspectionPlan.objects.filter(
         actor=get_session_identity(request).username).order_by('name', 'id'), serialize_plan))
+
+
+@login_required_api
+@require_GET
+def runs(request):
+    """List the current actor's stored runs without refreshing evidence."""
+    from .inspection_reports import serialize_run
+    from .models import InspectionRun
+
+    return _respond(lambda: _page(request, InspectionRun.objects.filter(
+        actor=get_session_identity(request).username).order_by('-queued_at', '-id'), serialize_run))
