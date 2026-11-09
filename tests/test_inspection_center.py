@@ -97,6 +97,22 @@ class InspectionCenterTest(unittest.TestCase):
         self.assertEqual(result['threshold']['ActiveState'], 'active')
         self.query.assert_called_once_with(command)
 
+    def test_not_found_service_returns_fail_despite_exit_one(self):
+        command = ['systemctl', 'show', '--no-pager',
+                   '--property=LoadState,ActiveState,SubState,Result', '--', 'nginx.service']
+        output = 'LoadState=not-found\nActiveState=inactive\nSubState=dead\nResult=success\n'
+        self.query.side_effect = None
+        self.query.return_value = subprocess.CompletedProcess(command, 1, stdout=output)
+        result, = inspection_collectors.collect_services({'services': ['nginx.service']})
+        self.assertEqual(result['id'], 'service:nginx.service')
+        self.assertEqual(result['status'], 'fail')
+        self.assertEqual(result['value']['LoadState'], 'not-found')
+        self.assertEqual(result['evidence']['returncode'], 1)
+        self.assertEqual(result['evidence']['output'], output)
+        self.assertEqual(result['evidence']['command'], command)
+        self.assertNotIn('error', result['evidence'])
+        self.query.assert_called_once_with(command)
+
 
 if __name__ == '__main__':
     unittest.main()
