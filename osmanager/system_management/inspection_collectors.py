@@ -182,10 +182,22 @@ def collect_time_sync():
     import time
 
     started = time.monotonic()
-    evidence = _query_properties(
-        ['timedatectl', 'show', '--no-pager', '--property=NTPSynchronized,NTP,CanNTP'],
-        ('NTPSynchronized',),
-    )
+    try:
+        evidence = _query_properties(
+            ['timedatectl', 'show', '--no-pager', '--property=NTPSynchronized,NTP,CanNTP'],
+            ('NTPSynchronized',),
+        )
+        if evidence['properties']['NTPSynchronized'] not in ('yes', 'no'):
+            raise ValueError(f"Invalid synchronization evidence: {evidence['output']}")
+    except Exception as error:
+        return {
+            'id': 'time_sync', 'label': 'Time synchronization',
+            'status': 'error', 'value': None, 'unit': None, 'threshold': None,
+            'evidence': {'error': type(error).__name__,
+                         'output': str(getattr(error, 'output', '') or '')[:16384]},
+            'reason': str(error)[:16384] or type(error).__name__,
+            'duration': time.monotonic() - started, 'version': INSPECTION_TEMPLATE['version'],
+        }
     synchronized = evidence['properties']['NTPSynchronized'] == 'yes'
     return {
         'id': 'time_sync', 'label': 'Time synchronization',
