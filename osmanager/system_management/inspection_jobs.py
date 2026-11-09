@@ -117,6 +117,9 @@ def _claim_next(now):
 
     with transaction.atomic():
         InspectionRun.objects.filter(pk=0).update(actor=F('actor'))
+        InspectionRun.objects.filter(phase='running').update(
+            phase='finished', health='error', finished_at=now,
+            error='Inspection worker interrupted; run was not retried')
         run = InspectionRun.objects.filter(phase='queued').order_by('queued_at', 'id').first()
         if run is None:
             return None
