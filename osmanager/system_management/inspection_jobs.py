@@ -140,13 +140,16 @@ def run_next(*, now=None):
     """Run one persisted snapshot under the single-host worker lock."""
     import json
     from django.utils import timezone
-    from .inspection import run_inspection
+    from .inspection import INSPECTION_TEMPLATE, run_inspection
 
     with inspection_lock():
         run = _claim_next(now or timezone.now())
         if run is None:
             return None
         try:
+            if (run.template_id, run.version) != (
+                    INSPECTION_TEMPLATE['id'], INSPECTION_TEMPLATE['version']):
+                raise ValueError('Inspection snapshot template is unavailable')
             result = run_inspection(run.parameters)
             if len(json.dumps(result, ensure_ascii=False, allow_nan=False).encode('utf-8')) > 262144:
                 raise ValueError('Inspection result exceeds 256 KiB')
