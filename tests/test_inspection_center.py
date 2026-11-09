@@ -71,6 +71,16 @@ class InspectionCenterTest(unittest.TestCase):
         self.sample.assert_not_called()
         self.evaluate.assert_not_called()
 
+    def test_excess_services_are_rejected_before_collection(self):
+        registered = inspection.INSPECTION_TEMPLATE['registered_services']
+        services = list(registered) + [registered[0]]
+        self.assertEqual(len(services), inspection.INSPECTION_TEMPLATE['max_services'] + 1)
+        with self.assertRaisesRegex(ValueError, 'At most 16 services may be inspected'):
+            inspection.run_inspection({'services': services})
+        self.query.assert_not_called()
+        for collector in self.metrics.values():
+            collector.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()
