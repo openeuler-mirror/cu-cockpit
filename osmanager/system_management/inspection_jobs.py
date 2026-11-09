@@ -15,9 +15,18 @@ def inspection_lock():
     root.mkdir(mode=0o700, exist_ok=True)
     directory = os.open(root, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
     try:
-        descriptor = os.open('worker.lock', os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW,
+        import stat
+
+        metadata = os.fstat(directory)
+        if metadata.st_uid != os.geteuid() or stat.S_IMODE(metadata.st_mode) != 0o700:
+            raise PermissionError('Inspection state directory must be private and owned')
+        descriptor = os.open('worker.lock', os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW | os.O_NONBLOCK,
                              0o600, dir_fd=directory)
         try:
+            metadata = os.fstat(descriptor)
+            if (not stat.S_ISREG(metadata.st_mode) or metadata.st_uid != os.geteuid() or
+                    stat.S_IMODE(metadata.st_mode) != 0o600 or metadata.st_nlink != 1):
+                raise PermissionError('Inspection lock must be a private owned regular file')
             fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
             yield
         finally:
