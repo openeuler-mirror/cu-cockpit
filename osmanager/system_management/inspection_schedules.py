@@ -82,3 +82,20 @@ def normalize_plan(data, actor):
         'schedule_kind': kind, 'schedule_settings': options, 'timezone': zone,
         'enabled': enabled,
     }
+
+
+def save_plan(data, actor, *, now=None):
+    """Persist a validated plan with a server-owned first schedule cursor."""
+    from django.db import transaction
+    from django.db.models import F
+    from django.utils import timezone
+    from .models import InspectionPlan
+
+    values = normalize_plan(data, actor)
+    now = now or timezone.now()
+    with transaction.atomic():
+        InspectionPlan.objects.filter(pk=0).update(name=F('name'))
+        plan = InspectionPlan(**values)
+        plan.next_run = next_slot(plan, now)
+        plan.save()
+    return plan
