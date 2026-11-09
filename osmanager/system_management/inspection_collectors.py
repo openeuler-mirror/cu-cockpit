@@ -96,3 +96,23 @@ def percent_result(value, evidence):
         'threshold': {'warning': warning, 'fail': failure, 'operator': '>='},
         'reason': f'Utilization {value}%: {status}',
     }
+
+
+def _collect_metric(item_id):
+    """Collect one raw metric without the monitoring aggregation/write path."""
+    from functools import partial
+    from . import monitoring
+
+    evidence = {'source': '/proc/meminfo' if item_id == 'memory' else 'fixed-command'}
+    if item_id == 'cpu':
+        evidence['sample_interval_seconds'] = 0.2
+    runner = partial(_metric_runner, evidence=evidence)
+    collectors = {
+        'cpu': partial(monitoring.collect_cpu_percent, runner=runner),
+        'memory': monitoring.collect_memory_percent,
+        'root_capacity': partial(monitoring.collect_root_percent, runner=runner),
+        'root_inodes': partial(monitoring.collect_inode_percent, runner=runner),
+    }
+    value = collectors[item_id]()
+    evidence['observed_percent'] = value
+    return percent_result(value, evidence)
