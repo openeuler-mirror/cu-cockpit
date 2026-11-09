@@ -7,4 +7,10 @@ from django.http import JsonResponse
 
 def _payload(request):
     """Decode a JSON request object for inspection mutations."""
-    return json.loads(request.body)
+    if request.GET or request.content_type != 'application/json' or len(request.body) > 4096:
+        raise ValueError('Bounded application/json object without query parameters required')
+    data = json.loads(request.body, parse_constant=lambda value: (_ for _ in ()).throw(
+        ValueError('Non-JSON numeric constant')))
+    if not isinstance(data, dict):
+        raise ValueError('JSON object required')
+    return data
