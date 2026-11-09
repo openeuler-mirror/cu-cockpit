@@ -226,3 +226,27 @@ class InspectionJobsTest(TestCase):
         queued.refresh_from_db()
         self.assertEqual(queued.phase, 'queued')
         self.assertIsNone(queued.started_at)
+
+    def test_interrupted_running_work_is_failed_without_reexecution(self):
+        from unittest.mock import patch
+        from osmanager.system_management import inspection_jobs as jobs
+
+        interrupted = jobs.queue_run('operator', parameters={'services': []})
+        with jobs.inspection_lock():
+            self.assertEqual(jobs._claim_next(self.now).pk, interrupted.pk)
+        following = jobs.queue_run('operator', parameters={'services': ['nginx.service']})
+        expected = self._result()
+        with patch('osmanager.system_management.inspection.run_inspection',
+                   return_value=expected) as collect:
+            completed = jobs.run_next(now=self.now)
+        collect.assert_called_once_with({'services': ['nginx.service']})
+        self.assertEqual(completed.pk, following.pk)
+        interrupted.refresh_from_db()
+        self.assertEqual((interrupted.phase, interrupted.health), ('finished', 'error'))
+        self.assertIn('interrupted', interrupted.error)
+        self.assertIn('not retried', interrupted.error)
+        self.assertEqual(interrupted.finished_at, self.now)
+        self.assertEqual(interrupted.started_at, self.now)
+        self.assertEqual(interrupted.items, [])
+        following.refresh_from_db()
+        self.assertEqual((following.phase, following.health), ('finished', 'pass'))
