@@ -76,3 +76,14 @@ def overview(request):
         'template': dict(INSPECTION_TEMPLATE), 'worker': worker_status(),
         'identity': identity.to_dict(), 'can_manage': identity.is_admin,
     })
+
+
+@login_required_api
+@require_GET
+def plans(request):
+    """List only the current actor's persisted plans in a stable order."""
+    from .inspection_reports import serialize_plan
+    from .models import InspectionPlan
+
+    return _respond(lambda: _page(request, InspectionPlan.objects.filter(
+        actor=get_session_identity(request).username).order_by('name', 'id'), serialize_plan))
