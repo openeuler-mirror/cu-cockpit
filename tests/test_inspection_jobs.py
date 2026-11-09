@@ -127,3 +127,16 @@ class InspectionJobsTest(TestCase):
             InspectionRun.objects.create(
                 plan=plan, scheduled_slot=slot, trigger='scheduled', actor='operator',
                 template_id='local-host', version='v1', phase='finished')
+
+    def test_disabled_plan_never_queues_even_with_stale_due_slot(self):
+        from osmanager.system_management import inspection_jobs as jobs
+        from osmanager.system_management.models import InspectionPlan, InspectionRun
+
+        plan = self._plan(enabled=False)
+        self.assertIsNone(plan.next_run)
+        InspectionPlan.objects.filter(pk=plan.pk).update(next_run=self.now)
+        self.assertEqual(jobs.queue_due(now=self.now), [])
+        self.assertEqual(InspectionRun.objects.count(), 0)
+        plan.refresh_from_db()
+        self.assertIsNone(plan.cursor)
+        self.assertFalse(plan.enabled)
