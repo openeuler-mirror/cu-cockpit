@@ -68,4 +68,9 @@ def queue_run(actor, *, parameters=None, plan_id=None):
         plan = (InspectionPlan.objects.get(pk=plan_id, actor=actor)
                 if plan_id is not None else None)
         values = _run_values(actor, parameters, plan)
+        if plan is not None:
+            active = InspectionRun.objects.filter(
+                plan=plan, phase__in=['queued', 'running']).first()
+            if active is not None:
+                return active
         return InspectionRun.objects.create(plan=plan, trigger='manual', **values)
