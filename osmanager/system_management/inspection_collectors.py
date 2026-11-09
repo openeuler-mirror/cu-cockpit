@@ -135,3 +135,31 @@ def _query_properties(args, required):
         'output': result.stdout,
         'properties': {key: properties[key] for key in required},
     }
+
+
+def collect_services(params=None):
+    """Return one evidence-backed result for every requested registered unit."""
+    import time
+    from .inspection import normalize_parameters
+
+    results = []
+    for service in normalize_parameters(params):
+        started = time.monotonic()
+        evidence = _query_properties(
+            ['systemctl', 'show', '--no-pager',
+             '--property=LoadState,ActiveState,SubState,Result', '--', service],
+            ('LoadState', 'ActiveState', 'SubState', 'Result'),
+        )
+        states = evidence['properties']
+        healthy = (states['LoadState'] == 'loaded' and states['ActiveState'] == 'active' and
+                   states['SubState'] in ('running', 'exited') and states['Result'] == 'success')
+        results.append({
+            'id': f'service:{service}', 'label': service,
+            'status': 'pass' if healthy else 'fail', 'value': states, 'unit': None,
+            'evidence': evidence,
+            'threshold': {'LoadState': 'loaded', 'ActiveState': 'active',
+                          'SubState': ['running', 'exited'], 'Result': 'success'},
+            'reason': f'{service}: ' + ', '.join(f'{key}={value}' for key, value in states.items()),
+            'duration': time.monotonic() - started, 'version': INSPECTION_TEMPLATE['version'],
+        })
+    return results
