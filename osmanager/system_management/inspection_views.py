@@ -24,8 +24,12 @@ def _respond(operation, status=200):
 
     try:
         response = JsonResponse(operation(), status=status)
-    except (ValueError, UnicodeDecodeError, ZoneInfoNotFoundError):
-        response = JsonResponse({'code': 400, 'message': 'Invalid inspection request'}, status=400)
+    except (ValueError, UnicodeDecodeError, ZoneInfoNotFoundError) as error:
+        code = 409 if str(error) in (
+            'Inspection plan limit reached (64)', 'Inspection queue limit reached (64)',
+        ) else 400
+        response = JsonResponse({'code': code, 'message': 'Inspection capacity reached' if
+                                 code == 409 else 'Invalid inspection request'}, status=code)
     except ObjectDoesNotExist:
         response = JsonResponse({'code': 404, 'message': 'Inspection resource not found'}, status=404)
     except (DatabaseError, OSError):
