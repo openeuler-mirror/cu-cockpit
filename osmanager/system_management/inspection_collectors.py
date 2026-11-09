@@ -122,7 +122,12 @@ def _query_properties(args, required):
     """Retain bounded raw evidence alongside required systemd properties."""
     result = _run_readonly(args)
     result.check_returncode()
-    properties = dict(line.split('=', 1) for line in result.stdout.splitlines() if '=' in line)
+    lines = [line for line in result.stdout.splitlines() if line.strip()]
+    pairs = [line.split('=', 1) for line in lines if '=' in line]
+    properties = dict(pairs)
+    if (len(pairs) != len(lines) or len(properties) != len(pairs) or
+            set(required) - properties.keys() or any(not properties[key] for key in required)):
+        raise ValueError(f'Invalid or missing systemd properties: {result.stdout}')
     return {
         'command': list(result.args), 'returncode': result.returncode,
         'output': result.stdout,
