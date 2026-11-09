@@ -56,3 +56,30 @@ class InspectionJobsTest(TestCase):
                 patch.object(inspection_collectors, 'collect_services', return_value=[service]), \
                 patch('time.monotonic', return_value=10):
             return inspection.run_inspection({'services': ['nginx.service']})
+
+    def test_run_persists_complete_success_and_snapshots(self):
+        from unittest.mock import patch
+        from osmanager.system_management import inspection_jobs as jobs
+
+        plan = self._plan()
+        queued = jobs.queue_run('operator', plan_id=plan.pk)
+        expected = self._result()
+        with patch('osmanager.system_management.inspection.run_inspection',
+                   return_value=expected) as collect:
+            completed = jobs.run_next(now=self.now)
+        collect.assert_called_once_with({'services': ['nginx.service']})
+        queued.refresh_from_db()
+        self.assertEqual(completed.pk, queued.pk)
+        self.assertEqual((queued.phase, queued.health, queued.error), ('finished', 'pass', ''))
+        self.assertEqual((queued.template_id, queued.version), ('local-host', 'v1'))
+        self.assertEqual(queued.parameters, expected['parameters'])
+        self.assertEqual(queued.plan_snapshot, {
+            'id': plan.pk, 'revision': 1, 'name': 'Host inspection',
+            'schedule_kind': 'interval', 'timezone': 'UTC',
+            'schedule_settings': {'minutes': 15},
+        })
+        self.assertEqual(queued.items, expected['items'])
+        self.assertEqual(len(queued.items), 6)
+        self.assertEqual(queued.duration, expected['duration'])
+        self.assertEqual(queued.started_at, self.now)
+        self.assertIsNotNone(queued.finished_at)
