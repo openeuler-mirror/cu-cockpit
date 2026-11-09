@@ -39,4 +39,16 @@ def next_slot(plan, after):
     if plan.schedule_kind == 'interval':
         seconds = options['minutes'] * 60
         return datetime.fromtimestamp((after.timestamp() // seconds + 1) * seconds, timezone.utc)
-    raise ValueError('Daily slot calculation is unavailable')
+    from datetime import timedelta
+
+    zone = ZoneInfo(plan.timezone)
+    local = after.astimezone(zone)
+    hour, minute = map(int, options['time'].split(':'))
+    for offset in range(3):
+        wall = (local + timedelta(days=offset)).replace(
+            hour=hour, minute=minute, second=0, microsecond=0, tzinfo=None)
+        candidate = wall.replace(tzinfo=zone, fold=0).astimezone(timezone.utc)
+        if (candidate > after and
+                candidate.astimezone(zone).replace(tzinfo=None) == wall):
+            return candidate
+    raise ValueError('No valid daily inspection slot')
