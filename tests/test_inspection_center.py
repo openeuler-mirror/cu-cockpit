@@ -129,6 +129,41 @@ class InspectionCenterTest(unittest.TestCase):
         self.assertIn('Invalid or missing systemd properties', result['reason'])
         self.query.assert_called_once_with(command)
 
+    def test_metric_exception_preserves_other_items_without_writes(self):
+        self.metrics['collect_cpu_percent'].side_effect = monitoring.MetricCollectionError(
+            'CPU evidence unavailable',
+        )
+        result = inspection.run_inspection()
+        self.assertEqual(set(result), {
+            'template_id', 'version', 'parameters', 'items', 'status', 'duration',
+        })
+        self.assertEqual(result['template_id'], 'local-host')
+        self.assertEqual(result['version'], 'v1')
+        self.assertEqual(result['parameters'], {'services': ['cu-cockpit.service']})
+        self.assertEqual(result['status'], 'error')
+        self.assertEqual([item['id'] for item in result['items']], [
+            'cpu', 'memory', 'root_capacity', 'root_inodes', 'time_sync',
+            'service:cu-cockpit.service',
+        ])
+        failed, *remaining = result['items']
+        self.assertEqual(failed['status'], 'error')
+        self.assertEqual(failed['evidence']['error'], 'MetricCollectionError')
+        self.assertIsNone(failed['value'])
+        self.assertEqual(failed['reason'], 'CPU evidence unavailable')
+        self.assertEqual([item['status'] for item in remaining], ['pass'] * 5)
+        for item in result['items']:
+            self.assertEqual(set(item), {
+                'id', 'label', 'status', 'value', 'unit', 'threshold', 'evidence',
+                'reason', 'duration', 'version',
+            })
+            self.assertEqual(item['version'], result['version'])
+            self.assertGreaterEqual(item['duration'], 0)
+        for collector in self.metrics.values():
+            collector.assert_called_once()
+        self.assertEqual(self.query.call_count, 2)
+        self.sample.assert_not_called()
+        self.evaluate.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()
