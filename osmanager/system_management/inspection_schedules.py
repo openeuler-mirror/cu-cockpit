@@ -99,3 +99,23 @@ def save_plan(data, actor, *, now=None):
         plan.next_run = next_slot(plan, now)
         plan.save()
     return plan
+
+
+def update_plan(plan_id, data, actor, *, now=None):
+    """Replace an owned plan configuration without touching existing runs."""
+    from django.db import transaction
+    from django.db.models import F
+    from django.utils import timezone
+    from .models import InspectionPlan
+
+    values = normalize_plan(data, actor)
+    now = now or timezone.now()
+    with transaction.atomic():
+        InspectionPlan.objects.filter(pk=0).update(name=F('name'))
+        plan = InspectionPlan.objects.get(pk=plan_id, actor=actor)
+        for field, value in values.items():
+            setattr(plan, field, value)
+        plan.revision += 1
+        plan.next_run = next_slot(plan, max(now, plan.cursor or now))
+        plan.save()
+    return plan
