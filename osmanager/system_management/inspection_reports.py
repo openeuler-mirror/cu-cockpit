@@ -26,3 +26,12 @@ def serialize_run(run):
     }
     data['error'] = 'Inspection did not complete successfully' if run.error else ''
     return data
+
+
+def render_json_report(run):
+    """Encode only the stored run, including dates and complete item snapshots."""
+    import json
+    from django.core.serializers.json import DjangoJSONEncoder
+
+    return json.dumps(serialize_run(run), cls=DjangoJSONEncoder, ensure_ascii=False,
+                      allow_nan=False, indent=2).encode('utf-8')
