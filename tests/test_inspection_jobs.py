@@ -199,3 +199,30 @@ class InspectionJobsTest(TestCase):
         self.assertIsNone(queued.started_at)
         self.assertIsNone(queued.finished_at)
         self.assertIsNone(queued.health)
+
+    def test_worker_flock_excludes_a_real_second_process(self):
+        import subprocess
+        import sys
+        from osmanager.system_management import inspection_jobs as jobs
+
+        queued = jobs.queue_run('operator')
+        child = (
+            "import os, sys\n"
+            "os.environ['DJANGO_SETTINGS_MODULE'] = 'osmanager.settings'\n"
+            "from django.conf import settings\n"
+            "settings.DATABASES['default']['NAME'] = ':memory:'\n"
+            "settings.INSPECTION_STATE_DIR = sys.argv[1]\n"
+            "import django\ndjango.setup()\n"
+            "from osmanager.system_management.inspection_jobs import run_next\n"
+            "try:\n    run_next()\n"
+            "except BlockingIOError:\n    sys.exit(23)\n"
+            "sys.exit(24)\n"
+        )
+        with jobs.inspection_lock():
+            process = subprocess.run(
+                [sys.executable, '-c', child, self.lock_directory.name],
+                capture_output=True, text=True, timeout=15, check=False)
+        self.assertEqual(process.returncode, 23, process.stderr)
+        queued.refresh_from_db()
+        self.assertEqual(queued.phase, 'queued')
+        self.assertIsNone(queued.started_at)
