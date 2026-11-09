@@ -221,6 +221,22 @@ class InspectionCenterTest(unittest.TestCase):
         self.assertEqual(spawn.call_args.args[0], command)
         self.assertIs(spawn.call_args.kwargs['shell'], False)
 
+    def test_timeout_terminates_real_child(self):
+        command = (sys.executable, '-c', 'while True: pass')
+        with patch.object(inspection_collectors, '_validate_command',
+                          return_value=command) as validate:
+            with patch('subprocess.Popen', side_effect=self._start_child) as spawn:
+                with self.assertRaisesRegex(TimeoutError, 'command timed out'):
+                    self.run_readonly(command, timeout=0.2)
+        validate.assert_called_once_with(command)
+        self.assertEqual(len(self.children), 1)
+        process = self.children[0]
+        self.assertIsNotNone(process.poll())
+        self.assertLess(process.returncode, 0)
+        self.assertTrue(process.stdout.closed)
+        self.assertEqual(spawn.call_args.args[0], command)
+        self.assertIs(spawn.call_args.kwargs['shell'], False)
+
 
 if __name__ == '__main__':
     unittest.main()
