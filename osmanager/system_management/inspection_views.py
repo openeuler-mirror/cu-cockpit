@@ -21,9 +21,12 @@ def _respond(operation, status=200):
     from zoneinfo import ZoneInfoNotFoundError
     from django.core.exceptions import ObjectDoesNotExist
     from django.db import DatabaseError, IntegrityError
+    from django.http.response import HttpResponseBase
 
     try:
-        response = JsonResponse(operation(), status=status)
+        result = operation()
+        response = result if isinstance(result, HttpResponseBase) else JsonResponse(
+            result, status=status)
     except (ValueError, UnicodeDecodeError, ZoneInfoNotFoundError) as error:
         code = 409 if str(error) in (
             'Inspection plan limit reached (64)', 'Inspection queue limit reached (64)',
