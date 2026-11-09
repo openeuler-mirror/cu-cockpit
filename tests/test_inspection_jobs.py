@@ -269,3 +269,25 @@ class InspectionJobsTest(TestCase):
         self.assertEqual(queued.finished_at, slot)
         self.assertIn('disabled', queued.error)
         self.assertEqual(queued.items, [])
+
+    def test_failed_health_is_not_converted_to_success(self):
+        from unittest.mock import patch
+        from osmanager.system_management import inspection_jobs as jobs
+        from osmanager.system_management.inspection import _overall_status
+
+        queued = jobs.queue_run('operator', parameters={'services': ['nginx.service']})
+        expected = self._result()
+        expected['items'][0].update(
+            status='fail', value=95, evidence={'observed_percent': 95},
+            reason='Observed 95% meets failure threshold 90%')
+        expected['status'] = _overall_status(expected['items'])
+        self.assertEqual(expected['status'], 'fail')
+        with patch('osmanager.system_management.inspection.run_inspection',
+                   return_value=expected) as collect:
+            completed = jobs.run_next(now=self.now)
+        collect.assert_called_once_with(queued.parameters)
+        queued.refresh_from_db()
+        self.assertEqual((completed.health, queued.phase, queued.health),
+                         ('fail', 'finished', 'fail'))
+        self.assertEqual(queued.items, expected['items'])
+        self.assertEqual(queued.items[0]['evidence'], {'observed_percent': 95})
