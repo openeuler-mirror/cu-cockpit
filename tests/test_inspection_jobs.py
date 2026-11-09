@@ -83,3 +83,22 @@ class InspectionJobsTest(TestCase):
         self.assertEqual(queued.duration, expected['duration'])
         self.assertEqual(queued.started_at, self.now)
         self.assertIsNotNone(queued.finished_at)
+
+    def test_core_exception_is_persisted_as_error_without_retry(self):
+        from unittest.mock import patch
+        from osmanager.system_management import inspection_jobs as jobs
+
+        queued = jobs.queue_run('operator', parameters={'services': ['nginx.service']})
+        with patch('osmanager.system_management.inspection.run_inspection',
+                   side_effect=RuntimeError('collector failed')) as collect:
+            failed = jobs.run_next(now=self.now)
+            self.assertIsNone(jobs.run_next(now=self.now))
+        collect.assert_called_once_with({'services': ['nginx.service']})
+        queued.refresh_from_db()
+        self.assertEqual(failed.pk, queued.pk)
+        self.assertEqual((queued.phase, queued.health), ('finished', 'error'))
+        self.assertEqual(queued.error, 'RuntimeError: collector failed')
+        self.assertEqual(queued.items, [])
+        self.assertGreaterEqual(queued.duration, 0)
+        self.assertEqual(queued.started_at, self.now)
+        self.assertIsNotNone(queued.finished_at)
