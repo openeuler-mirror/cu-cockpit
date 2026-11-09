@@ -138,6 +138,7 @@ def _claim_next(now):
 
 def run_next(*, now=None):
     """Run one persisted snapshot under the single-host worker lock."""
+    import json
     from django.utils import timezone
     from .inspection import run_inspection
 
@@ -147,6 +148,8 @@ def run_next(*, now=None):
             return None
         try:
             result = run_inspection(run.parameters)
+            if len(json.dumps(result, ensure_ascii=False, allow_nan=False).encode('utf-8')) > 262144:
+                raise ValueError('Inspection result exceeds 256 KiB')
             run.items = result['items']
             run.health = result['status']
             run.duration = result['duration']
