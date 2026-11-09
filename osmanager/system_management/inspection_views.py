@@ -19,10 +19,13 @@ def _payload(request):
 def _respond(operation, status=200):
     """Produce a private JSON response from one inspection operation."""
     from zoneinfo import ZoneInfoNotFoundError
+    from django.core.exceptions import ObjectDoesNotExist
 
     try:
         response = JsonResponse(operation(), status=status)
     except (ValueError, UnicodeDecodeError, ZoneInfoNotFoundError):
         response = JsonResponse({'code': 400, 'message': 'Invalid inspection request'}, status=400)
+    except ObjectDoesNotExist:
+        response = JsonResponse({'code': 404, 'message': 'Inspection resource not found'}, status=404)
     response['Cache-Control'] = 'private, no-store'
     return response
