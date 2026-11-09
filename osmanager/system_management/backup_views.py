@@ -144,7 +144,10 @@ def backup_download(request, archive_id):
         _archive_id(archive_id)
     except ValueError:
         return _error(400, 'Expected only a valid archive_id')
-    root = require_installation()
+    try:
+        root = require_installation()
+    except (OSError, ValueError):
+        return _error(503, 'Backup installation is unavailable')
     _, expected_hash = _registered_archive(root, archive_id, BACKUP_COMPAT_VERSION)
     descriptor = os.open(root / f'{archive_id}.zip', os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
     with ExitStack() as opened:
