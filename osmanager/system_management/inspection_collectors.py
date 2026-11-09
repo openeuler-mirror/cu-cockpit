@@ -175,3 +175,22 @@ def collect_services(params=None):
             'duration': time.monotonic() - started, 'version': INSPECTION_TEMPLATE['version'],
         })
     return results
+
+
+def collect_time_sync():
+    """Classify actual synchronization rather than NTP service activity."""
+    import time
+
+    started = time.monotonic()
+    evidence = _query_properties(
+        ['timedatectl', 'show', '--no-pager', '--property=NTPSynchronized,NTP,CanNTP'],
+        ('NTPSynchronized',),
+    )
+    synchronized = evidence['properties']['NTPSynchronized'] == 'yes'
+    return {
+        'id': 'time_sync', 'label': 'Time synchronization',
+        'status': 'pass' if synchronized else 'fail', 'value': synchronized, 'unit': None,
+        'evidence': evidence, 'threshold': {'NTPSynchronized': 'yes'},
+        'reason': f"NTPSynchronized={evidence['properties']['NTPSynchronized']}",
+        'duration': time.monotonic() - started, 'version': INSPECTION_TEMPLATE['version'],
+    }
