@@ -107,3 +107,23 @@ def queue_due(*, now=None):
             plan.next_run = next_slot(plan, max(now, plan.cursor))
             plan.save(update_fields=['cursor', 'next_run'])
     return queued
+
+
+def _claim_next(now):
+    """Atomically claim the oldest queued run; caller must hold inspection_lock."""
+    from django.db import transaction
+    from django.db.models import F
+    from .models import InspectionRun
+
+    with transaction.atomic():
+        InspectionRun.objects.filter(pk=0).update(actor=F('actor'))
+        run = InspectionRun.objects.filter(phase='queued').order_by('queued_at', 'id').first()
+        if run is None:
+            return None
+        claimed = InspectionRun.objects.filter(pk=run.pk, phase='queued').update(
+            phase='running', started_at=now)
+        if not claimed:
+            return None
+        run.phase = 'running'
+        run.started_at = now
+        return run
