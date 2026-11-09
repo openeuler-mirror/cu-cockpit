@@ -79,3 +79,15 @@ def _metric_runner(args, allowed_commands, timeout=5, evidence=None):
         evidence.update(command=list(result.args), output=result.stdout,
                         returncode=result.returncode)
     return SimpleNamespace(success=result.returncode == 0, stdout=stdout)
+
+
+def percent_result(value, evidence):
+    """Classify a utilization value against the immutable template thresholds."""
+    warning = INSPECTION_TEMPLATE['warning']
+    failure = INSPECTION_TEMPLATE['fail']
+    status = 'fail' if value >= failure else 'warning' if value >= warning else 'pass'
+    return {
+        'status': status, 'value': value, 'unit': '%', 'evidence': evidence,
+        'threshold': {'warning': warning, 'fail': failure, 'operator': '>='},
+        'reason': f'Utilization {value}%: {status}',
+    }
