@@ -164,6 +164,27 @@ class InspectionCenterTest(unittest.TestCase):
         self.sample.assert_not_called()
         self.evaluate.assert_not_called()
 
+    def test_run_deadline_skips_all_remaining_items(self):
+        with patch('time.monotonic', side_effect=[0, 0, 1, 1] + [61] * 6):
+            result = inspection.run_inspection()
+        self.assertEqual(result['status'], 'error')
+        self.assertEqual(result['duration'], 61)
+        self.assertEqual([item['status'] for item in result['items']],
+                         ['pass'] + ['skipped'] * 5)
+        self.assertEqual([item['id'] for item in result['items'][1:]], [
+            'memory', 'root_capacity', 'root_inodes', 'time_sync',
+            'service:cu-cockpit.service',
+        ])
+        for item in result['items'][1:]:
+            self.assertEqual(item['evidence'], {'deadline_exhausted': True})
+            self.assertIsNone(item['value'])
+            self.assertEqual(item['duration'], 0)
+        self.metrics['collect_cpu_percent'].assert_called_once()
+        for name in ('collect_memory_percent', 'collect_root_percent', 'collect_inode_percent'):
+            self.metrics[name].assert_not_called()
+        self.query.assert_not_called()
+        self.assertIsNone(inspection_collectors._ITEM_DEADLINE.get())
+
 
 if __name__ == '__main__':
     unittest.main()
