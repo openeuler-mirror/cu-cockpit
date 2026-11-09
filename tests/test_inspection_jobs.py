@@ -16,3 +16,12 @@ class InspectionJobsTest(TestCase):
         self.settings_override.enable()
         self.addCleanup(self.settings_override.disable)
         self.now = datetime(2026, 10, 29, tzinfo=timezone.utc)
+
+    def _plan(self, **overrides):
+        from osmanager.system_management.inspection_schedules import save_plan
+
+        return save_plan({
+            'name': 'Host inspection', 'enabled': True, 'timezone': 'UTC',
+            'schedule_kind': 'interval', 'schedule_settings': {'minutes': 15},
+            'parameters': {'services': ['nginx.service']}, **overrides,
+        }, 'operator', now=self.now)
