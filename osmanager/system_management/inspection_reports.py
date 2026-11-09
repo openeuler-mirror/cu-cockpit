@@ -21,4 +21,5 @@ def serialize_run(run):
         state: sum(item.get('status') == state for item in run.items)
         for state in ('pass', 'warning', 'fail', 'error', 'skipped')
     }
+    data['error'] = 'Inspection did not complete successfully' if run.error else ''
     return data
