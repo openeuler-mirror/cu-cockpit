@@ -185,6 +185,24 @@ class InspectionCenterTest(unittest.TestCase):
         self.query.assert_not_called()
         self.assertIsNone(inspection_collectors._ITEM_DEADLINE.get())
 
+    def test_runner_rejects_non_allowlisted_argv_before_spawn(self):
+        commands = (
+            ('uname', '-a'),
+            ('top', '-bn1'),
+            ('df', '-P', '--', '/tmp'),
+            ('df', '-P', '--', '/', '--help'),
+            ('systemctl', 'is-active', 'nginx.service'),
+            ('systemctl', 'show', '--no-pager',
+             '--property=LoadState,ActiveState,SubState,Result', '--', 'unregistered.service'),
+            (sys.executable, '-c', 'print(123)'),
+        )
+        with patch('subprocess.Popen', side_effect=AssertionError('Unexpected spawn')) as spawn:
+            for command in commands:
+                with self.subTest(command=command):
+                    with self.assertRaisesRegex(ValueError, 'not a built-in inspection query'):
+                        self.run_readonly(command)
+            spawn.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()
