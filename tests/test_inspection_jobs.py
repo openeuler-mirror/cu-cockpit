@@ -250,3 +250,22 @@ class InspectionJobsTest(TestCase):
         self.assertEqual(interrupted.items, [])
         following.refresh_from_db()
         self.assertEqual((following.phase, following.health), ('finished', 'pass'))
+
+    def test_disabling_plan_skips_queued_scheduled_work(self):
+        from unittest.mock import patch
+        from osmanager.system_management import inspection_jobs as jobs
+        from osmanager.system_management.inspection_schedules import set_plan_enabled
+
+        plan = self._plan()
+        slot = plan.next_run
+        queued, = jobs.queue_due(now=slot)
+        set_plan_enabled(plan.pk, False, 'operator', now=slot)
+        with patch('osmanager.system_management.inspection.run_inspection') as collect:
+            self.assertIsNone(jobs.run_next(now=slot))
+        collect.assert_not_called()
+        queued.refresh_from_db()
+        self.assertEqual((queued.phase, queued.health), ('finished', 'skipped'))
+        self.assertIsNone(queued.started_at)
+        self.assertEqual(queued.finished_at, slot)
+        self.assertIn('disabled', queued.error)
+        self.assertEqual(queued.items, [])
