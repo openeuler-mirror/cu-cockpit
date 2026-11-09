@@ -40,3 +40,20 @@ def normalize_parameters(parameters=None):
     if len(set(services)) != len(services):
         raise ValueError('Duplicate service units are not allowed')
     return tuple(services)
+
+
+def _run_item(item_id, label, collector, deadline):
+    """Attach stable item metadata while binding an isolated command budget."""
+    import time
+    from .inspection_collectors import _ITEM_DEADLINE
+
+    started = time.monotonic()
+    token = _ITEM_DEADLINE.set(min(deadline, started + INSPECTION_TEMPLATE['item_timeout']))
+    try:
+        result = dict(collector())
+    finally:
+        _ITEM_DEADLINE.reset(token)
+    return {
+        **result, 'id': item_id, 'label': label,
+        'duration': time.monotonic() - started, 'version': INSPECTION_TEMPLATE['version'],
+    }
