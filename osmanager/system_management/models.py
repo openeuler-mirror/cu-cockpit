@@ -202,3 +202,25 @@ class AIRunbookStep(models.Model):
     class Meta:
         ordering = ['position', 'id']
         constraints = [models.UniqueConstraint(fields=['runbook', 'position'], name='unique_runbook_step_position')]
+
+
+class InspectionPlan(models.Model):
+    name = models.CharField(max_length=128)
+    template_id = models.CharField(max_length=32, default='local-host')
+    version = models.CharField(max_length=16, default='v1')
+    parameters = models.JSONField(default=dict)
+    schedule_kind = models.CharField(max_length=16, default='manual', choices=[
+        ('manual', 'Manual'), ('daily', 'Daily'), ('interval', 'Interval'),
+    ])
+    enabled = models.BooleanField(default=False, db_index=True)
+    timezone = models.CharField(max_length=64, default='Asia/Shanghai')
+    schedule_settings = models.JSONField(default=dict)
+    revision = models.PositiveIntegerField(default=1)
+    next_run = models.DateTimeField(null=True, blank=True, db_index=True)
+    cursor = models.DateTimeField(null=True, blank=True)
+    actor = models.CharField(max_length=150)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name', 'id']
