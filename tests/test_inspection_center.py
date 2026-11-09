@@ -46,6 +46,22 @@ class InspectionCenterTest(unittest.TestCase):
         self.addCleanup(lambda: process.kill() if process.poll() is None else None)
         return process
 
+    def test_percent_template_boundaries_are_inclusive(self):
+        self.assertEqual(inspection.INSPECTION_TEMPLATE['warning'], 80)
+        self.assertEqual(inspection.INSPECTION_TEMPLATE['fail'], 90)
+        for value, expected in ((0, 'pass'), (79.99, 'pass'), (80, 'warning'),
+                                (89.99, 'warning'), (90, 'fail'), (100, 'fail')):
+            with self.subTest(value=value):
+                evidence = {'observed_percent': value}
+                result = inspection_collectors.percent_result(value, evidence)
+                self.assertEqual(result['status'], expected)
+                self.assertEqual(result['value'], value)
+                self.assertEqual(result['unit'], '%')
+                self.assertEqual(result['threshold'], {
+                    'warning': 80, 'fail': 90, 'operator': '>=',
+                })
+                self.assertIs(result['evidence'], evidence)
+
 
 if __name__ == '__main__':
     unittest.main()
