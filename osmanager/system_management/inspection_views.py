@@ -38,3 +38,12 @@ def _respond(operation, status=200):
         response = JsonResponse({'code': 503, 'message': 'Inspection storage unavailable'}, status=503)
     response['Cache-Control'] = 'private, no-store'
     return response
+
+
+def _page(request, queryset, serializer):
+    """Return a bounded page from an explicitly ordered queryset."""
+    page = int(request.GET.get('page', 1))
+    limit = min(int(request.GET.get('limit', 20)), 100)
+    offset = (page - 1) * limit
+    return {'items': [serializer(item) for item in queryset[offset:offset + limit]],
+            'total': queryset.count(), 'page': page, 'limit': limit}
