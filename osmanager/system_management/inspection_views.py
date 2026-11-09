@@ -42,8 +42,13 @@ def _respond(operation, status=200):
 
 def _page(request, queryset, serializer):
     """Return a bounded page from an explicitly ordered queryset."""
+    if (set(request.GET) - {'page', 'limit'} or
+            any(len(request.GET.getlist(key)) != 1 for key in request.GET)):
+        raise ValueError('Expected only page and limit')
     page = int(request.GET.get('page', 1))
     limit = min(int(request.GET.get('limit', 20)), 100)
+    if page < 1 or page > 1000000 or limit < 1:
+        raise ValueError('Invalid inspection pagination')
     offset = (page - 1) * limit
     return {'items': [serializer(item) for item in queryset[offset:offset + limit]],
             'total': queryset.count(), 'page': page, 'limit': limit}
