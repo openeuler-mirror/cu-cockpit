@@ -25,3 +25,18 @@ def normalize_schedule(kind, options, timezone):
     if kind != 'manual' or options:
         raise ValueError('Invalid inspection schedule')
     return {}
+
+
+def next_slot(plan, after):
+    """Return the next UTC-aligned interval strictly after an aware instant."""
+    from datetime import datetime, timezone
+
+    if after.utcoffset() is None:
+        raise ValueError('Schedule instants must be timezone aware')
+    options = normalize_schedule(plan.schedule_kind, plan.schedule_settings, plan.timezone)
+    if not plan.enabled or plan.schedule_kind == 'manual':
+        return None
+    if plan.schedule_kind == 'interval':
+        seconds = options['minutes'] * 60
+        return datetime.fromtimestamp((after.timestamp() // seconds + 1) * seconds, timezone.utc)
+    raise ValueError('Daily slot calculation is unavailable')
