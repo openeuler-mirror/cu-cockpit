@@ -49,6 +49,8 @@ def _run_readonly(args, timeout=5):
                 if not chunk:
                     break
                 output.extend(chunk)
+        if len(output) > 16384:
+            raise RuntimeError('Inspection command output exceeds 16 KiB')
         return subprocess.CompletedProcess(
             command, process.wait(timeout=max(0.001, deadline - time.monotonic())),
             stdout=output.decode('utf-8', errors='replace'), stderr='',
