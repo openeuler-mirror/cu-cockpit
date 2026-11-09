@@ -112,7 +112,7 @@ def queue_due(*, now=None):
 def _claim_next(now):
     """Atomically claim the oldest queued run; caller must hold inspection_lock."""
     from django.db import transaction
-    from django.db.models import F
+    from django.db.models import F, Q
     from .models import InspectionRun
 
     with transaction.atomic():
@@ -120,6 +120,10 @@ def _claim_next(now):
         InspectionRun.objects.filter(phase='running').update(
             phase='finished', health='error', finished_at=now,
             error='Inspection worker interrupted; run was not retried')
+        InspectionRun.objects.filter(phase='queued', trigger='scheduled').filter(
+            Q(plan__enabled=False) | Q(plan__isnull=True)).update(
+                phase='finished', health='skipped', finished_at=now,
+                error='Inspection plan is disabled or deleted')
         run = InspectionRun.objects.filter(phase='queued').order_by('queued_at', 'id').first()
         if run is None:
             return None
