@@ -73,3 +73,14 @@ def _run_item(item_id, label, collector, deadline):
         **result, 'id': item_id, 'label': label,
         'duration': time.monotonic() - started, 'version': INSPECTION_TEMPLATE['version'],
     }
+
+
+def _overall_status(items):
+    """Reduce completed health states without conflating them with job phases."""
+    statuses = {item['status'] for item in items}
+    if statuses == {'skipped'}:
+        return 'skipped'
+    for status in ('error', 'fail', 'warning', 'pass'):
+        if status in statuses:
+            return status
+    return 'error'
