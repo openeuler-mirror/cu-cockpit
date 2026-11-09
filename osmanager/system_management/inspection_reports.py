@@ -1,6 +1,9 @@
 """Persisted inspection snapshots for API responses and offline downloads."""
 
 
+REPORT_MAX_BYTES = 262144
+
+
 def serialize_plan(plan):
     """Expose the validated plan contract without installation paths."""
     return {field: getattr(plan, field) for field in (
