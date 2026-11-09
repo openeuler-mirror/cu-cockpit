@@ -38,6 +38,11 @@ def _run_readonly(args, timeout=5):
 
     command = _validate_command(args)
     deadline = time.monotonic() + min(timeout, 5)
+    item_deadline = _ITEM_DEADLINE.get()
+    if item_deadline is not None:
+        deadline = min(deadline, item_deadline)
+    if time.monotonic() >= deadline:
+        raise TimeoutError('Inspection item deadline exhausted before command start')
     process = subprocess.Popen(
         command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT, shell=False, close_fds=True,
