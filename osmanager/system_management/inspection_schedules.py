@@ -119,3 +119,22 @@ def update_plan(plan_id, data, actor, *, now=None):
         plan.next_run = next_slot(plan, max(now, plan.cursor or now))
         plan.save()
     return plan
+
+
+def set_plan_enabled(plan_id, enabled, actor, *, now=None):
+    """Enable or disable an owned plan without rewriting its configuration."""
+    from django.db import transaction
+    from django.db.models import F
+    from django.utils import timezone
+    from .models import InspectionPlan
+
+    normalize_plan({'name': 'Inspection', 'enabled': enabled}, actor)
+    now = now or timezone.now()
+    with transaction.atomic():
+        InspectionPlan.objects.filter(pk=0).update(name=F('name'))
+        plan = InspectionPlan.objects.get(pk=plan_id, actor=actor)
+        plan.enabled = enabled
+        plan.revision += 1
+        plan.next_run = next_slot(plan, max(now, plan.cursor or now))
+        plan.save(update_fields=['enabled', 'revision', 'next_run', 'updated_at'])
+    return plan
