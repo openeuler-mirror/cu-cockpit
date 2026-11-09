@@ -52,3 +52,33 @@ def next_slot(plan, after):
                 candidate.astimezone(zone).replace(tzinfo=None) == wall):
             return candidate
     raise ValueError('No valid daily inspection slot')
+
+
+def normalize_plan(data, actor):
+    """Normalize the complete editable plan contract before any database write."""
+    from .inspection import normalize_parameters
+
+    allowed = {'name', 'template_id', 'version', 'parameters', 'schedule_kind',
+               'enabled', 'timezone', 'schedule_settings'}
+    if not isinstance(data, dict) or set(data) - allowed:
+        raise ValueError('Unknown inspection plan fields')
+    name = data.get('name')
+    if (not isinstance(name, str) or not name.strip() or len(name) > 128 or
+            not name.isprintable()):
+        raise ValueError('Inspection name must contain 1 to 128 printable characters')
+    if not isinstance(actor, str) or not actor.strip() or len(actor) > 150:
+        raise ValueError('Inspection actor is required')
+    if data.get('template_id', 'local-host') != 'local-host' or data.get('version', 'v1') != 'v1':
+        raise ValueError('Only the built-in local-host v1 template is supported')
+    enabled = data.get('enabled', False)
+    if type(enabled) is not bool:
+        raise ValueError('Enabled must be a boolean')
+    kind = data.get('schedule_kind', 'manual')
+    zone = data.get('timezone', 'Asia/Shanghai')
+    options = normalize_schedule(kind, data.get('schedule_settings', {}), zone)
+    return {
+        'name': name.strip(), 'actor': actor, 'template_id': 'local-host', 'version': 'v1',
+        'parameters': {'services': list(normalize_parameters(data.get('parameters')))},
+        'schedule_kind': kind, 'schedule_settings': options, 'timezone': zone,
+        'enabled': enabled,
+    }
