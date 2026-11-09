@@ -1,6 +1,11 @@
 """Private fixed-command collectors for offline inspection."""
 
+from contextvars import ContextVar
+
 from .inspection import INSPECTION_TEMPLATE
+
+
+_ITEM_DEADLINE = ContextVar('inspection_item_deadline', default=None)
 
 
 def _validate_command(args):
