@@ -53,3 +53,17 @@ def _run_values(actor, parameters=None, plan=None):
                            'schedule_settings': values['schedule_settings']}
                           if plan is not None else {}),
     }
+
+
+def queue_run(actor, *, parameters=None, plan_id=None):
+    """Queue manual work after caller authorization, never collect in the request."""
+    from django.db import transaction
+    from django.db.models import F
+    from .models import InspectionPlan, InspectionRun
+
+    with transaction.atomic():
+        InspectionRun.objects.filter(pk=0).update(actor=F('actor'))
+        plan = (InspectionPlan.objects.get(pk=plan_id, actor=actor)
+                if plan_id is not None else None)
+        values = _run_values(actor, parameters, plan)
+        return InspectionRun.objects.create(plan=plan, trigger='manual', **values)
