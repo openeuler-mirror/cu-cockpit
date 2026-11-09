@@ -48,9 +48,18 @@ def _run_item(item_id, label, collector, deadline):
     from .inspection_collectors import _ITEM_DEADLINE
 
     started = time.monotonic()
+    if started >= deadline:
+        return {
+            'id': item_id, 'label': label, 'status': 'skipped', 'value': None,
+            'unit': None, 'threshold': None, 'evidence': {'deadline_exhausted': True},
+            'reason': 'Inspection run deadline exhausted; collector not started',
+            'duration': 0.0, 'version': INSPECTION_TEMPLATE['version'],
+        }
     token = _ITEM_DEADLINE.set(min(deadline, started + INSPECTION_TEMPLATE['item_timeout']))
     try:
         result = dict(collector())
+        if time.monotonic() >= _ITEM_DEADLINE.get():
+            raise TimeoutError('Inspection item deadline exceeded (5s maximum)')
     except Exception as error:
         result = {
             'status': 'error', 'value': None, 'unit': None, 'threshold': None,
