@@ -81,6 +81,22 @@ class InspectionCenterTest(unittest.TestCase):
         for collector in self.metrics.values():
             collector.assert_not_called()
 
+    def test_inactive_service_returns_fail_with_evidence(self):
+        command = ['systemctl', 'show', '--no-pager',
+                   '--property=LoadState,ActiveState,SubState,Result', '--', 'nginx.service']
+        output = 'LoadState=loaded\nActiveState=inactive\nSubState=dead\nResult=success\n'
+        self.query.side_effect = None
+        self.query.return_value = subprocess.CompletedProcess(command, 0, stdout=output)
+        result, = inspection_collectors.collect_services({'services': ['nginx.service']})
+        self.assertEqual(result['id'], 'service:nginx.service')
+        self.assertEqual(result['status'], 'fail')
+        self.assertEqual(result['value']['ActiveState'], 'inactive')
+        self.assertEqual(result['evidence']['output'], output)
+        self.assertEqual(result['evidence']['returncode'], 0)
+        self.assertEqual(result['evidence']['command'], command)
+        self.assertEqual(result['threshold']['ActiveState'], 'active')
+        self.query.assert_called_once_with(command)
+
 
 if __name__ == '__main__':
     unittest.main()
