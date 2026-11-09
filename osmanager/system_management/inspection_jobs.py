@@ -39,6 +39,8 @@ def _run_values(actor, parameters=None, plan=None):
     """Freeze only validated v1 inputs into a new run's independent snapshot."""
     from .inspection_schedules import normalize_plan
 
+    if plan is not None and parameters is not None:
+        raise ValueError('Plan parameters cannot be overridden when triggering a run')
     fields = ('name', 'template_id', 'version', 'parameters', 'schedule_kind',
               'enabled', 'timezone', 'schedule_settings')
     data = ({field: getattr(plan, field) for field in fields} if plan is not None
