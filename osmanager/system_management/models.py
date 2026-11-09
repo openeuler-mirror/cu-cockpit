@@ -224,3 +224,40 @@ class InspectionPlan(models.Model):
 
     class Meta:
         ordering = ['name', 'id']
+
+
+class InspectionRun(models.Model):
+    plan = models.ForeignKey(InspectionPlan, null=True, blank=True,
+                             on_delete=models.SET_NULL, related_name='runs')
+    plan_snapshot = models.JSONField(default=dict)
+    trigger = models.CharField(max_length=16, choices=[
+        ('manual', 'Manual'), ('scheduled', 'Scheduled'),
+    ])
+    actor = models.CharField(max_length=150)
+    template_id = models.CharField(max_length=32)
+    version = models.CharField(max_length=16)
+    parameters = models.JSONField(default=dict)
+    phase = models.CharField(max_length=16, default='queued', db_index=True, choices=[
+        ('queued', 'Queued'), ('running', 'Running'), ('finished', 'Finished'),
+    ])
+    health = models.CharField(max_length=16, null=True, blank=True, choices=[
+        (value, value.title()) for value in ('pass', 'warning', 'fail', 'error', 'skipped')
+    ])
+    scheduled_slot = models.DateTimeField(null=True, blank=True)
+    queued_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    duration = models.FloatField(null=True, blank=True)
+    items = models.JSONField(default=list)
+    error = models.CharField(max_length=512, blank=True)
+
+    class Meta:
+        ordering = ['-queued_at', '-id']
+        constraints = [
+            models.UniqueConstraint(fields=['plan', 'scheduled_slot'],
+                                    name='inspection_plan_slot_once'),
+            models.UniqueConstraint(fields=['plan'], condition=models.Q(
+                phase__in=['queued', 'running']), name='inspection_plan_active_once'),
+            models.UniqueConstraint(fields=['phase'], condition=models.Q(phase='running'),
+                                    name='inspection_single_running'),
+        ]
