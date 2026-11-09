@@ -134,3 +134,23 @@ def _claim_next(now):
         run.phase = 'running'
         run.started_at = now
         return run
+
+
+def run_next(*, now=None):
+    """Run one persisted snapshot under the single-host worker lock."""
+    from django.utils import timezone
+    from .inspection import run_inspection
+
+    with inspection_lock():
+        run = _claim_next(now or timezone.now())
+        if run is None:
+            return None
+        result = run_inspection(run.parameters)
+        run.items = result['items']
+        run.health = result['status']
+        run.duration = result['duration']
+        run.error = ''
+        run.phase = 'finished'
+        run.finished_at = timezone.now()
+        run.save(update_fields=['items', 'health', 'duration', 'error', 'phase', 'finished_at'])
+        return run
