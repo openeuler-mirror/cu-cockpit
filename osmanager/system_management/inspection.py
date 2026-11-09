@@ -91,3 +91,37 @@ def _overall_status(items, required=INSPECTION_TEMPLATE['items']):
         if status in statuses:
             return status
     return 'error'
+
+
+def run_inspection(parameters=None):
+    """Synchronously inspect the built-in template without persistence or alerts."""
+    import time
+    from functools import partial
+    from . import inspection_collectors as collectors
+
+    services = normalize_parameters(parameters)
+    started = time.monotonic()
+    deadline = started + INSPECTION_TEMPLATE['run_timeout']
+    labels = {
+        'cpu': 'CPU utilization', 'memory': 'Memory utilization',
+        'root_capacity': 'Root filesystem capacity', 'root_inodes': 'Root filesystem inodes',
+        'time_sync': 'Time synchronization',
+    }
+    pending = [
+        (item_id, labels[item_id], collectors.collect_time_sync if item_id == 'time_sync'
+         else partial(collectors._collect_metric, item_id))
+        for item_id in INSPECTION_TEMPLATE['items']
+    ]
+    pending.extend(
+        (f'service:{service}', service,
+         lambda service=service: collectors.collect_services({'services': [service]})[0])
+        for service in services
+    )
+    items = [_run_item(item_id, label, collector, deadline)
+             for item_id, label, collector in pending]
+    return {
+        'template_id': INSPECTION_TEMPLATE['id'], 'version': INSPECTION_TEMPLATE['version'],
+        'parameters': {'services': list(services)}, 'items': items,
+        'status': _overall_status(items, tuple(item_id for item_id, _, _ in pending)),
+        'duration': time.monotonic() - started,
+    }
