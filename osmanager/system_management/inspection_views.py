@@ -20,6 +20,7 @@ def _respond(operation, status=200):
     """Produce a private JSON response from one inspection operation."""
     from zoneinfo import ZoneInfoNotFoundError
     from django.core.exceptions import ObjectDoesNotExist
+    from django.db import DatabaseError
 
     try:
         response = JsonResponse(operation(), status=status)
@@ -27,5 +28,7 @@ def _respond(operation, status=200):
         response = JsonResponse({'code': 400, 'message': 'Invalid inspection request'}, status=400)
     except ObjectDoesNotExist:
         response = JsonResponse({'code': 404, 'message': 'Inspection resource not found'}, status=404)
+    except (DatabaseError, OSError):
+        response = JsonResponse({'code': 503, 'message': 'Inspection storage unavailable'}, status=503)
     response['Cache-Control'] = 'private, no-store'
     return response
