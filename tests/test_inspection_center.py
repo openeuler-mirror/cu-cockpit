@@ -62,6 +62,15 @@ class InspectionCenterTest(unittest.TestCase):
                 })
                 self.assertIs(result['evidence'], evidence)
 
+    def test_unregistered_service_is_rejected_before_collection(self):
+        with self.assertRaisesRegex(ValueError, 'Service unit is not registered'):
+            inspection.run_inspection({'services': ['unregistered.service']})
+        self.query.assert_not_called()
+        for collector in self.metrics.values():
+            collector.assert_not_called()
+        self.sample.assert_not_called()
+        self.evaluate.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()
