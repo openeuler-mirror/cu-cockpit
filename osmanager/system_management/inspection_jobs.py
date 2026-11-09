@@ -33,3 +33,23 @@ def inspection_lock():
             os.close(descriptor)
     finally:
         os.close(directory)
+
+
+def _run_values(actor, parameters=None, plan=None):
+    """Freeze only validated v1 inputs into a new run's independent snapshot."""
+    from .inspection_schedules import normalize_plan
+
+    fields = ('name', 'template_id', 'version', 'parameters', 'schedule_kind',
+              'enabled', 'timezone', 'schedule_settings')
+    data = ({field: getattr(plan, field) for field in fields} if plan is not None
+            else {'name': 'Manual inspection', 'parameters': parameters})
+    values = normalize_plan(data, actor)
+    return {
+        'actor': actor, 'template_id': values['template_id'], 'version': values['version'],
+        'parameters': values['parameters'],
+        'plan_snapshot': ({'id': plan.pk, 'revision': plan.revision,
+                           'name': values['name'], 'schedule_kind': values['schedule_kind'],
+                           'timezone': values['timezone'],
+                           'schedule_settings': values['schedule_settings']}
+                          if plan is not None else {}),
+    }
