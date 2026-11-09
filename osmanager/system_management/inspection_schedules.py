@@ -95,6 +95,8 @@ def save_plan(data, actor, *, now=None):
     now = now or timezone.now()
     with transaction.atomic():
         InspectionPlan.objects.filter(pk=0).update(name=F('name'))
+        if InspectionPlan.objects.count() >= 64:
+            raise ValueError('Inspection plan limit reached (64)')
         plan = InspectionPlan(**values)
         plan.next_run = next_slot(plan, now)
         plan.save()
