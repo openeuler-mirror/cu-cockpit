@@ -98,3 +98,14 @@ def runs(request):
 
     return _respond(lambda: _page(request, InspectionRun.objects.filter(
         actor=get_session_identity(request).username).order_by('-queued_at', '-id'), serialize_run))
+
+
+@login_required_api
+@require_GET
+def run_detail(request, run_id):
+    """Return a stored run only when its actor matches the session identity."""
+    from .inspection_reports import serialize_run
+    from .models import InspectionRun
+
+    return _respond(lambda: serialize_run(InspectionRun.objects.get(
+        pk=run_id, actor=get_session_identity(request).username)))
