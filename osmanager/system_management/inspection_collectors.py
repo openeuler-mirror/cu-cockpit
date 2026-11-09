@@ -116,3 +116,15 @@ def _collect_metric(item_id):
     value = collectors[item_id]()
     evidence['observed_percent'] = value
     return percent_result(value, evidence)
+
+
+def _query_properties(args, required):
+    """Retain bounded raw evidence alongside required systemd properties."""
+    result = _run_readonly(args)
+    result.check_returncode()
+    properties = dict(line.split('=', 1) for line in result.stdout.splitlines() if '=' in line)
+    return {
+        'command': list(result.args), 'returncode': result.returncode,
+        'output': result.stdout,
+        'properties': {key: properties[key] for key in required},
+    }
