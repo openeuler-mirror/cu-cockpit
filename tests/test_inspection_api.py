@@ -228,4 +228,31 @@ class InspectionAPITest(TestCase):
         self.probe.assert_not_called()
         self.metric.assert_not_called()
 
+    def test_json_report_preserves_complete_persisted_snapshot(self):
+        import json
+        from django.core.serializers.json import DjangoJSONEncoder
+
+        stored = self._run()
+        self._login()
+        fields = (
+            'id', 'plan_id', 'plan_snapshot', 'trigger', 'actor', 'template_id', 'version',
+            'parameters', 'phase', 'health', 'scheduled_slot', 'queued_at', 'started_at',
+            'finished_at', 'duration', 'items', 'error',
+        )
+        expected = {field: getattr(stored, field) for field in fields}
+        expected['counts'] = {'pass': 0, 'warning': 0, 'fail': 1, 'error': 0, 'skipped': 0}
+        response = self.client.get(
+            f'{self.base}/runs/{stored.pk}/report', {'format': 'json'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/json; charset=utf-8')
+        self.assertEqual(response.json(), json.loads(json.dumps(expected, cls=DjangoJSONEncoder)))
+        self.assertEqual((response.json()['template_id'], response.json()['version']),
+                         ('local-host', 'v1'))
+        self.assertEqual(response.json()['parameters'], {'services': ['nginx.service']})
+        self.assertEqual((response.json()['phase'], response.json()['health']),
+                         ('finished', 'fail'))
+        self.collect.assert_not_called()
+        self.probe.assert_not_called()
+        self.metric.assert_not_called()
+
 
