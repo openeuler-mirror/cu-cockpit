@@ -38,3 +38,14 @@ class InspectionAPITest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('csrftoken', response.cookies)
         return self.client.cookies['csrftoken'].value
+
+    def test_anonymous_overview_is_unauthorized_without_probes(self):
+        with patch('osmanager.system_management.inspection_runtime.worker_status') as worker:
+            response = self.client.get(f'{self.base}/overview')
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()['code'], 401)
+        worker.assert_not_called()
+        self.account.assert_not_called()
+        self.collect.assert_not_called()
+        self.probe.assert_not_called()
+        self.metric.assert_not_called()
