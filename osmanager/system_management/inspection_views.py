@@ -128,5 +128,7 @@ def report(request, run_id):
             pk=run_id, actor=get_session_identity(request).username)),
         content_type=('application/json; charset=utf-8' if report_format == 'json'
                       else 'text/html; charset=utf-8'),
-        headers={'Content-Disposition': f'attachment; filename="inspection-{run_id}.{report_format}"'},
+        headers={
+            'Content-Disposition': f'attachment; filename="inspection-{run_id}.{report_format}"',
+        },
     ))
