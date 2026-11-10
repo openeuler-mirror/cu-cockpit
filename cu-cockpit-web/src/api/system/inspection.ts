@@ -117,3 +117,8 @@ export const createInspectionPlan = (data: InspectionPlanInput): Promise<Inspect
   url: '/system/inspection/plans/create', method: 'post', data, withCredentials: true,
   headers: { 'X-CSRFToken': Cookies.get('csrftoken') || '' },
 });
+
+export const updateInspectionPlan = (id: number, data: InspectionPlanInput): Promise<InspectionPlan> => request<InspectionPlan, InspectionPlan>({
+  url: `/system/inspection/plans/${id}/update`, method: 'post', data, withCredentials: true,
+  headers: { 'X-CSRFToken': Cookies.get('csrftoken') || '' },
+});
