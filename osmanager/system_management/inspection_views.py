@@ -180,4 +180,7 @@ def _run_payload(request):
     data = _payload(request)
     if set(data) not in ({'plan_id'}, {'parameters'}):
         raise ValueError('Expected either plan_id or parameters')
+    if 'plan_id' in data and (type(data['plan_id']) is not int or
+                              not 0 < data['plan_id'] <= 9223372036854775807):
+        raise ValueError('Expected a positive inspection plan ID')
     return data
