@@ -82,7 +82,7 @@ export interface InspectionRun {
   version: string;
   parameters: InspectionParameters;
   phase: 'queued' | 'running' | 'finished';
-  health: InspectionHealth | '';
+  health: InspectionHealth | null;
   scheduled_slot: string | null;
   queued_at: string;
   started_at: string | null;
