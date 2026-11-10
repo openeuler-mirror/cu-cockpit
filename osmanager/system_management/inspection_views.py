@@ -154,3 +154,11 @@ def edit_plan(request, plan_id):
 
     return _respond(lambda: serialize_plan(update_plan(
         plan_id, _payload(request), request.system_identity.username)))
+
+
+def _enabled_payload(request):
+    """Accept exactly one strict boolean for a plan's enabled state."""
+    data = _payload(request)
+    if set(data) != {'enabled'} or type(data['enabled']) is not bool:
+        raise ValueError('Expected only a boolean enabled field')
+    return data['enabled']
