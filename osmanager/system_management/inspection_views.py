@@ -162,3 +162,14 @@ def _enabled_payload(request):
     if set(data) != {'enabled'} or type(data['enabled']) is not bool:
         raise ValueError('Expected only a boolean enabled field')
     return data['enabled']
+
+
+@audited_admin_api('inspection', 'plan_toggle')
+@require_POST
+def toggle_plan(request, plan_id):
+    """Change an owned plan's enabled state without executing an inspection."""
+    from .inspection_reports import serialize_plan
+    from .inspection_schedules import set_plan_enabled
+
+    return _respond(lambda: serialize_plan(set_plan_enabled(
+        plan_id, _enabled_payload(request), request.system_identity.username)))
