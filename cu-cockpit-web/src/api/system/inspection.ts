@@ -132,3 +132,8 @@ export const queueInspectionRun = (data: { plan_id: number; parameters?: never }
   url: '/system/inspection/run', method: 'post', data, withCredentials: true,
   headers: { 'X-CSRFToken': Cookies.get('csrftoken') || '' },
 });
+
+export const getInspectionReport = (id: number, format: 'json' | 'html'): Promise<Blob> => request<Blob, Blob>({
+  url: `/system/inspection/runs/${id}/report`, method: 'get', params: { format },
+  responseType: 'blob', withCredentials: true,
+});
