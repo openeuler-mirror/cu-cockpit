@@ -45,4 +45,11 @@ const state = reactive({
 let disposed = false;
 let polling = false;
 let pollTimer: ReturnType<typeof setInterval> | undefined;
+
+import { computed } from 'vue';
+
+const access = computed(() => ({
+  manage: Boolean(state.overview?.can_manage && state.overview.identity.is_admin),
+  execute: Boolean(state.overview?.can_manage && state.overview.identity.is_admin && state.overview.worker.available),
+}));
 </script>
