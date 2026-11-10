@@ -26,3 +26,5 @@ class Command(BaseCommand):
             }, cls=DjangoJSONEncoder, ensure_ascii=False, allow_nan=False))
         except Exception as error:
             raise CommandError(f'Inspection worker failed: {error}') from error
+        if completed is not None and completed.health == 'error':
+            raise CommandError(f'Inspection run {completed.pk} finished with error')
