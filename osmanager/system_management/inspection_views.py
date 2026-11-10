@@ -173,3 +173,11 @@ def toggle_plan(request, plan_id):
 
     return _respond(lambda: serialize_plan(set_plan_enabled(
         plan_id, _enabled_payload(request), request.system_identity.username)))
+
+
+def _run_payload(request):
+    """Accept exactly one run input selector without client-owned metadata."""
+    data = _payload(request)
+    if set(data) not in ({'plan_id'}, {'parameters'}):
+        raise ValueError('Expected either plan_id or parameters')
+    return data
