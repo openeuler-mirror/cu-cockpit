@@ -4,11 +4,11 @@ import json
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 
 from osmanager.auth.decorators import login_required_api
 
-from .permissions import get_session_identity
+from .permissions import audited_admin_api, get_session_identity
 
 
 def _payload(request):
@@ -132,3 +132,14 @@ def report(request, run_id):
             'Content-Disposition': f'attachment; filename="inspection-{run_id}.{report_format}"',
         },
     ))
+
+
+@audited_admin_api('inspection', 'plan_create')
+@require_POST
+def create_plan(request):
+    """Persist an administrator's plan without collecting host evidence."""
+    from .inspection_reports import serialize_plan
+    from .inspection_schedules import save_plan
+
+    return _respond(lambda: serialize_plan(save_plan(
+        _payload(request), request.system_identity.username)), status=201)
