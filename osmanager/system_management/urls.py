@@ -1,9 +1,10 @@
-from django.urls import path
+from django.urls import include, path
 
 from . import ai_views, monitoring_views, runbook_views, views
 
 
 urlpatterns = [
+    path('inspection/', include('osmanager.system_management.inspection_urls')),
     path('context', views.session_context, name='system-context'),
     path('capabilities', views.capabilities, name='system-capabilities'),
     path('audits', views.audit_list, name='system-audits'),
