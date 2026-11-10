@@ -77,6 +77,24 @@ class InspectionAPITest(TestCase):
         self.probe.assert_not_called()
         self.metric.assert_not_called()
 
+    def test_admin_post_without_csrf_token_is_rejected(self):
+        from osmanager.system_management.models import InspectionPlan, InspectionRun
+
+        plan = self._plan()
+        self._login()
+        self.account.reset_mock()
+        before = list(InspectionPlan.objects.values())
+        response = self.client.post(
+            f'{self.base}/run', {'plan_id': plan.pk}, content_type='application/json')
+        self.assertEqual(response.status_code, 403)
+        self.assertIn(b'CSRF', response.content)
+        self.account.assert_not_called()
+        self.assertEqual(list(InspectionPlan.objects.values()), before)
+        self.assertEqual(InspectionRun.objects.count(), 0)
+        self.collect.assert_not_called()
+        self.probe.assert_not_called()
+        self.metric.assert_not_called()
+
     def test_viewer_cannot_create_plan_or_change_inspection_rows(self):
         from osmanager.system_management.models import InspectionPlan, InspectionRun
 
