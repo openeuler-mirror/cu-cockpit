@@ -8,4 +8,5 @@ from . import inspection_views
 urlpatterns = [
     path('overview', inspection_views.overview, name='inspection-overview'),
     path('plans', inspection_views.plans, name='inspection-plans'),
+    path('runs', inspection_views.runs, name='inspection-runs'),
 ]
