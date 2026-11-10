@@ -15,3 +15,20 @@ export type InspectionPlanInput = InspectionSchedule & {
   timezone: string;
   enabled: boolean;
 };
+
+export type InspectionPlan = InspectionPlanInput & {
+  id: number;
+  revision: number;
+  actor: string;
+  next_run: string | null;
+  cursor: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export interface InspectionPage<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
