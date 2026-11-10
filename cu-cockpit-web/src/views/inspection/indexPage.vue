@@ -63,4 +63,8 @@ function formatTime(value: string | null) {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString('zh-CN', { hour12: false });
 }
+
+function formatValue(value: inspection.InspectionValue) {
+  return value === null ? '-' : typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+}
 </script>
