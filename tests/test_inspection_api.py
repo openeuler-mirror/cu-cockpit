@@ -204,4 +204,28 @@ class InspectionAPITest(TestCase):
         self.probe.assert_not_called()
         self.metric.assert_not_called()
 
+    def test_html_report_escapes_stored_evidence_without_recollection(self):
+        import json
+        from django.utils.html import escape
+
+        stored = self._run()
+        unsafe = stored.items[0]['evidence']['output']
+        self._login()
+        response = self.client.get(
+            f'{self.base}/runs/{stored.pk}/report', {'format': 'html'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'text/html; charset=utf-8')
+        self.assertEqual(response['Content-Disposition'],
+                         f'attachment; filename="inspection-{stored.pk}.html"')
+        self.assertEqual(response['Cache-Control'], 'private, no-store')
+        body = response.content.decode('utf-8')
+        self.assertIn(str(escape(json.dumps(unsafe))), body)
+        self.assertNotIn(unsafe, body)
+        self.assertNotIn('<script>', body)
+        stored.refresh_from_db()
+        self.assertEqual(stored.items[0]['evidence']['output'], unsafe)
+        self.collect.assert_not_called()
+        self.probe.assert_not_called()
+        self.metric.assert_not_called()
+
 
