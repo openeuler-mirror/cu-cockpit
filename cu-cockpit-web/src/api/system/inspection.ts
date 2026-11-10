@@ -122,3 +122,8 @@ export const updateInspectionPlan = (id: number, data: InspectionPlanInput): Pro
   url: `/system/inspection/plans/${id}/update`, method: 'post', data, withCredentials: true,
   headers: { 'X-CSRFToken': Cookies.get('csrftoken') || '' },
 });
+
+export const toggleInspectionPlan = (id: number, enabled: boolean): Promise<InspectionPlan> => request<InspectionPlan, InspectionPlan>({
+  url: `/system/inspection/plans/${id}/toggle`, method: 'post', data: { enabled }, withCredentials: true,
+  headers: { 'X-CSRFToken': Cookies.get('csrftoken') || '' },
+});
