@@ -55,3 +55,40 @@ export interface InspectionOverview {
   identity: { username: string; is_admin: boolean };
   can_manage: boolean;
 }
+
+export type InspectionHealth = 'pass' | 'warning' | 'fail' | 'error' | 'skipped';
+export type InspectionValue = null | boolean | number | string | InspectionValue[] | { [key: string]: InspectionValue };
+
+export interface InspectionItem {
+  id: string;
+  label: string;
+  status: InspectionHealth;
+  value: InspectionValue;
+  unit: string | null;
+  threshold: InspectionValue;
+  evidence: InspectionValue;
+  reason: string;
+  duration: number;
+  version: string;
+}
+
+export interface InspectionRun {
+  id: number;
+  plan_id: number | null;
+  plan_snapshot: InspectionValue;
+  trigger: 'manual' | 'scheduled';
+  actor: string;
+  template_id: string;
+  version: string;
+  parameters: InspectionParameters;
+  phase: 'queued' | 'running' | 'finished';
+  health: InspectionHealth | '';
+  scheduled_slot: string | null;
+  queued_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+  duration: number | null;
+  items: InspectionItem[];
+  error: string;
+  counts: Record<InspectionHealth, number>;
+}
