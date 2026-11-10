@@ -10,4 +10,5 @@ urlpatterns = [
     path('plans', inspection_views.plans, name='inspection-plans'),
     path('runs', inspection_views.runs, name='inspection-runs'),
     path('runs/<int:run_id>', inspection_views.run_detail, name='inspection-run-detail'),
+    path('runs/<int:run_id>/report', inspection_views.report, name='inspection-report'),
 ]
