@@ -133,4 +133,27 @@ class InspectionAPITest(TestCase):
         self.probe.assert_not_called()
         self.metric.assert_not_called()
 
+    def test_unsafe_or_unknown_run_payload_is_rejected_without_enqueue(self):
+        from osmanager.system_management.models import InspectionRun
+
+        token = self._login()
+        payloads = (
+            {'parameters': {}, 'script': 'touch /tmp/inspection-injected'},
+            {'parameters': {}, 'path': '../../etc/shadow'},
+            {'parameters': {}, 'unknown': True},
+        )
+        with patch('osmanager.system_management.inspection_jobs.queue_run') as enqueue:
+            for payload in payloads:
+                with self.subTest(payload=payload):
+                    response = self.client.post(
+                        f'{self.base}/run', payload, content_type='application/json',
+                        HTTP_X_CSRFTOKEN=token)
+                    self.assertEqual(response.status_code, 400)
+                    self.assertEqual(response.json()['code'], 400)
+                    enqueue.assert_not_called()
+                    self.assertEqual(InspectionRun.objects.count(), 0)
+        self.collect.assert_not_called()
+        self.probe.assert_not_called()
+        self.metric.assert_not_called()
+
 
