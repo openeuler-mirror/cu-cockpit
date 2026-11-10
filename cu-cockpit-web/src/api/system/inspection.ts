@@ -32,3 +32,26 @@ export interface InspectionPage<T> {
   page: number;
   limit: number;
 }
+
+export interface InspectionOverview {
+  template: {
+    id: 'local-host';
+    version: 'v1';
+    items: string[];
+    default_services: string[];
+    registered_services: string[];
+    max_services: number;
+    warning: number;
+    fail: number;
+    item_timeout: number;
+    run_timeout: number;
+  };
+  worker: {
+    available: boolean;
+    reason: string | null;
+    poll_seconds: number;
+    runs_per_trigger: number;
+  };
+  identity: { username: string; is_admin: boolean };
+  can_manage: boolean;
+}
