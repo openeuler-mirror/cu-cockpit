@@ -113,4 +113,24 @@ class InspectionAPITest(TestCase):
         self.probe.assert_not_called()
         self.metric.assert_not_called()
 
+    def test_admin_with_csrf_queues_run_without_collection(self):
+        from osmanager.system_management.models import InspectionRun
+
+        plan = self._plan()
+        token = self._login()
+        response = self.client.post(
+            f'{self.base}/run', {'plan_id': plan.pk}, content_type='application/json',
+            HTTP_X_CSRFTOKEN=token)
+        self.assertEqual(response.status_code, 202)
+        self.assertEqual(response.json()['phase'], 'queued')
+        queued = InspectionRun.objects.get()
+        self.assertEqual(response.json()['id'], queued.pk)
+        self.assertEqual((queued.actor, queued.plan_id), ('operator', plan.pk))
+        self.assertEqual(queued.phase, 'queued')
+        self.assertEqual(queued.parameters, plan.parameters)
+        self.assertIsNone(queued.started_at)
+        self.collect.assert_not_called()
+        self.probe.assert_not_called()
+        self.metric.assert_not_called()
+
 
