@@ -1,0 +1,14 @@
+[Unit]
+Description=Process one cu-cockpit inspection run
+After=cu-cockpit.service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/opt/cu-cockpit
+EnvironmentFile=/opt/cu-cockpit/os.env
+ExecStart=/opt/cu-cockpit/venv/bin/python /opt/cu-cockpit/manage.py run_inspections
+TimeoutStartSec=90
+KillMode=control-group
+Nice=10
