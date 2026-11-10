@@ -98,3 +98,7 @@ import request from '/@/utils/request';
 export const getInspectionOverview = (): Promise<InspectionOverview> => request<InspectionOverview, InspectionOverview>({
   url: '/system/inspection/overview', method: 'get', withCredentials: true,
 });
+
+export const getInspectionPlans = (page = 1, limit = 20): Promise<InspectionPage<InspectionPlan>> => request<InspectionPage<InspectionPlan>, InspectionPage<InspectionPlan>>({
+  url: '/system/inspection/plans', method: 'get', params: { page, limit }, withCredentials: true,
+});
