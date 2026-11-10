@@ -67,4 +67,22 @@ function formatTime(value: string | null) {
 function formatValue(value: inspection.InspectionValue) {
   return value === null ? '-' : typeof value === 'string' ? value : JSON.stringify(value, null, 2);
 }
+
+async function loadWorkspace() {
+  if (disposed || state.loading) return;
+  state.loading = true;
+  state.error = '';
+  try {
+    const [overview, plans, runs] = await Promise.all([
+      inspection.getInspectionOverview(),
+      inspection.getInspectionPlans(state.planPage),
+      inspection.getInspectionRuns(state.runPage),
+    ]);
+    if (disposed) return;
+    Object.assign(state, { overview, plans: plans.items, planTotal: plans.total,
+      planPage: plans.page, runs: runs.items, runTotal: runs.total, runPage: runs.page });
+  } finally {
+    if (!disposed) state.loading = false;
+  }
+}
 </script>
