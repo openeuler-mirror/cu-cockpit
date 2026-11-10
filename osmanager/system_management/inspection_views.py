@@ -109,3 +109,22 @@ def run_detail(request, run_id):
 
     return _respond(lambda: serialize_run(InspectionRun.objects.get(
         pk=run_id, actor=get_session_identity(request).username)))
+
+
+@login_required_api
+@require_GET
+def report(request, run_id):
+    """Download a private JSON or HTML report from the persisted run alone."""
+    from django.http import HttpResponse
+    from .inspection_reports import render_html_report, render_json_report
+    from .models import InspectionRun
+
+    report_format = request.GET.get('format', 'json')
+    renderers = (render_json_report, render_html_report)
+    return _respond(lambda: HttpResponse(
+        renderers[('json', 'html').index(report_format)](InspectionRun.objects.get(
+            pk=run_id, actor=get_session_identity(request).username)),
+        content_type=('application/json; charset=utf-8' if report_format == 'json'
+                      else 'text/html; charset=utf-8'),
+        headers={'Content-Disposition': f'attachment; filename="inspection-{run_id}.{report_format}"'},
+    ))
