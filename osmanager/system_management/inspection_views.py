@@ -186,3 +186,14 @@ def _run_payload(request):
     if 'parameters' in data and not isinstance(data['parameters'], dict):
         raise ValueError('Expected an inspection parameters object')
     return data
+
+
+@audited_admin_api('inspection', 'run_queue')
+@require_POST
+def run(request):
+    """Queue an administrator's snapshot without running collectors in HTTP."""
+    from .inspection_jobs import queue_run
+    from .inspection_reports import serialize_run
+
+    return _respond(lambda: serialize_run(queue_run(
+        request.system_identity.username, **_run_payload(request))), status=202)
