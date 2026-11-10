@@ -127,3 +127,8 @@ export const toggleInspectionPlan = (id: number, enabled: boolean): Promise<Insp
   url: `/system/inspection/plans/${id}/toggle`, method: 'post', data: { enabled }, withCredentials: true,
   headers: { 'X-CSRFToken': Cookies.get('csrftoken') || '' },
 });
+
+export const queueInspectionRun = (data: { plan_id: number; parameters?: never } | { parameters: InspectionParameters; plan_id?: never }): Promise<InspectionRun> => request<InspectionRun, InspectionRun>({
+  url: '/system/inspection/run', method: 'post', data, withCredentials: true,
+  headers: { 'X-CSRFToken': Cookies.get('csrftoken') || '' },
+});
