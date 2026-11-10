@@ -143,3 +143,14 @@ def create_plan(request):
 
     return _respond(lambda: serialize_plan(save_plan(
         _payload(request), request.system_identity.username)), status=201)
+
+
+@audited_admin_api('inspection', 'plan_update')
+@require_POST
+def edit_plan(request, plan_id):
+    """Replace an owned plan through the validated schedule service."""
+    from .inspection_reports import serialize_plan
+    from .inspection_schedules import update_plan
+
+    return _respond(lambda: serialize_plan(update_plan(
+        plan_id, _payload(request), request.system_identity.username)))
