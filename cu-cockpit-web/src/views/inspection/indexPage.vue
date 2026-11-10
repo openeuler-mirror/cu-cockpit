@@ -81,6 +81,8 @@ async function loadWorkspace() {
     if (disposed) return;
     Object.assign(state, { overview, plans: plans.items, planTotal: plans.total,
       planPage: plans.page, runs: runs.items, runTotal: runs.total, runPage: runs.page });
+  } catch {
+    if (!disposed) state.error = '巡检数据加载失败，请稍后重试。';
   } finally {
     if (!disposed) state.loading = false;
   }
