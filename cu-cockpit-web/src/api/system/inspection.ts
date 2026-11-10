@@ -106,3 +106,7 @@ export const getInspectionPlans = (page = 1, limit = 20): Promise<InspectionPage
 export const getInspectionRuns = (page = 1, limit = 20): Promise<InspectionPage<InspectionRun>> => request<InspectionPage<InspectionRun>, InspectionPage<InspectionRun>>({
   url: '/system/inspection/runs', method: 'get', params: { page, limit }, withCredentials: true,
 });
+
+export const getInspectionRun = (id: number): Promise<InspectionRun> => request<InspectionRun, InspectionRun>({
+  url: `/system/inspection/runs/${id}`, method: 'get', withCredentials: true,
+});
