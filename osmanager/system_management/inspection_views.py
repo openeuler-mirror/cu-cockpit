@@ -119,6 +119,8 @@ def report(request, run_id):
     from .inspection_reports import render_html_report, render_json_report
     from .models import InspectionRun
 
+    if set(request.GET) - {'format'} or len(request.GET.getlist('format')) > 1:
+        return _respond(lambda: (_ for _ in ()).throw(ValueError('Expected only one format')))
     report_format = request.GET.get('format', 'json')
     renderers = (render_json_report, render_html_report)
     return _respond(lambda: HttpResponse(
