@@ -183,4 +183,6 @@ def _run_payload(request):
     if 'plan_id' in data and (type(data['plan_id']) is not int or
                               not 0 < data['plan_id'] <= 9223372036854775807):
         raise ValueError('Expected a positive inspection plan ID')
+    if 'parameters' in data and not isinstance(data['parameters'], dict):
+        raise ValueError('Expected an inspection parameters object')
     return data
