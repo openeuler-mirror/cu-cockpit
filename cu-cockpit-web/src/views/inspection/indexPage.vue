@@ -57,4 +57,10 @@ function statusLabel(status: inspection.InspectionHealth | inspection.Inspection
   return status ? ({ queued: '排队中', running: '运行中', finished: '已结束', pass: '通过',
     warning: '警告', fail: '异常', error: '错误', skipped: '跳过' }[status]) : '待生成';
 }
+
+function formatTime(value: string | null) {
+  if (!value) return '暂无';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleString('zh-CN', { hour12: false });
+}
 </script>
