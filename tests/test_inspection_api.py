@@ -28,3 +28,13 @@ class InspectionAPITest(TestCase):
         self.metric = self.enterContext(patch(
             'osmanager.system_management.inspection_collectors._collect_metric',
             side_effect=AssertionError('HTTP must not collect metrics')))
+
+    def _login(self, username='operator', uid=0):
+        self.account.return_value = SimpleNamespace(pw_uid=uid)
+        session = self.client.session
+        session['username'] = username
+        session.save()
+        response = self.client.get(f'{self.base}/overview')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('csrftoken', response.cookies)
+        return self.client.cookies['csrftoken'].value
