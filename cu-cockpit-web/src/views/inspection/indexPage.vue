@@ -13,4 +13,36 @@ type PlanEditor = {
   enabled: boolean;
   services: string[];
 };
+
+import { reactive } from 'vue';
+import * as inspection from '/@/api/system/inspection';
+
+const state = reactive({
+  overview: null as inspection.InspectionOverview | null,
+  loading: false,
+  error: '',
+  plans: [] as inspection.InspectionPlan[],
+  planPage: 1,
+  planTotal: 0,
+  runs: [] as inspection.InspectionRun[],
+  runPage: 1,
+  runTotal: 0,
+  pending: [] as inspection.InspectionRun[],
+  selectedPlan: null as number | null,
+  selected: null as inspection.InspectionRun | null,
+  detailOpen: false,
+  detailLoading: false,
+  detailError: '',
+  dialog: false,
+  formError: '',
+  saving: false,
+  queueing: false,
+  toggling: null as number | null,
+  downloading: '' as '' | 'json' | 'html',
+  editor: { id: null, name: '', kind: 'daily', time: '02:00', minutes: 30,
+    timezone: 'Asia/Shanghai', enabled: true, services: [] } as PlanEditor,
+});
+let disposed = false;
+let polling = false;
+let pollTimer: ReturnType<typeof setInterval> | undefined;
 </script>
