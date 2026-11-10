@@ -156,4 +156,27 @@ class InspectionAPITest(TestCase):
         self.probe.assert_not_called()
         self.metric.assert_not_called()
 
+    def _run(self, actor='operator'):
+        from django.utils import timezone
+        from osmanager.system_management.inspection_jobs import queue_run
+        from osmanager.system_management.models import InspectionRun
+
+        plan = self._plan(actor=actor)
+        queued = queue_run(actor, plan_id=plan.pk)
+        observed_at = timezone.now()
+        InspectionRun.objects.filter(pk=queued.pk).update(
+            phase='finished', health='fail', duration=0.25,
+            started_at=observed_at, finished_at=observed_at,
+            items=[{
+                'id': 'service:nginx.service', 'status': 'fail',
+                'value': {'ActiveState': 'inactive'}, 'unit': None,
+                'threshold': {'ActiveState': 'active'},
+                'reason': 'nginx.service: ActiveState=inactive',
+                'evidence': {'output': '<script>alert("inspection")</script>&',
+                             'returncode': 0,
+                             'command': ['systemctl', 'show', '--', 'nginx.service']},
+            }])
+        queued.refresh_from_db()
+        return queued
+
 
