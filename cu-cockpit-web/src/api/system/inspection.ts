@@ -92,3 +92,9 @@ export interface InspectionRun {
   error: string;
   counts: Record<InspectionHealth, number>;
 }
+
+import request from '/@/utils/request';
+
+export const getInspectionOverview = (): Promise<InspectionOverview> => request<InspectionOverview, InspectionOverview>({
+  url: '/system/inspection/overview', method: 'get', withCredentials: true,
+});
