@@ -179,4 +179,29 @@ class InspectionAPITest(TestCase):
         queued.refresh_from_db()
         return queued
 
+    def test_other_actor_cannot_queue_or_read_owned_inspection(self):
+        from osmanager.system_management.models import InspectionRun
+
+        stored = self._run()
+        token = self._login('other-admin')
+        before = list(InspectionRun.objects.values())
+        requests = (
+            ('post', '/run', {'plan_id': stored.plan_id}),
+            ('get', f'/runs/{stored.pk}', {}),
+            ('get', f'/runs/{stored.pk}/report', {'format': 'json'}),
+            ('get', f'/runs/{stored.pk}/report', {'format': 'html'}),
+        )
+        for method, suffix, payload in requests:
+            with self.subTest(method=method, suffix=suffix, payload=payload):
+                response = getattr(self.client, method)(
+                    f'{self.base}{suffix}', payload, content_type='application/json',
+                    HTTP_X_CSRFTOKEN=token)
+                self.assertEqual(response.status_code, 404)
+                self.assertEqual(response.json()['code'], 404)
+                self.assertEqual(list(InspectionRun.objects.values()), before)
+        self.account.assert_called_with('other-admin')
+        self.collect.assert_not_called()
+        self.probe.assert_not_called()
+        self.metric.assert_not_called()
+
 
