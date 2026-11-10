@@ -52,4 +52,9 @@ const access = computed(() => ({
   manage: Boolean(state.overview?.can_manage && state.overview.identity.is_admin),
   execute: Boolean(state.overview?.can_manage && state.overview.identity.is_admin && state.overview.worker.available),
 }));
+
+function statusLabel(status: inspection.InspectionHealth | inspection.InspectionRun['phase'] | null) {
+  return status ? ({ queued: '排队中', running: '运行中', finished: '已结束', pass: '通过',
+    warning: '警告', fail: '异常', error: '错误', skipped: '跳过' }[status]) : '待生成';
+}
 </script>
