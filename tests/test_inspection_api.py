@@ -49,3 +49,12 @@ class InspectionAPITest(TestCase):
         self.collect.assert_not_called()
         self.probe.assert_not_called()
         self.metric.assert_not_called()
+
+    def _plan(self, actor='operator'):
+        from osmanager.system_management.inspection_schedules import save_plan
+
+        return save_plan({
+            'name': 'Host inspection', 'enabled': True, 'timezone': 'UTC',
+            'schedule_kind': 'interval', 'schedule_settings': {'minutes': 15},
+            'parameters': {'services': ['nginx.service']},
+        }, actor)
