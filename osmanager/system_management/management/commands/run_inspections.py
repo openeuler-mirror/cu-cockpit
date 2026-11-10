@@ -12,13 +12,17 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         import json
+        from django.core.management.base import CommandError
         from django.core.serializers.json import DjangoJSONEncoder
         from osmanager.system_management.inspection_jobs import queue_due, run_next
         from osmanager.system_management.inspection_reports import serialize_run
 
-        queued = queue_due()
-        completed = run_next()
-        self.stdout.write(json.dumps({
-            'queued': len(queued),
-            'run': serialize_run(completed) if completed is not None else None,
-        }, cls=DjangoJSONEncoder, ensure_ascii=False, allow_nan=False))
+        try:
+            queued = queue_due()
+            completed = run_next()
+            self.stdout.write(json.dumps({
+                'queued': len(queued),
+                'run': serialize_run(completed) if completed is not None else None,
+            }, cls=DjangoJSONEncoder, ensure_ascii=False, allow_nan=False))
+        except Exception as error:
+            raise CommandError(f'Inspection worker failed: {error}') from error
