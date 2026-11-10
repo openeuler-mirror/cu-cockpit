@@ -58,3 +58,23 @@ class InspectionAPITest(TestCase):
             'schedule_kind': 'interval', 'schedule_settings': {'minutes': 15},
             'parameters': {'services': ['nginx.service']},
         }, actor)
+
+    def test_viewer_cannot_create_plan_or_change_inspection_rows(self):
+        from osmanager.system_management.models import InspectionPlan, InspectionRun
+
+        self._plan()
+        token = self._login('viewer', uid=1000)
+        before = list(InspectionPlan.objects.values())
+        response = self.client.post(
+            f'{self.base}/plans/create', {'name': 'Forbidden plan'},
+            content_type='application/json', HTTP_X_CSRFTOKEN=token)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()['code'], 403)
+        self.account.assert_called_with('viewer')
+        self.assertEqual(list(InspectionPlan.objects.values()), before)
+        self.assertEqual(InspectionRun.objects.count(), 0)
+        self.collect.assert_not_called()
+        self.probe.assert_not_called()
+        self.metric.assert_not_called()
+
+
