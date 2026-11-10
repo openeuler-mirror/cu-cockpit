@@ -110,3 +110,10 @@ export const getInspectionRuns = (page = 1, limit = 20): Promise<InspectionPage<
 export const getInspectionRun = (id: number): Promise<InspectionRun> => request<InspectionRun, InspectionRun>({
   url: `/system/inspection/runs/${id}`, method: 'get', withCredentials: true,
 });
+
+import Cookies from 'js-cookie';
+
+export const createInspectionPlan = (data: InspectionPlanInput): Promise<InspectionPlan> => request<InspectionPlan, InspectionPlan>({
+  url: '/system/inspection/plans/create', method: 'post', data, withCredentials: true,
+  headers: { 'X-CSRFToken': Cookies.get('csrftoken') || '' },
+});
