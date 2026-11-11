@@ -106,4 +106,28 @@ function openEdit(plan: inspection.InspectionPlan) {
   state.formError = '';
   state.dialog = true;
 }
+
+async function savePlan() {
+  if (disposed || state.saving) return;
+  state.formError = '';
+  const editor = state.editor;
+  const schedule: inspection.InspectionSchedule = editor.kind === 'daily'
+    ? { schedule_kind: 'daily', schedule_settings: { time: editor.time } }
+    : editor.kind === 'interval'
+      ? { schedule_kind: 'interval', schedule_settings: { minutes: editor.minutes } }
+      : { schedule_kind: 'manual', schedule_settings: {} };
+  const data: inspection.InspectionPlanInput = { ...schedule, name: editor.name.trim(),
+    template_id: 'local-host', version: 'v1', timezone: editor.timezone,
+    enabled: editor.enabled, parameters: { services: [...editor.services] } };
+  state.saving = true;
+  try {
+    if (editor.id === null) await inspection.createInspectionPlan(data);
+    else await inspection.updateInspectionPlan(editor.id, data);
+    if (disposed) return;
+    state.dialog = false;
+    await loadWorkspace();
+  } finally {
+    if (!disposed) state.saving = false;
+  }
+}
 </script>
