@@ -282,6 +282,8 @@ async function pollActiveWork() {
       if (detail) state.selected = detail;
     }
     await loadWorkspace();
+  } catch {
+    if (!disposed) state.error = '巡检状态刷新失败，将自动重试，也可手动刷新。';
   } finally {
     polling = false;
   }
