@@ -116,3 +116,28 @@
   background: var(--el-fill-color-light);
   overflow-wrap: anywhere;
 }
+
+.inspection-dialog,
+.inspection-drawer {
+  max-width: 96vw;
+  border-radius: 6px;
+  .el-dialog__title, .el-drawer__title { overflow-wrap: anywhere; font-size: 18px; }
+  .el-dialog__body, .el-drawer__body { min-width: 0; overflow-wrap: anywhere; }
+  .el-alert { margin: 12px 0; border-radius: 6px; }
+  .el-alert__content { min-width: 0; overflow-wrap: anywhere; }
+  .el-form-item__content { min-width: 0; }
+  .el-select { width: 100%; min-width: 0; }
+  .el-select__selection { min-width: 0; }
+  .el-button { border-radius: 6px; }
+}
+
+.inspection-dialog {
+  .el-dialog__body { max-height: 65vh; overflow-y: auto; }
+  small { color: var(--el-text-color-secondary); }
+}
+
+.inspection-drawer {
+  .el-drawer__header { margin-bottom: 12px; }
+  h2 { font-size: 17px; margin: 16px 0 8px; }
+  h3 { font-size: 13px; margin: 12px 0 6px; }
+}
