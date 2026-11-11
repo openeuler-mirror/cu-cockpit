@@ -268,7 +268,9 @@ async function pollActiveWork() {
   if (disposed || polling || state.loading || state.saving || state.queueing || state.toggling !== null) return;
   const active = [...state.pending, ...state.runs, ...(state.selected ? [state.selected] : [])]
     .filter(run => run.phase === 'queued' || run.phase === 'running');
-  if (!active.length) return;
+  const scheduled = state.overview?.worker.available && state.plans.some(plan =>
+    plan.enabled && plan.schedule_kind !== 'manual' && plan.next_run && Date.parse(plan.next_run) <= Date.now());
+  if (!active.length && !scheduled) return;
   polling = true;
   try {
     const refreshed = await Promise.all([...new Set(active.map(run => run.id))]
