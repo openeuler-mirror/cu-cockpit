@@ -184,4 +184,22 @@ async function togglePlan(plan: inspection.InspectionPlan, enabled: boolean) {
     if (!disposed) state.toggling = null;
   }
 }
+
+async function queueInspection(planId: number | null = state.selectedPlan) {
+  if (disposed || state.queueing) return;
+  state.error = '';
+  state.queueing = true;
+  try {
+    const data = planId === null
+      ? { parameters: { services: [...(state.overview?.template.default_services || [])] } }
+      : { plan_id: planId };
+    const run = await inspection.queueInspectionRun(data);
+    if (disposed) return;
+    state.pending = [run, ...state.pending.filter(item => item.id !== run.id)];
+    state.runPage = 1;
+    await loadWorkspace();
+  } finally {
+    if (!disposed) state.queueing = false;
+  }
+}
 </script>
