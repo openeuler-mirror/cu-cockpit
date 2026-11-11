@@ -160,6 +160,11 @@ async function savePlan() {
 
 async function togglePlan(plan: inspection.InspectionPlan, enabled: boolean) {
   if (disposed || state.toggling !== null) return;
+  if (!access.value.manage || typeof enabled !== 'boolean' ||
+      !Number.isSafeInteger(plan.id) || plan.id <= 0) {
+    state.error = '无法切换计划，请检查管理权限和计划状态。';
+    return;
+  }
   const previous = plan.enabled;
   state.error = '';
   state.toggling = plan.id;
