@@ -151,6 +151,8 @@ async function savePlan() {
     if (disposed) return;
     state.dialog = false;
     await loadWorkspace();
+  } catch {
+    if (!disposed) state.formError = '计划保存失败，请检查权限或稍后重试。';
   } finally {
     if (!disposed) state.saving = false;
   }
