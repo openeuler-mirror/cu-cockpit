@@ -187,6 +187,11 @@ async function togglePlan(plan: inspection.InspectionPlan, enabled: boolean) {
 
 async function queueInspection(planId: number | null = state.selectedPlan) {
   if (disposed || state.queueing) return;
+  if (!access.value.execute ||
+      (planId !== null && (!Number.isSafeInteger(planId) || planId <= 0))) {
+    state.error = '无法提交巡检，请检查执行权限、计划和巡检工作进程状态。';
+    return;
+  }
   state.error = '';
   state.queueing = true;
   try {
