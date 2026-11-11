@@ -55,11 +55,30 @@
         :total="state.planTotal" :page-size="20" :pager-count="5" :disabled="state.loading"
         layout="prev, pager, next" aria-label="计划分页" @current-change="loadWorkspace" />
     </section>
+    <section class="inspection-section" aria-labelledby="inspection-runs-title">
+      <div class="inspection-section-head"><h2 id="inspection-runs-title">执行历史 <small>{{ state.runTotal }}</small></h2></div>
+      <div class="inspection-table-scroll" tabindex="0" role="region" aria-label="巡检执行记录表">
+        <table class="inspection-table">
+          <thead><tr><th scope="col">记录 / 触发来源</th><th scope="col">排队时间</th><th scope="col">执行阶段</th><th scope="col">操作</th></tr></thead>
+          <tbody>
+            <tr v-for="run in state.runs" :key="run.id">
+              <td><strong>#{{ run.id }}</strong><small>{{ run.trigger === 'scheduled' ? '计划调度' : '手动触发' }} · {{ run.actor || '系统' }} · {{ run.plan_id === null ? '临时巡检' : `计划 #${run.plan_id}` }}</small></td>
+              <td>{{ formatTime(run.queued_at) }}</td>
+              <td><span class="inspection-status" :class="`is-${run.phase}`">{{ statusLabel(run.phase) }}</span></td>
+              <td><el-button :icon="Document" title="查看详情与报告" :aria-label="`查看巡检 #${run.id} 详情与报告`" @click="showRun(run)">详情 / 报告</el-button></td>
+            </tr>
+            <tr v-if="!state.runs.length"><td colspan="4" class="inspection-empty">
+              {{ state.loading ? '正在加载记录…' : state.error ? '执行记录未能确认，请刷新重试' : '暂无执行记录' }}
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
 </template>
 
 <script setup lang="ts" name="inspectionIndex">
-import { Edit, Plus, Refresh, VideoPlay } from '@element-plus/icons-vue';
+import { Document, Edit, Plus, Refresh, VideoPlay } from '@element-plus/icons-vue';
 
 type PlanEditor = {
   id: number | null;
