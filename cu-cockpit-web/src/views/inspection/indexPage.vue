@@ -236,6 +236,10 @@ async function showRun(run: inspection.InspectionRun) {
 async function downloadReport(format: 'json' | 'html') {
   if (disposed || state.downloading || !state.selected) return;
   const runId = state.selected.id;
+  if (!['json', 'html'].includes(format) || !Number.isSafeInteger(runId) || runId <= 0) {
+    state.detailError = '无法下载报告，请选择有效记录及 JSON 或 HTML 格式。';
+    return;
+  }
   state.downloading = format;
   state.detailError = '';
   let objectUrl = '';
