@@ -209,4 +209,19 @@ async function queueInspection(planId: number | null = state.selectedPlan) {
     if (!disposed) state.queueing = false;
   }
 }
+
+async function showRun(run: inspection.InspectionRun) {
+  if (disposed || (state.detailLoading && state.selected?.id === run.id)) return;
+  state.selected = run;
+  state.detailOpen = true;
+  state.detailError = '';
+  state.detailLoading = true;
+  try {
+    const detail = await inspection.getInspectionRun(run.id);
+    if (disposed || !state.detailOpen || state.selected?.id !== run.id) return;
+    state.selected = detail;
+  } finally {
+    if (!disposed && state.selected?.id === run.id) state.detailLoading = false;
+  }
+}
 </script>
