@@ -168,12 +168,22 @@
           </p>
         </section>
       </template>
+      <template #footer>
+        <div class="inspection-actions">
+          <el-button :icon="Download" :loading="state.downloading === 'json'"
+            :disabled="!state.selected || state.selected.phase !== 'finished' || state.detailLoading || !!state.downloading"
+            @click="downloadReport('json')">JSON 报告</el-button>
+          <el-button :icon="Download" :loading="state.downloading === 'html'"
+            :disabled="!state.selected || state.selected.phase !== 'finished' || state.detailLoading || !!state.downloading"
+            @click="downloadReport('html')">HTML 报告</el-button>
+        </div>
+      </template>
     </el-drawer>
   </main>
 </template>
 
 <script setup lang="ts" name="inspectionIndex">
-import { Check, Document, Edit, Plus, Refresh, VideoPlay } from '@element-plus/icons-vue';
+import { Check, Document, Download, Edit, Plus, Refresh, VideoPlay } from '@element-plus/icons-vue';
 
 type PlanEditor = {
   id: number | null;
