@@ -298,4 +298,11 @@ function stopPolling() {
   if (pollTimer !== undefined) clearInterval(pollTimer);
   pollTimer = undefined;
 }
+
+import { onActivated, onBeforeUnmount, onDeactivated, onMounted } from 'vue';
+
+onMounted(() => { void loadWorkspace(); startPolling(); });
+onActivated(() => { void loadWorkspace(); startPolling(); });
+onDeactivated(stopPolling);
+onBeforeUnmount(() => { disposed = true; stopPolling(); });
 </script>
