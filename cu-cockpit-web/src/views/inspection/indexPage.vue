@@ -288,4 +288,9 @@ async function pollActiveWork() {
     polling = false;
   }
 }
+
+function startPolling() {
+  if (disposed || pollTimer !== undefined) return;
+  pollTimer = setInterval(() => { void pollActiveWork(); }, 5000);
+}
 </script>
