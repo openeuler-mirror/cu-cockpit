@@ -51,6 +51,9 @@
           </tbody>
         </table>
       </div>
+      <el-pagination v-model:current-page="state.planPage" class="inspection-pager"
+        :total="state.planTotal" :page-size="20" :pager-count="5" :disabled="state.loading"
+        layout="prev, pager, next" aria-label="计划分页" @current-change="loadWorkspace" />
     </section>
   </main>
 </template>
