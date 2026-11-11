@@ -122,6 +122,30 @@
       <el-alert v-if="state.formError" type="error" :title="state.formError" :closable="false" show-icon role="alert" />
       <template #footer><el-button :disabled="state.saving" @click="state.dialog = false">取消</el-button><el-button type="primary" :icon="Check" :loading="state.saving" :disabled="!access.manage" @click="savePlan">保存</el-button></template>
     </el-dialog>
+    <el-drawer v-model="state.detailOpen" class="inspection-drawer" size="min(820px, 96vw)"
+      :title="state.selected ? `巡检详情 #${state.selected.id}` : '巡检详情'">
+      <p v-if="state.detailLoading" role="status">正在加载巡检详情…</p>
+      <el-alert v-if="state.detailError" :title="state.detailError" type="error" :closable="false" show-icon role="alert" />
+      <template v-if="state.selected">
+        <dl class="inspection-metadata">
+          <div><dt>执行阶段</dt><dd class="inspection-status" :class="`is-${state.selected.phase}`">{{ statusLabel(state.selected.phase) }}</dd></div>
+          <div><dt>健康结果</dt><dd class="inspection-status" :class="`is-${state.selected.health}`">{{ state.selected.phase === 'finished' ? statusLabel(state.selected.health) : '待生成' }}</dd></div>
+          <div><dt>模板 / 版本</dt><dd>{{ state.selected.template_id }} / {{ state.selected.version }}</dd></div>
+          <div><dt>触发来源</dt><dd>{{ state.selected.trigger === 'scheduled' ? '计划调度' : '手动触发' }} · {{ state.selected.actor || '系统' }}</dd></div>
+          <div><dt>计划</dt><dd>{{ state.selected.plan_id === null ? '临时巡检' : `#${state.selected.plan_id}` }}</dd></div>
+          <div><dt>调度槽位</dt><dd>{{ formatTime(state.selected.scheduled_slot) }}</dd></div>
+          <div><dt>排队时间</dt><dd>{{ formatTime(state.selected.queued_at) }}</dd></div>
+          <div><dt>开始时间</dt><dd>{{ formatTime(state.selected.started_at) }}</dd></div>
+          <div><dt>结束时间</dt><dd>{{ formatTime(state.selected.finished_at) }}</dd></div>
+          <div><dt>耗时</dt><dd>{{ state.selected.duration === null ? '待生成' : `${state.selected.duration} 秒` }}</dd></div>
+          <div><dt>服务</dt><dd>{{ state.selected.parameters.services.join('、') || '无服务检查' }}</dd></div>
+        </dl>
+        <el-alert v-if="state.selected.error" :title="state.selected.error" type="error" :closable="false" show-icon />
+        <p v-if="state.selected.phase !== 'finished'" class="inspection-queue" role="status">
+          {{ state.selected.phase === 'queued' ? '排队中，等待工作进程执行' : '巡检正在运行' }}，健康结果待生成。
+        </p>
+      </template>
+    </el-drawer>
   </main>
 </template>
 
