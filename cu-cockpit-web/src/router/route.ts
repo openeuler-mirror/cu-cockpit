@@ -173,6 +173,20 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
         }
       },
       {
+        path: '/inspection',
+        component: () => import('/@/views/inspection/indexPage.vue'),
+        name: 'inspection',
+        meta: {
+          title: 'message.router.inspection',
+          isLink: '',
+          isHide: false,
+          isKeepAlive: false,
+          isAffix: false,
+          isIframe: false,
+          icon: 'fa fa-check-square-o',
+        }
+      },
+      {
         path: '/log',
         component: () => import('/@/views/log/indexPage.vue'),
         name: 'logs',
