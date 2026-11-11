@@ -96,4 +96,14 @@ function openCreate() {
   state.formError = '';
   state.dialog = true;
 }
+
+function openEdit(plan: inspection.InspectionPlan) {
+  if (disposed || !access.value.manage || state.saving) return;
+  state.editor = { id: plan.id, name: plan.name, kind: plan.schedule_kind,
+    time: plan.schedule_kind === 'daily' ? plan.schedule_settings.time : '02:00',
+    minutes: plan.schedule_kind === 'interval' ? plan.schedule_settings.minutes : 30,
+    timezone: plan.timezone, enabled: plan.enabled, services: [...plan.parameters.services] };
+  state.formError = '';
+  state.dialog = true;
+}
 </script>
