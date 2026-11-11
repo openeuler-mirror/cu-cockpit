@@ -1,8 +1,33 @@
 <template>
-  <main class="inspection-page" aria-label="巡检中心"></main>
+  <main class="inspection-page" aria-label="巡检中心" :aria-busy="state.loading">
+    <header class="inspection-header">
+      <div>
+        <h1>巡检中心</h1>
+        <p v-if="state.overview">{{ state.overview.template.id }} / {{ state.overview.template.version }}</p>
+      </div>
+      <div class="inspection-actions">
+        <el-tag :type="state.overview?.worker.available ? 'success' : 'warning'">
+          {{ !state.overview ? '工作进程待确认' : state.overview.worker.available ? '工作进程可用' : '工作进程不可用' }}
+        </el-tag>
+        <el-button :icon="Refresh" :loading="state.loading" title="刷新巡检数据" @click="loadWorkspace">刷新</el-button>
+        <el-button type="primary" :icon="VideoPlay" :loading="state.queueing"
+          :disabled="!access.execute || state.loading" @click="queueInspection(null)">立即巡检</el-button>
+      </div>
+    </header>
+    <p v-if="state.overview" class="inspection-capability">
+      {{ state.overview.identity.username }} · {{ access.manage ? '可管理计划' : '只读权限' }}
+      · {{ access.execute ? '可提交巡检' : '执行不可用' }}
+    </p>
+    <el-alert v-if="state.overview && !state.overview.worker.available" type="warning" show-icon :closable="false"
+      :title="state.overview.worker.reason || '巡检工作进程不可用，无法启动巡检。'" />
+    <el-alert v-if="state.error" type="error" show-icon :closable="false" :title="state.error" role="alert" />
+    <p v-if="state.loading" role="status">正在加载巡检数据…</p>
+  </main>
 </template>
 
 <script setup lang="ts" name="inspectionIndex">
+import { Refresh, VideoPlay } from '@element-plus/icons-vue';
+
 type PlanEditor = {
   id: number | null;
   name: string;
