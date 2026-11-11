@@ -157,4 +157,20 @@ async function savePlan() {
     if (!disposed) state.saving = false;
   }
 }
+
+async function togglePlan(plan: inspection.InspectionPlan, enabled: boolean) {
+  if (disposed || state.toggling !== null) return;
+  const previous = plan.enabled;
+  state.error = '';
+  state.toggling = plan.id;
+  plan.enabled = enabled;
+  try {
+    const updated = await inspection.toggleInspectionPlan(plan.id, enabled);
+    if (disposed) return;
+    Object.assign(plan, updated);
+    state.plans = state.plans.map(item => item.id === updated.id ? updated : item);
+  } finally {
+    if (!disposed) state.toggling = null;
+  }
+}
 </script>
