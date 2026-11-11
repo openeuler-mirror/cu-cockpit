@@ -111,6 +111,31 @@ async function savePlan() {
   if (disposed || state.saving) return;
   state.formError = '';
   const editor = state.editor;
+  if (!access.value.manage) {
+    state.formError = '当前账号没有管理巡检计划的权限。';
+    return;
+  }
+  if (!editor.name.trim() || [...editor.name].length > 128 || /[\p{C}\p{Zl}\p{Zp}]/u.test(editor.name) ||
+      !['daily', 'interval', 'manual'].includes(editor.kind) || typeof editor.enabled !== 'boolean' ||
+      (editor.id !== null && (!Number.isSafeInteger(editor.id) || editor.id <= 0)) ||
+      (editor.kind === 'daily' && !/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/.test(editor.time)) ||
+      (editor.kind === 'interval' && ![15, 30, 60].includes(editor.minutes))) {
+    state.formError = '请填写有效的计划名称、时间或执行间隔。';
+    return;
+  }
+  if (!state.overview || editor.services.length > state.overview.template.max_services ||
+      new Set(editor.services).size !== editor.services.length ||
+      editor.services.some(service => !state.overview?.template.registered_services.includes(service))) {
+    state.formError = '请选择数量限制内、不重复的已注册服务。';
+    return;
+  }
+  try {
+    if (!editor.timezone || editor.timezone.length > 64) throw new RangeError();
+    new Intl.DateTimeFormat('zh-CN', { timeZone: editor.timezone }).format();
+  } catch {
+    state.formError = '请输入有效的 IANA 时区，例如 Asia/Shanghai。';
+    return;
+  }
   const schedule: inspection.InspectionSchedule = editor.kind === 'daily'
     ? { schedule_kind: 'daily', schedule_settings: { time: editor.time } }
     : editor.kind === 'interval'
