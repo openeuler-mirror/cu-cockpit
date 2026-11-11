@@ -293,4 +293,9 @@ function startPolling() {
   if (disposed || pollTimer !== undefined) return;
   pollTimer = setInterval(() => { void pollActiveWork(); }, 5000);
 }
+
+function stopPolling() {
+  if (pollTimer !== undefined) clearInterval(pollTimer);
+  pollTimer = undefined;
+}
 </script>
