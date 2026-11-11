@@ -224,6 +224,10 @@ async function showRun(run: inspection.InspectionRun) {
     const detail = await inspection.getInspectionRun(run.id);
     if (disposed || !state.detailOpen || state.selected?.id !== run.id) return;
     state.selected = detail;
+  } catch {
+    if (!disposed && state.detailOpen && state.selected?.id === run.id) {
+      state.detailError = '巡检详情加载失败，请关闭后重试。';
+    }
   } finally {
     if (!disposed && state.selected?.id === run.id) state.detailLoading = false;
   }
