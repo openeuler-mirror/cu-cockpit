@@ -488,3 +488,5 @@ onActivated(() => { void loadWorkspace(); startPolling(); });
 onDeactivated(stopPolling);
 onBeforeUnmount(() => { disposed = true; stopPolling(); });
 </script>
+
+<style lang="scss" src="./tech-inspection.scss"></style>
