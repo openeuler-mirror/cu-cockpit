@@ -141,3 +141,35 @@
   h2 { font-size: 17px; margin: 16px 0 8px; }
   h3 { font-size: 13px; margin: 12px 0 6px; }
 }
+
+.inspection-metadata {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 20px;
+  margin: 12px 0 20px;
+  > div, dd { min-width: 0; }
+  dt { color: var(--el-text-color-secondary); font-size: 12px; }
+  dd { margin: 4px 0 0; overflow-wrap: anywhere; }
+}
+
+.inspection-item {
+  min-width: 0;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--el-border-color);
+  summary { cursor: pointer; overflow-wrap: anywhere; }
+  summary strong { margin-right: 12px; }
+  summary small { display: block; color: var(--el-text-color-secondary); }
+}
+
+.inspection-drawer pre {
+  max-width: 100%;
+  max-height: 320px;
+  margin: 0;
+  padding: 10px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow: auto;
+  font: 12px/1.7 monospace;
+  background: var(--el-fill-color-light);
+  border-radius: 4px;
+}
