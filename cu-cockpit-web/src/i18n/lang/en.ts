@@ -18,6 +18,7 @@ export default {
         cron: 'Scheduled Tasks',
         process: 'Processes',
         network: 'Network & Firewall',
+        inspection: 'Inspection Center',
         assistant: 'AI Operations',
     },
     staticRoutes: {
