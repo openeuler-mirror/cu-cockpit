@@ -22,6 +22,12 @@
       :title="state.overview.worker.reason || '巡检工作进程不可用，无法启动巡检。'" />
     <el-alert v-if="state.error" type="error" show-icon :closable="false" :title="state.error" role="alert" />
     <p v-if="state.loading" role="status">正在加载巡检数据…</p>
+    <div v-if="state.pending.length" class="inspection-queue" role="status" aria-live="polite">
+      <div v-for="run in state.pending" :key="run.id" class="inspection-actions">
+        <span>已受理 #{{ run.id }} · {{ statusLabel(run.phase) }}，健康结果待生成</span>
+        <el-button link :icon="Document" @click="showRun(run)">查看详情</el-button>
+      </div>
+    </div>
     <section class="inspection-section" aria-labelledby="inspection-plans-title">
       <div class="inspection-section-head">
         <h2 id="inspection-plans-title">巡检计划 <small>{{ state.planTotal }}</small></h2>
