@@ -174,6 +174,12 @@ async function togglePlan(plan: inspection.InspectionPlan, enabled: boolean) {
     if (disposed) return;
     Object.assign(plan, updated);
     state.plans = state.plans.map(item => item.id === updated.id ? updated : item);
+  } catch {
+    if (!disposed) {
+      plan.enabled = previous;
+      state.plans = state.plans.map(item => item.id === plan.id ? { ...item, enabled: previous } : item);
+      state.error = '计划状态更新失败，已恢复原状态，请稍后重试。';
+    }
   } finally {
     if (!disposed) state.toggling = null;
   }
