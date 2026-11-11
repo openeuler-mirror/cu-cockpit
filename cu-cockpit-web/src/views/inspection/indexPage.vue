@@ -144,6 +144,29 @@
         <p v-if="state.selected.phase !== 'finished'" class="inspection-queue" role="status">
           {{ state.selected.phase === 'queued' ? '排队中，等待工作进程执行' : '巡检正在运行' }}，健康结果待生成。
         </p>
+        <section class="inspection-items" aria-label="逐项检查结果">
+          <h2>检查结果</h2>
+          <div class="inspection-counts">
+            <span v-for="(count, health) in state.selected.counts" :key="health">{{ statusLabel(health) }} {{ count }}</span>
+          </div>
+          <details v-for="item in state.selected.items" :key="item.id" class="inspection-item" open>
+            <summary>
+              <strong>{{ item.label }}</strong>
+              <span class="inspection-status" :class="`is-${item.status}`">{{ statusLabel(item.status) }}</span>
+              <small>{{ item.id }} / {{ item.version }}</small>
+            </summary>
+            <dl class="inspection-metadata">
+              <div><dt>检查值 {{ item.unit || '' }}</dt><dd><pre>{{ formatValue(item.value) }}</pre></dd></div>
+              <div><dt>阈值</dt><dd><pre>{{ formatValue(item.threshold) }}</pre></dd></div>
+              <div><dt>原因</dt><dd>{{ item.reason || '无' }}</dd></div>
+              <div><dt>耗时</dt><dd>{{ item.duration }} 秒</dd></div>
+            </dl>
+            <h3>Evidence</h3><pre class="inspection-evidence">{{ formatValue(item.evidence) }}</pre>
+          </details>
+          <p v-if="!state.detailLoading && !state.detailError && !state.selected.items.length" class="inspection-empty">
+            {{ state.selected.phase === 'finished' ? '此记录没有检查项结果' : '检查项结果尚未生成' }}
+          </p>
+        </section>
       </template>
     </el-drawer>
   </main>
