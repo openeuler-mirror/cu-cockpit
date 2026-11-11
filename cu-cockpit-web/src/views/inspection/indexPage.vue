@@ -80,6 +80,9 @@
           </tbody>
         </table>
       </div>
+      <el-pagination v-model:current-page="state.runPage" class="inspection-pager"
+        :total="state.runTotal" :page-size="20" :pager-count="5" :disabled="state.loading"
+        layout="prev, pager, next" aria-label="执行历史分页" @current-change="loadWorkspace" />
     </section>
   </main>
 </template>
