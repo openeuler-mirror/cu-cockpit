@@ -90,11 +90,43 @@
         :total="state.runTotal" :page-size="20" :pager-count="5" :disabled="state.loading"
         layout="prev, pager, next" aria-label="执行历史分页" @current-change="loadWorkspace" />
     </section>
+    <el-dialog v-model="state.dialog" class="inspection-dialog" width="min(560px, 94vw)"
+      :title="state.editor.id === null ? '新建巡检计划' : '编辑巡检计划'"
+      :close-on-click-modal="!state.saving" :close-on-press-escape="!state.saving" :show-close="!state.saving">
+      <el-form :model="state.editor" label-position="top" :disabled="state.saving || !access.manage" @submit.prevent="savePlan">
+        <el-form-item label="计划名称" for="inspection-plan-name">
+          <el-input id="inspection-plan-name" v-model="state.editor.name" maxlength="128" show-word-limit />
+        </el-form-item>
+        <el-form-item label="调度方式" for="inspection-plan-kind">
+          <el-select id="inspection-plan-kind" v-model="state.editor.kind">
+            <el-option label="每日" value="daily" /><el-option label="固定间隔" value="interval" /><el-option label="仅手动" value="manual" />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-if="state.editor.kind === 'daily'" label="每日时间" for="inspection-plan-time">
+          <el-input id="inspection-plan-time" v-model="state.editor.time" type="time" />
+        </el-form-item>
+        <el-form-item v-if="state.editor.kind === 'interval'" label="执行间隔" for="inspection-plan-minutes">
+          <el-select id="inspection-plan-minutes" v-model="state.editor.minutes">
+            <el-option v-for="minutes in [15, 30, 60]" :key="minutes" :label="`${minutes} 分钟`" :value="minutes" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="IANA 时区" for="inspection-plan-timezone"><el-input id="inspection-plan-timezone" v-model="state.editor.timezone" maxlength="64" /></el-form-item>
+        <el-form-item label="服务" for="inspection-plan-services">
+          <el-select id="inspection-plan-services" v-model="state.editor.services" multiple :multiple-limit="state.overview?.template.max_services || 0">
+            <el-option v-for="service in state.overview?.template.registered_services || []" :key="service" :label="service" :value="service" />
+          </el-select>
+          <small>已选 {{ state.editor.services.length }} / {{ state.overview?.template.max_services ?? 0 }}</small>
+        </el-form-item>
+        <el-form-item label="启用计划"><el-switch v-model="state.editor.enabled" aria-label="启用巡检计划" /></el-form-item>
+      </el-form>
+      <el-alert v-if="state.formError" type="error" :title="state.formError" :closable="false" show-icon role="alert" />
+      <template #footer><el-button :disabled="state.saving" @click="state.dialog = false">取消</el-button><el-button type="primary" :icon="Check" :loading="state.saving" :disabled="!access.manage" @click="savePlan">保存</el-button></template>
+    </el-dialog>
   </main>
 </template>
 
 <script setup lang="ts" name="inspectionIndex">
-import { Document, Edit, Plus, Refresh, VideoPlay } from '@element-plus/icons-vue';
+import { Check, Document, Edit, Plus, Refresh, VideoPlay } from '@element-plus/icons-vue';
 
 type PlanEditor = {
   id: number | null;
