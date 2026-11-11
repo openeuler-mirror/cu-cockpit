@@ -263,4 +263,25 @@ async function downloadReport(format: 'json' | 'html') {
     if (!disposed) state.downloading = '';
   }
 }
+
+async function pollActiveWork() {
+  if (disposed || polling || state.loading || state.saving || state.queueing || state.toggling !== null) return;
+  const active = [...state.pending, ...state.runs, ...(state.selected ? [state.selected] : [])]
+    .filter(run => run.phase === 'queued' || run.phase === 'running');
+  if (!active.length) return;
+  polling = true;
+  try {
+    const refreshed = await Promise.all([...new Set(active.map(run => run.id))]
+      .map(id => inspection.getInspectionRun(id)));
+    if (disposed) return;
+    state.pending = refreshed.filter(run => run.phase !== 'finished');
+    if (state.detailOpen && !state.detailLoading) {
+      const detail = refreshed.find(run => run.id === state.selected?.id);
+      if (detail) state.selected = detail;
+    }
+    await loadWorkspace();
+  } finally {
+    polling = false;
+  }
+}
 </script>
