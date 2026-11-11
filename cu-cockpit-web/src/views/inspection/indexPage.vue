@@ -22,11 +22,41 @@
       :title="state.overview.worker.reason || '巡检工作进程不可用，无法启动巡检。'" />
     <el-alert v-if="state.error" type="error" show-icon :closable="false" :title="state.error" role="alert" />
     <p v-if="state.loading" role="status">正在加载巡检数据…</p>
+    <section class="inspection-section" aria-labelledby="inspection-plans-title">
+      <div class="inspection-section-head">
+        <h2 id="inspection-plans-title">巡检计划 <small>{{ state.planTotal }}</small></h2>
+        <el-button :icon="Plus" :disabled="!access.manage || state.saving || state.loading" @click="openCreate">新建计划</el-button>
+      </div>
+      <div class="inspection-table-scroll" tabindex="0" role="region" aria-label="巡检计划表">
+        <table class="inspection-table">
+          <thead><tr><th scope="col">计划 / 服务</th><th scope="col">调度 / 时区</th><th scope="col">下次执行</th><th scope="col">启用</th><th scope="col">操作</th></tr></thead>
+          <tbody>
+            <tr v-for="plan in state.plans" :key="plan.id">
+              <td><strong>{{ plan.name }}</strong><small>{{ plan.parameters.services.join('、') || '无服务检查' }}</small></td>
+              <td>{{ plan.schedule_kind === 'daily' ? `每日 ${plan.schedule_settings.time}` : plan.schedule_kind === 'interval' ? `每 ${plan.schedule_settings.minutes} 分钟` : '仅手动' }}<small>{{ plan.timezone }}</small></td>
+              <td>{{ formatTime(plan.next_run) }}</td>
+              <td><el-switch :model-value="plan.enabled" :aria-label="`启用计划 ${plan.name}`"
+                :loading="state.toggling === plan.id" :disabled="!access.manage || state.toggling !== null || state.saving || state.loading"
+                @change="togglePlan(plan, !plan.enabled)" /></td>
+              <td><div class="inspection-actions">
+                <el-button :icon="Edit" title="编辑计划" :aria-label="`编辑计划 ${plan.name}`"
+                  :disabled="!access.manage || state.saving || state.loading" @click="openEdit(plan)" />
+                <el-button :icon="VideoPlay" title="运行此计划" :aria-label="`运行计划 ${plan.name}`"
+                  :disabled="!access.execute || state.queueing || state.loading" @click="queueInspection(plan.id)" />
+              </div></td>
+            </tr>
+            <tr v-if="!state.plans.length"><td colspan="5" class="inspection-empty">
+              {{ state.loading ? '正在加载计划…' : state.error ? '计划未能确认，请刷新重试' : '暂无巡检计划' }}
+            </td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
 </template>
 
 <script setup lang="ts" name="inspectionIndex">
-import { Refresh, VideoPlay } from '@element-plus/icons-vue';
+import { Edit, Plus, Refresh, VideoPlay } from '@element-plus/icons-vue';
 
 type PlanEditor = {
   id: number | null;
