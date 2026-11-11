@@ -37,6 +37,7 @@ export default {
         cron: '定时任务',
         process: '进程管理',
         network: '网络与防火墙',
+        inspection: '巡检中心',
         logs: '日志',
         logsDetail: '日志详情',
         assistant: 'AI 运维助手',
