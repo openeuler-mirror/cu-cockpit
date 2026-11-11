@@ -203,6 +203,8 @@ async function queueInspection(planId: number | null = state.selectedPlan) {
     state.pending = [run, ...state.pending.filter(item => item.id !== run.id)];
     state.runPage = 1;
     await loadWorkspace();
+  } catch {
+    if (!disposed) state.error = '巡检提交失败或结果未确认，请刷新执行记录后再重试。';
   } finally {
     if (!disposed) state.queueing = false;
   }
