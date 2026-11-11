@@ -87,4 +87,13 @@ async function loadWorkspace() {
     if (!disposed) state.loading = false;
   }
 }
+
+function openCreate() {
+  if (disposed || !access.value.manage || state.saving) return;
+  state.editor = { id: null, name: '', kind: 'daily', time: '02:00', minutes: 30,
+    timezone: 'Asia/Shanghai', enabled: true,
+    services: [...(state.overview?.template.default_services || [])] };
+  state.formError = '';
+  state.dialog = true;
+}
 </script>
