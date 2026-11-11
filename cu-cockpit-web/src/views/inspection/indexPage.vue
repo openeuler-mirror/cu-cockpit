@@ -212,6 +212,10 @@ async function queueInspection(planId: number | null = state.selectedPlan) {
 
 async function showRun(run: inspection.InspectionRun) {
   if (disposed || (state.detailLoading && state.selected?.id === run.id)) return;
+  if (!Number.isSafeInteger(run.id) || run.id <= 0) {
+    state.error = '无法打开详情，巡检记录编号无效。';
+    return;
+  }
   state.selected = run;
   state.detailOpen = true;
   state.detailError = '';
