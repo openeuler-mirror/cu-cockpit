@@ -253,6 +253,10 @@ async function downloadReport(format: 'json' | 'html') {
     link.download = `inspection-${runId}.${format}`;
     document.body.appendChild(link);
     link.click();
+  } catch {
+    if (!disposed && state.selected?.id === runId) {
+      state.detailError = '报告下载失败，请稍后重试或检查浏览器下载权限。';
+    }
   } finally {
     link?.remove();
     if (objectUrl) setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
