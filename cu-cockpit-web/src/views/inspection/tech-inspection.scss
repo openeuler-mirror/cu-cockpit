@@ -86,3 +86,33 @@
 }
 
 .inspection-pager { justify-content: flex-end; margin-top: 12px; max-width: 100%; }
+
+.inspection-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  font-weight: 600;
+  &.is-pass { color: var(--el-color-success); }
+  &.is-warning, &.is-queued { color: var(--el-color-warning); }
+  &.is-fail, &.is-error { color: var(--el-color-danger); }
+  &.is-running { color: var(--inspection-accent); }
+  &.is-skipped, &.is-finished { color: var(--el-text-color-secondary); }
+}
+
+.inspection-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  small { margin: 0; }
+}
+
+.inspection-empty, .inspection-table .inspection-empty { padding: 24px 12px; text-align: center; color: var(--el-text-color-secondary); }
+.inspection-queue {
+  padding: 10px 12px;
+  margin: 12px 0;
+  border-left: 3px solid var(--inspection-accent);
+  background: var(--el-fill-color-light);
+  overflow-wrap: anywhere;
+}
