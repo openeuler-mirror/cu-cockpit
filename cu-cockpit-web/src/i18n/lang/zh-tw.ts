@@ -17,6 +17,7 @@ export default {
 		cron: '定時任務',
 		process: '進程管理',
 		network: '網絡與防火牆',
+		inspection: '巡檢中心',
 		assistant: 'AI 運維助手',
 		menu: '選單嵌套',
 		menu1: '選單1',
