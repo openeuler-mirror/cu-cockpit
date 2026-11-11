@@ -232,4 +232,27 @@ async function showRun(run: inspection.InspectionRun) {
     if (!disposed && state.selected?.id === run.id) state.detailLoading = false;
   }
 }
+
+async function downloadReport(format: 'json' | 'html') {
+  if (disposed || state.downloading || !state.selected) return;
+  const runId = state.selected.id;
+  state.downloading = format;
+  state.detailError = '';
+  let objectUrl = '';
+  let link: HTMLAnchorElement | undefined;
+  try {
+    const blob = await inspection.getInspectionReport(runId, format);
+    if (disposed) return;
+    objectUrl = URL.createObjectURL(blob);
+    link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = `inspection-${runId}.${format}`;
+    document.body.appendChild(link);
+    link.click();
+  } finally {
+    link?.remove();
+    if (objectUrl) setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+    if (!disposed) state.downloading = '';
+  }
+}
 </script>
