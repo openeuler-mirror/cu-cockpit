@@ -304,6 +304,37 @@ class InspectionCenterTest(unittest.TestCase):
         self.assertIsNotNone(self.children[0].poll())
         self.assertTrue(self.children[0].stdout.closed)
 
+    def test_filtered_top_retains_second_global_cpu_summary(self):
+        command = ['top', '-bn2', '-d0.2', '-p1']
+        query = self.query.side_effect
+        self.query.side_effect = lambda args, **kwargs: (
+            self.run_readonly(args, **kwargs) if args[0] == 'top' else query(args, **kwargs))
+        with patch.object(monitoring, 'collect_cpu_percent',
+                          wraps=self.raw_collectors['collect_cpu_percent']) as core:
+            with patch('subprocess.Popen', side_effect=self._start_top_child) as spawn:
+                result = inspection.run_inspection()
+        cpu, *remaining = result['items']
+        self.assertEqual(cpu['value'], 87.5)
+        self.assertEqual(cpu['status'], 'warning')
+        self.assertEqual(result['status'], 'warning')
+        self.assertEqual([item['status'] for item in remaining], ['pass'] * 5)
+        self.assertEqual(cpu['evidence']['command'], command)
+        self.assertEqual(cpu['evidence']['returncode'], 0)
+        self.assertEqual(cpu['evidence']['output'], self._top_output(filtered=True))
+        self.assertLessEqual(len(cpu['evidence']['output'].encode('utf-8')), 16384)
+        self.assertEqual(cpu['evidence']['sample_interval_seconds'], 0.2)
+        self.assertEqual(cpu['evidence']['observed_percent'], 87.5)
+        core.assert_called_once()
+        self.query.assert_any_call(command, timeout=5)
+        spawn.assert_called_once()
+        self.assertEqual(spawn.call_args.args[0], tuple(command))
+        self.assertIs(spawn.call_args.kwargs['shell'], False)
+        self.assertEqual(len(self.children), 1)
+        self.assertEqual(self.children[0].returncode, 0)
+        self.assertTrue(self.children[0].stdout.closed)
+        self.sample.assert_not_called()
+        self.evaluate.assert_not_called()
+
     def test_timeout_terminates_real_child(self):
         command = (sys.executable, '-c', 'while True: pass')
         with patch.object(inspection_collectors, '_validate_command',
