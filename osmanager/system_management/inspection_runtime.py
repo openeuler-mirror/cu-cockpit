@@ -21,7 +21,7 @@ def worker_status():
         units['timer'].get('LoadState') == 'loaded' and
         units['timer'].get('ActiveState') == 'active' and
         units['service'].get('LoadState') == 'loaded' and
-        units['service'].get('ActiveState') in ('inactive', 'active', 'activating')
+        units['service'].get('ActiveState') in ('inactive', 'active', 'activating', 'failed')
     )
     return {'available': available, 'reason': None if available else
             'Inspection timer or service is not available', 'poll_seconds': 60,
