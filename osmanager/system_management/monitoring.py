@@ -12,11 +12,20 @@ class MetricCollectionError(RuntimeError):
 
 
 def collect_cpu_percent(runner=None):
+    import math
+
     result = (runner or run_safe)(['top', '-bn1'], {'top'}, timeout=5)
-    match = re.search(r'([0-9]+(?:\.[0-9]+)?)\s*id\b', result.stdout)
+    match = re.search(
+        r'(?:^|[\s,])([+-]?(?:(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)'
+        r'(?:[eE][+-]?[0-9]+)?|nan|inf(?:inity)?))\s*id\b',
+        result.stdout, re.IGNORECASE,
+    )
     if not result.success or not match:
         raise MetricCollectionError('无法采集 CPU 使用率')
-    return round(max(0.0, min(100.0, 100.0 - float(match.group(1)))), 2)
+    idle = float(match.group(1))
+    if not math.isfinite(idle) or not 0 <= idle <= 100:
+        raise MetricCollectionError('无法采集 CPU 使用率')
+    return round(max(0.0, min(100.0, 100.0 - idle)), 2)
 
 
 def collect_memory_percent(path=Path('/proc/meminfo')):
