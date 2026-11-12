@@ -49,6 +49,13 @@ def _verify_request(request):
     return _archive_id(payload['archive_id'])
 
 
+def _schedule_request(request):
+    payload = _payload(request)
+    if set(payload) != {'enabled', 'time', 'timezone'}:
+        raise ValueError('Expected only schedule settings')
+    return payload
+
+
 @admin_required_api
 @ensure_csrf_cookie
 @require_GET
