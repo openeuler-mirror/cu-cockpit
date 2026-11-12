@@ -256,6 +256,11 @@ class InspectionCenterTest(unittest.TestCase):
         commands = (
             ('uname', '-a'),
             ('top', '-bn1'),
+            ('top', '-bn2', '-d0.2'),
+            ('top', '-bn2', '-d0.2', '-p2'),
+            ('top', '-bn2', '-d1', '-p1'),
+            ('top', '-bn2', '-d0.2', '-p1', '-H'),
+            ('top', '-bn2', '-d0.2', '-p1', '|', 'head'),
             ('df', '-P', '--', '/tmp'),
             ('df', '-P', '--', '/', '--help'),
             ('systemctl', 'is-active', 'nginx.service'),
