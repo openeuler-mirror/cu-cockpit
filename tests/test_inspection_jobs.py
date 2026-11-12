@@ -84,6 +84,25 @@ class InspectionJobsTest(TestCase):
                     self.assertEqual(status['reason'],
                                      f'Inspection {kind} unit is not loaded or installed')
 
+    def test_worker_is_unavailable_without_an_executable_interpreter(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        from osmanager.system_management.inspection_runtime import worker_status
+
+        for exists, executable in ((False, False), (True, False)):
+            with self.subTest(exists=exists, executable=executable):
+                results = [SimpleNamespace(success=True, stdout=output) for output in (
+                    'LoadState=loaded\nActiveState=active\n',
+                    'LoadState=loaded\nActiveState=failed\n',
+                )]
+                with patch('osmanager.system_management.command.run_safe', side_effect=results), \
+                        patch('pathlib.Path.is_file', return_value=exists), \
+                        patch('os.access', return_value=executable):
+                    status = worker_status()
+                self.assertFalse(status['available'])
+                self.assertIn('executable is unavailable', status['reason'])
+                self.assertEqual(status['last_run_state'], 'failed')
+
     def _result(self):
         from unittest.mock import patch
         from osmanager.system_management import inspection, inspection_collectors
