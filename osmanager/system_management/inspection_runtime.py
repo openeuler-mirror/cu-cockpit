@@ -27,6 +27,16 @@ def worker_status():
         return {'available': False, 'reason': 'Inspection timer is not active',
                 'poll_seconds': 60, 'runs_per_trigger': 1,
                 'last_run_state': units['service'].get('ActiveState')}
+    import os
+    from pathlib import Path
+    from django.conf import settings
+
+    executable = Path(settings.BASE_DIR) / 'venv/bin/python'
+    if not executable.is_file() or not os.access(executable, os.X_OK):
+        return {'available': False,
+                'reason': f'Inspection worker executable is unavailable: {executable}',
+                'poll_seconds': 60, 'runs_per_trigger': 1,
+                'last_run_state': units['service'].get('ActiveState')}
     available = (
         units['timer'].get('LoadState') == 'loaded' and
         units['timer'].get('ActiveState') == 'active' and
