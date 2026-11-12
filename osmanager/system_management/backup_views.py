@@ -14,7 +14,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_GET, require_POST
 
 from .backup_center import read_backup_index
-from .backup_jobs import queue_backup, read_backup_schedule
+from .backup_jobs import queue_backup, read_backup_schedule, save_backup_schedule
 from .backup_restore import _registered_archive
 from .backup_runtime import (BACKUP_COMPAT_VERSION, backup_configs, backup_database,
                              require_installation)
@@ -118,6 +118,17 @@ def backup_create(request):
         return _error(503, 'Backup queue storage is unavailable')
     return JsonResponse({'task': {key: task[key] for key in (
         'id', 'kind', 'status', 'created_at')}}, status=202)
+
+
+@audited_admin_api('backup', 'schedule')
+@require_POST
+def backup_schedule(request):
+    payload = _schedule_request(request)
+    root = require_installation()
+    schedule = save_backup_schedule(root, payload['enabled'], payload['time'],
+                                    payload['timezone'])
+    return JsonResponse({'schedule': {key: schedule[key] for key in (
+        'enabled', 'time', 'timezone', 'next_run')}})
 
 
 @audited_admin_api('backup', 'verify')
