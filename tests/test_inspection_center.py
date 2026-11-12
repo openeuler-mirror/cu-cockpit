@@ -168,6 +168,27 @@ class InspectionCenterTest(unittest.TestCase):
         self.sample.assert_not_called()
         self.evaluate.assert_not_called()
 
+    def test_invalid_cpu_evidence_returns_inspection_error(self):
+        query = self.query.side_effect
+        with patch.object(monitoring, 'collect_cpu_percent',
+                          self.raw_collectors['collect_cpu_percent']):
+            for idle in ('150', '-1', '-0.1', '100.01', 'nan', 'NaN', 'inf',
+                         '-Infinity', '1e309', 'invalid'):
+                with self.subTest(idle=idle):
+                    self.query.side_effect = lambda args, **kwargs: (
+                        subprocess.CompletedProcess(args, 0, stdout=(
+                            f'%Cpu(s): 99.0 id\n%Cpu(s): {idle} id\n'))
+                        if args[0] == 'top' else query(args, **kwargs))
+                    result = inspection.run_inspection()
+                    cpu, *remaining = result['items']
+                    self.assertEqual(result['status'], 'error')
+                    self.assertEqual(cpu['status'], 'error')
+                    self.assertEqual(cpu['evidence']['error'], 'MetricCollectionError')
+                    self.assertIsNone(cpu['value'])
+                    self.assertEqual([item['status'] for item in remaining], ['pass'] * 5)
+        self.sample.assert_not_called()
+        self.evaluate.assert_not_called()
+
     def test_run_deadline_skips_all_remaining_items(self):
         with patch('time.monotonic', side_effect=[0, 0, 1, 1] + [61] * 6):
             result = inspection.run_inspection()
