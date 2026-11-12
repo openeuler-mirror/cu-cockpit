@@ -9,6 +9,28 @@ from django.test import TestCase, override_settings
 class InspectionJobsTest(TestCase):
     """Use the real project app and migrations without host collection."""
 
+    def test_worker_can_retry_failed_service_with_active_timer(self):
+        from types import SimpleNamespace
+        from unittest.mock import call, patch
+        from osmanager.system_management.inspection_runtime import worker_status
+
+        results = [SimpleNamespace(success=True, stdout=output) for output in (
+            'LoadState=loaded\nActiveState=active\n',
+            'LoadState=loaded\nActiveState=failed\n',
+        )]
+        with patch('osmanager.system_management.command.run_safe', side_effect=results) as run, \
+                patch('pathlib.Path.is_file', return_value=True), \
+                patch('os.access', return_value=True):
+            status = worker_status()
+        self.assertTrue(status['available'])
+        self.assertIsNone(status['reason'])
+        self.assertEqual(status['last_run_state'], 'failed')
+        self.assertEqual(run.call_args_list, [call([
+            'systemctl', 'show', '--no-pager', '--property=LoadState,ActiveState',
+            '--', f'cu-cockpit-inspection.{kind}',
+        ], allowed_commands={'systemctl'}, timeout=2, output_limit=4096)
+            for kind in ('timer', 'service')])
+
     def setUp(self):
         self.lock_directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.lock_directory.cleanup)
