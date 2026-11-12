@@ -65,6 +65,25 @@ class InspectionJobsTest(TestCase):
             'parameters': {'services': ['nginx.service']}, **overrides,
         }, 'operator', now=self.now)
 
+    def test_worker_is_unavailable_when_a_unit_is_missing(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        from osmanager.system_management.inspection_runtime import worker_status
+
+        for index, kind in enumerate(('timer', 'service')):
+            for load_state in ('not-found', 'error', ''):
+                with self.subTest(unit=kind, load_state=load_state):
+                    results = [SimpleNamespace(success=True, stdout=output) for output in (
+                        'LoadState=loaded\nActiveState=active\n',
+                        'LoadState=loaded\nActiveState=failed\n',
+                    )]
+                    results[index].stdout = f'LoadState={load_state}\nActiveState=inactive\n'
+                    with patch('osmanager.system_management.command.run_safe', side_effect=results):
+                        status = worker_status()
+                    self.assertFalse(status['available'])
+                    self.assertEqual(status['reason'],
+                                     f'Inspection {kind} unit is not loaded or installed')
+
     def _result(self):
         from unittest.mock import patch
         from osmanager.system_management import inspection, inspection_collectors
