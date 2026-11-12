@@ -50,6 +50,19 @@ class InspectionCenterTest(unittest.TestCase):
         self.addCleanup(lambda: process.kill() if process.poll() is None else None)
         return process
 
+    def _top_output(self, filtered=False):
+        """Build synthetic procps output, not a Linux execution transcript."""
+        rows = ''.join(
+            f'{pid:7d} root 20 0 1234 512 256 S 0.0 0.1 0:00.01 process-{pid}\n'
+            for pid in ((1,) if filtered else range(1, 501))
+        )
+        return ''.join(
+            'top - 12:00:00 up 1 day, 1 user, load average: 1.00, 1.00, 1.00\n'
+            f'%Cpu(s): {100 - idle:.1f} us, 0.0 sy, {idle:.1f} id\n'
+            '    PID USER PR NI VIRT RES SHR S %CPU %MEM TIME+ COMMAND\n' + rows
+            for idle in (99.0, 12.5)
+        )
+
     def test_percent_template_boundaries_are_inclusive(self):
         self.assertEqual(inspection.INSPECTION_TEMPLATE['warning'], 80)
         self.assertEqual(inspection.INSPECTION_TEMPLATE['fail'], 90)
