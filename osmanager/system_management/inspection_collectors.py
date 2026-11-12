@@ -12,7 +12,6 @@ def _validate_command(args):
     """Accept only exact built-in read-only query shapes."""
     command = tuple(args)
     fixed = (
-        ('top', '-bn2', '-d0.2'),
         ('top', '-bn2', '-d0.2', '-p1'),
         ('df', '-P', '--', '/'),
         ('df', '-Pi', '--', '/'),
