@@ -13,6 +13,7 @@ def _validate_command(args):
     command = tuple(args)
     fixed = (
         ('top', '-bn2', '-d0.2'),
+        ('top', '-bn2', '-d0.2', '-p1'),
         ('df', '-P', '--', '/'),
         ('df', '-Pi', '--', '/'),
         ('timedatectl', 'show', '--no-pager',
