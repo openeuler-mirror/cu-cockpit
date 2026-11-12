@@ -103,6 +103,33 @@ class InspectionJobsTest(TestCase):
                 self.assertIn('executable is unavailable', status['reason'])
                 self.assertEqual(status['last_run_state'], 'failed')
 
+    def test_worker_is_unavailable_when_runtime_paths_cannot_be_accessed(self):
+        from pathlib import Path
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        from django.conf import settings
+        from osmanager.system_management.inspection_runtime import worker_status
+
+        files = ('manage.py', 'os.env', 'run_inspections.py')
+        scenarios = [(name, missing) for name in files for missing in (True, False)]
+        scenarios.append((Path(settings.BASE_DIR).name, False))
+        for name, missing in scenarios:
+            with self.subTest(path=name, missing=missing):
+                results = [SimpleNamespace(success=True, stdout=output) for output in (
+                    'LoadState=loaded\nActiveState=active\n',
+                    'LoadState=loaded\nActiveState=failed\n',
+                )]
+                with patch('osmanager.system_management.command.run_safe', side_effect=results), \
+                        patch('pathlib.Path.is_file', autospec=True,
+                              side_effect=lambda path: not (missing and path.name == name)), \
+                        patch('os.access',
+                              side_effect=lambda path, mode: missing or path.name != name):
+                    status = worker_status()
+                self.assertFalse(status['available'])
+                self.assertIn('path is unavailable:', status['reason'])
+                self.assertIn(name, status['reason'])
+                self.assertEqual(status['last_run_state'], 'failed')
+
     def _result(self):
         from unittest.mock import patch
         from osmanager.system_management import inspection, inspection_collectors
