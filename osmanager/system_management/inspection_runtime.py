@@ -25,4 +25,4 @@ def worker_status():
     )
     return {'available': available, 'reason': None if available else
             'Inspection timer or service is not available', 'poll_seconds': 60,
-            'runs_per_trigger': 1}
+            'runs_per_trigger': 1, 'last_run_state': units['service'].get('ActiveState')}
