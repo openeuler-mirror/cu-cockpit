@@ -37,6 +37,18 @@ def worker_status():
                 'reason': f'Inspection worker executable is unavailable: {executable}',
                 'poll_seconds': 60, 'runs_per_trigger': 1,
                 'last_run_state': units['service'].get('ActiveState')}
+    base = Path(settings.BASE_DIR)
+    paths = (base / 'manage.py', base / 'os.env',
+             base / 'osmanager/system_management/management/commands/run_inspections.py')
+    unavailable = next((path for path in paths
+                        if not path.is_file() or not os.access(path, os.R_OK)), None)
+    if not os.access(base, os.R_OK | os.X_OK):
+        unavailable = base
+    if unavailable is not None:
+        return {'available': False,
+                'reason': f'Inspection worker path is unavailable: {unavailable}',
+                'poll_seconds': 60, 'runs_per_trigger': 1,
+                'last_run_state': units['service'].get('ActiveState')}
     available = (
         units['timer'].get('LoadState') == 'loaded' and
         units['timer'].get('ActiveState') == 'active' and
