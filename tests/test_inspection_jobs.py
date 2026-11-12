@@ -39,6 +39,23 @@ class InspectionJobsTest(TestCase):
         self.addCleanup(self.settings_override.disable)
         self.now = datetime(2026, 10, 29, tzinfo=timezone.utc)
 
+    def test_worker_is_unavailable_when_timer_is_inactive(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+        from osmanager.system_management.inspection_runtime import worker_status
+
+        for active_state in ('inactive', 'failed', 'deactivating', ''):
+            with self.subTest(timer_state=active_state):
+                results = [SimpleNamespace(success=True, stdout=output) for output in (
+                    f'LoadState=loaded\nActiveState={active_state}\n',
+                    'LoadState=loaded\nActiveState=failed\n',
+                )]
+                with patch('osmanager.system_management.command.run_safe', side_effect=results):
+                    status = worker_status()
+                self.assertFalse(status['available'])
+                self.assertEqual(status['reason'], 'Inspection timer is not active')
+                self.assertEqual(status['last_run_state'], 'failed')
+
     def _plan(self, **overrides):
         from osmanager.system_management.inspection_schedules import save_plan
 
