@@ -63,6 +63,16 @@ class InspectionCenterTest(unittest.TestCase):
             for idle in (99.0, 12.5)
         )
 
+    def _start_top_child(self, args, **kwargs):
+        self.assertIn(tuple(args), (
+            ('top', '-bn2', '-d0.2'), ('top', '-bn2', '-d0.2', '-p1'),
+        ))
+        output = self._top_output(filtered=tuple(args) == ('top', '-bn2', '-d0.2', '-p1'))
+        return self._start_child(
+            (sys.executable, '-c', f'import sys\nsys.stdout.write({output!r})\n'),
+            **kwargs,
+        )
+
     def test_percent_template_boundaries_are_inclusive(self):
         self.assertEqual(inspection.INSPECTION_TEMPLATE['warning'], 80)
         self.assertEqual(inspection.INSPECTION_TEMPLATE['fail'], 90)
