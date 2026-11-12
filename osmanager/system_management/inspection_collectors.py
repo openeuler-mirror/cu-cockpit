@@ -80,7 +80,7 @@ def _metric_runner(args, allowed_commands, timeout=5, evidence=None):
     import re
     from types import SimpleNamespace
 
-    command = ['top', '-bn2', '-d0.2'] if args[0] == 'top' else args
+    command = ['top', '-bn2', '-d0.2', '-p1'] if args[0] == 'top' else args
     result = _run_readonly(command, timeout=timeout)
     stdout = result.stdout
     if args[0] == 'top':
