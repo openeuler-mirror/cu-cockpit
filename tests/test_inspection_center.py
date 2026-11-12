@@ -18,6 +18,10 @@ class InspectionCenterTest(unittest.TestCase):
         self.run_readonly = inspection_collectors._run_readonly
         self.popen = subprocess.Popen
         self.children = []
+        self.raw_collectors = {
+            name: getattr(monitoring, name)
+            for name in ('collect_cpu_percent', 'collect_memory_percent')
+        }
         self.metrics = {
             name: self.stack.enter_context(patch.object(monitoring, name, return_value=10))
             for name in ('collect_cpu_percent', 'collect_memory_percent',
