@@ -17,6 +17,12 @@ def worker_status():
                     'poll_seconds': 60, 'runs_per_trigger': 1}
         units[kind] = dict(line.split('=', 1) for line in result.stdout.splitlines()
                            if '=' in line) if result.success else {}
+    for kind in ('timer', 'service'):
+        if units[kind].get('LoadState') != 'loaded':
+            return {'available': False,
+                    'reason': f'Inspection {kind} unit is not loaded or installed',
+                    'poll_seconds': 60, 'runs_per_trigger': 1,
+                    'last_run_state': units['service'].get('ActiveState')}
     available = (
         units['timer'].get('LoadState') == 'loaded' and
         units['timer'].get('ActiveState') == 'active' and
