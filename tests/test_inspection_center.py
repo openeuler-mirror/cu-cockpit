@@ -288,6 +288,22 @@ class InspectionCenterTest(unittest.TestCase):
         self.assertEqual(spawn.call_args.args[0], command)
         self.assertIs(spawn.call_args.kwargs['shell'], False)
 
+    def test_full_top_process_table_exceeds_unchanged_output_cap(self):
+        command = ('top', '-bn2', '-d0.2')
+        self.assertGreater(len(self._top_output().encode('utf-8')), 16384)
+        with patch.object(inspection_collectors, '_validate_command',
+                          return_value=command) as validate:
+            with patch('subprocess.Popen', side_effect=self._start_top_child) as spawn:
+                with self.assertRaisesRegex(RuntimeError, 'output exceeds 16 KiB'):
+                    self.run_readonly(command)
+        validate.assert_called_once_with(command)
+        spawn.assert_called_once()
+        self.assertEqual(spawn.call_args.args[0], command)
+        self.assertIs(spawn.call_args.kwargs['shell'], False)
+        self.assertEqual(len(self.children), 1)
+        self.assertIsNotNone(self.children[0].poll())
+        self.assertTrue(self.children[0].stdout.closed)
+
     def test_timeout_terminates_real_child(self):
         command = (sys.executable, '-c', 'while True: pass')
         with patch.object(inspection_collectors, '_validate_command',
