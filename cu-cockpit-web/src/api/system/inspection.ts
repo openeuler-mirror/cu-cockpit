@@ -49,6 +49,7 @@ export interface InspectionOverview {
   worker: {
     available: boolean;
     reason: string | null;
+    last_run_state?: string | null;
     poll_seconds: number;
     runs_per_trigger: number;
   };
