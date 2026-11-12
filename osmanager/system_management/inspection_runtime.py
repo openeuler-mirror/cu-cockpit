@@ -23,6 +23,10 @@ def worker_status():
                     'reason': f'Inspection {kind} unit is not loaded or installed',
                     'poll_seconds': 60, 'runs_per_trigger': 1,
                     'last_run_state': units['service'].get('ActiveState')}
+    if units['timer'].get('ActiveState') != 'active':
+        return {'available': False, 'reason': 'Inspection timer is not active',
+                'poll_seconds': 60, 'runs_per_trigger': 1,
+                'last_run_state': units['service'].get('ActiveState')}
     available = (
         units['timer'].get('LoadState') == 'loaded' and
         units['timer'].get('ActiveState') == 'active' and
