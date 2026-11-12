@@ -38,6 +38,8 @@ def collect_memory_percent(path=Path('/proc/meminfo')):
         available = values['MemAvailable']
     except (OSError, KeyError, ValueError, IndexError) as error:
         raise MetricCollectionError('无法采集内存使用率') from error
+    if total <= 0 or not 0 <= available <= total:
+        raise MetricCollectionError('无法采集内存使用率')
     return round(max(0.0, min(100.0, (total - available) * 100.0 / total)), 2)
 
 
