@@ -189,6 +189,25 @@ class InspectionCenterTest(unittest.TestCase):
         self.sample.assert_not_called()
         self.evaluate.assert_not_called()
 
+    def test_invalid_memory_evidence_returns_inspection_error(self):
+        with patch.object(monitoring, 'collect_memory_percent',
+                          self.raw_collectors['collect_memory_percent']):
+            for total, available in ((100, 200), (0, 0), (-100, 0), (100, -1),
+                                     ('nan', 0), ('inf', 0), (100, 'nan'), (100, '-inf')):
+                with self.subTest(total=total, available=available):
+                    with patch('pathlib.Path.read_text', return_value=(
+                            f'MemTotal: {total} kB\nMemAvailable: {available} kB\n')):
+                        result = inspection.run_inspection()
+                    memory = result['items'][1]
+                    self.assertEqual(result['status'], 'error')
+                    self.assertEqual(memory['status'], 'error')
+                    self.assertEqual(memory['evidence']['error'], 'MetricCollectionError')
+                    self.assertIsNone(memory['value'])
+                    self.assertTrue(all(item['status'] == 'pass' for item in result['items']
+                                        if item['id'] != 'memory'))
+        self.sample.assert_not_called()
+        self.evaluate.assert_not_called()
+
     def test_run_deadline_skips_all_remaining_items(self):
         with patch('time.monotonic', side_effect=[0, 0, 1, 1] + [61] * 6):
             result = inspection.run_inspection()
