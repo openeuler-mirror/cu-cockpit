@@ -32,6 +32,17 @@ from osmanager.system_management.models import AlertEvent, AlertRule, MetricSamp
 
 
 class MetricCollectorTest(TestCase):
+    def test_valid_cpu_values_preserve_default_monitoring_command(self):
+        from osmanager.system_management import monitoring
+
+        for idle, expected in ((0, 100.0), (100, 0.0), (88.25, 11.75), (99.999, 0.0)):
+            with self.subTest(idle=idle):
+                with patch.object(monitoring, 'run_safe', return_value=SimpleNamespace(
+                        success=True, stdout=f'%Cpu(s): 1.0 us, {idle} id, 0.0 wa\n',
+                )) as runner:
+                    self.assertEqual(monitoring.collect_cpu_percent(), expected)
+                runner.assert_called_once_with(['top', '-bn1'], {'top'}, timeout=5)
+
     def test_memory_percentage_uses_mem_available(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'meminfo'
