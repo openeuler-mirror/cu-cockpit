@@ -123,7 +123,10 @@ def backup_create(request):
 @audited_admin_api('backup', 'schedule')
 @require_POST
 def backup_schedule(request):
-    payload = _schedule_request(request)
+    try:
+        payload = _schedule_request(request)
+    except (ValueError, UnicodeDecodeError):
+        return _error(400, 'Expected only enabled, time and timezone')
     root = require_installation()
     schedule = save_backup_schedule(root, payload['enabled'], payload['time'],
                                     payload['timezone'])
