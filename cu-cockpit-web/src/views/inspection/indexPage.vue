@@ -452,9 +452,14 @@ async function pollActiveWork() {
     .filter(run => run.phase === 'queued' || run.phase === 'running');
   const scheduled = state.overview?.worker.available && state.plans.some(plan =>
     plan.enabled && plan.schedule_kind !== 'manual' && plan.next_run && Date.parse(plan.next_run) <= Date.now());
-  if (!active.length && !scheduled) return;
+  if (!active.length && !scheduled && state.overview?.worker.available !== false) return;
   polling = true;
   try {
+    if (!active.length && !scheduled) {
+      const overview = await inspection.getInspectionOverview();
+      if (!disposed) state.overview = overview;
+      return;
+    }
     const refreshed = await Promise.all([...new Set(active.map(run => run.id))]
       .map(id => inspection.getInspectionRun(id)));
     if (disposed) return;
