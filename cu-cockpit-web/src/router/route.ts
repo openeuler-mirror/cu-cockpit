@@ -187,6 +187,20 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
         }
       },
       {
+        path: '/backups',
+        component: () => import('/@/views/backups/indexPage.vue'),
+        name: 'backups',
+        meta: {
+          title: 'message.router.backups',
+          isLink: '',
+          isHide: false,
+          isKeepAlive: false,
+          isAffix: false,
+          isIframe: false,
+          icon: 'fa fa-archive',
+        }
+      },
+      {
         path: '/log',
         component: () => import('/@/views/log/indexPage.vue'),
         name: 'logs',
