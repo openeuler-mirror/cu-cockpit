@@ -141,7 +141,7 @@ class InspectionJobsTest(TestCase):
             'evidence': {'properties': {'NTPSynchronized': 'yes'}, 'returncode': 0,
                          'output': 'NTPSynchronized=yes\n', 'command': [
                              'timedatectl', 'show', '--no-pager',
-                             '--property=NTPSynchronized,NTP,CanNTP']},
+                             '--property=NTPSynchronized', '--property=NTP']},
         }
         states = {'LoadState': 'loaded', 'ActiveState': 'active',
                   'SubState': 'running', 'Result': 'success'}
