@@ -56,6 +56,17 @@ def _schedule_request(request):
     return payload
 
 
+def _confirm_request(request):
+    payload = _payload(request)
+    if set(payload) != {'task_id', 'token'}:
+        raise ValueError('Expected only task_id and token')
+    task_id = _archive_id(payload['task_id'])
+    token = payload['token']
+    if not isinstance(token, str) or not token.isascii() or not 1 <= len(token) <= 128:
+        raise ValueError('Invalid confirmation token')
+    return task_id, token
+
+
 @admin_required_api
 @ensure_csrf_cookie
 @require_GET
