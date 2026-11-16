@@ -141,9 +141,19 @@ def backup_import(request):
     if (request.POST or set(request.FILES) != {'file'} or
             len(request.FILES.getlist('file')) != 1):
         return _error(400, 'Expected exactly one file field')
-    root = require_installation()
-    archive = import_backup_archive(root, request.FILES['file'], BACKUP_COMPAT_VERSION,
-                                    get_session_identity(request).username)
+    try:
+        root = require_installation()
+    except (OSError, ValueError):
+        return _error(503, 'Backup installation is unavailable')
+    try:
+        archive = import_backup_archive(root, request.FILES['file'], BACKUP_COMPAT_VERSION,
+                                        get_session_identity(request).username)
+    except BlockingIOError:
+        return _error(409, 'Backup service is busy')
+    except (ValueError, KeyError, zipfile.BadZipFile):
+        return _error(422, 'Archive failed validation or signature verification')
+    except OSError:
+        return _error(503, 'Backup archive storage is unavailable')
     return JsonResponse({'backup': {key: archive[key] for key in (
         'archive_id', 'application_version', 'actor', 'size')}}, status=201)
 
