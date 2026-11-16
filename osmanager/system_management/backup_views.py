@@ -128,8 +128,11 @@ def backup_schedule(request):
     except (ValueError, UnicodeDecodeError):
         return _error(400, 'Expected only enabled, time and timezone')
     root = require_installation()
-    schedule = save_backup_schedule(root, payload['enabled'], payload['time'],
-                                    payload['timezone'])
+    try:
+        schedule = save_backup_schedule(root, payload['enabled'], payload['time'],
+                                        payload['timezone'])
+    except ValueError:
+        return _error(400, 'Invalid backup schedule settings')
     return JsonResponse({'schedule': {key: schedule[key] for key in (
         'enabled', 'time', 'timezone', 'next_run')}})
 
