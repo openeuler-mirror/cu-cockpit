@@ -162,7 +162,10 @@ def backup_restore_confirm(request):
         task_id, token = _confirm_request(request)
     except (ValueError, UnicodeDecodeError):
         return _error(400, 'Expected only a valid task_id and token')
-    root = require_installation()
+    try:
+        root = require_installation()
+    except (OSError, ValueError):
+        return _error(503, 'Backup installation is unavailable')
     task = confirm_restore(root, task_id, token, get_session_identity(request).username)
     return JsonResponse({'task': {key: task[key] for key in ('id', 'status')}}, status=202)
 
