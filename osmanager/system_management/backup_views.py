@@ -172,6 +172,8 @@ def backup_restore_confirm(request):
         return _error(409, 'Backup service is busy')
     except ValueError:
         return _error(409, 'Restore confirmation rejected')
+    except OSError:
+        return _error(503, 'Restore task storage is unavailable')
     return JsonResponse({'task': {key: task[key] for key in ('id', 'status')}}, status=202)
 
 
