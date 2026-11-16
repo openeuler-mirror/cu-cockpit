@@ -3,12 +3,14 @@
 import io
 import json
 import os
+import shutil
 import sqlite3
 import tempfile
+import unittest
 import zipfile
 from contextlib import closing
 from pathlib import Path
-from subprocess import run as run_local_node
+from subprocess import CalledProcessError, run as run_local_node
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
@@ -155,9 +157,18 @@ class BackupAPITest(TestCase):
             'enabled': True, 'time': '02:30', 'timezone': 'UTC'}, token)
         self.assertEqual(schedule.status_code, 200)
         self.assertTrue(self.client.get(self.base + 'overview').json()['schedule']['enabled'])
+        self.assertEqual(self.post_json('schedule', {
+            'enabled': True, 'time': '02:30', 'timezone': 'UTC',
+            'next_run': schedule.json()['schedule']['next_run']}, token).status_code, 400)
         self.worker.assert_not_called()
 
     def test_ui_schedule_body_passes_strict_endpoint_without_readonly_fields(self):
+        if not shutil.which('node'):
+            self.skipTest('frontend contract requires Node.js')
+        web = Path(__file__).parent.parent / 'cu-cockpit-web'
+        for module in ('typescript', '@vue/compiler-sfc'):
+            if not (web / 'node_modules' / module / 'package.json').is_file():
+                self.skipTest(f'frontend contract requires {module} in cu-cockpit-web/node_modules')
         token = self.login()
         script = Path(__file__).parent / 'frontend' / 'backup-workspace.test.cjs'
         body = json.loads(run_local_node(
@@ -169,6 +180,27 @@ class BackupAPITest(TestCase):
         self.assertIn('next_run', response.json()['schedule'])
         self.assertEqual(self.post_json('schedule', {
             **body, 'next_run': response.json()['schedule']['next_run']}, token).status_code, 400)
+
+    def test_ui_schedule_body_skips_only_for_missing_prerequisites(self):
+        with patch('shutil.which', return_value=None), patch(
+            __name__ + '.run_local_node') as run_node:
+            with self.assertRaisesRegex(unittest.SkipTest, 'requires Node.js'):
+                self.test_ui_schedule_body_passes_strict_endpoint_without_readonly_fields()
+            run_node.assert_not_called()
+        with patch('shutil.which', return_value='/usr/bin/node'), patch.object(
+                Path, 'is_file', return_value=False), patch(
+                __name__ + '.run_local_node') as run_node:
+            with self.assertRaisesRegex(unittest.SkipTest, 'requires typescript'):
+                self.test_ui_schedule_body_passes_strict_endpoint_without_readonly_fields()
+            run_node.assert_not_called()
+        token = self.login()
+        self.assertEqual(self.post_json('schedule', {
+            'enabled': True, 'time': '02:30', 'timezone': 'UTC'}, token).status_code, 200)
+        with patch('shutil.which', return_value='/usr/bin/node'), patch.object(
+                Path, 'is_file', return_value=True), patch(
+                __name__ + '.run_local_node', side_effect=CalledProcessError(1, 'node')):
+            with self.assertRaises(CalledProcessError):
+                self.test_ui_schedule_body_passes_strict_endpoint_without_readonly_fields()
 
     def test_import_rejects_bad_zip_and_oversized_request(self):
         token = self.login()
