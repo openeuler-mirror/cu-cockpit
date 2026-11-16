@@ -8,6 +8,7 @@ import tempfile
 import zipfile
 from contextlib import closing
 from pathlib import Path
+from subprocess import run as run_local_node
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
@@ -155,6 +156,19 @@ class BackupAPITest(TestCase):
         self.assertEqual(schedule.status_code, 200)
         self.assertTrue(self.client.get(self.base + 'overview').json()['schedule']['enabled'])
         self.worker.assert_not_called()
+
+    def test_ui_schedule_body_passes_strict_endpoint_without_readonly_fields(self):
+        token = self.login()
+        script = Path(__file__).parent / 'frontend' / 'backup-workspace.test.cjs'
+        body = json.loads(run_local_node(
+            ['node', str(script), '--schedule-body'], capture_output=True,
+            text=True, timeout=15, check=True).stdout)
+        self.assertEqual(body, {'enabled': True, 'time': '02:30', 'timezone': 'UTC'})
+        response = self.post_json('schedule', body, token)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('next_run', response.json()['schedule'])
+        self.assertEqual(self.post_json('schedule', {
+            **body, 'next_run': response.json()['schedule']['next_run']}, token).status_code, 400)
 
     def test_import_rejects_bad_zip_and_oversized_request(self):
         token = self.login()

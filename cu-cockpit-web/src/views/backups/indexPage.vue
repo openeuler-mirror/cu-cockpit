@@ -108,9 +108,13 @@ const selected = ref<api.BackupArchive | null>(null);
 const preflight = ref<api.RestorePreflight | null>(null);
 const acknowledged = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
-const schedule = reactive({ enabled: false, time: '02:00', timezone: 'UTC' });
+const schedule = reactive<api.BackupScheduleInput>({ enabled: false, time: '02:00', timezone: 'UTC' });
 const timezones = computed(() => [...new Set(['UTC', 'Asia/Shanghai', schedule.timezone])]);
-const sortedTasks = computed(() => [...(overview.value?.tasks || [])].sort((a, b) => b.created_at.localeCompare(a.created_at)));
+const sortedTasks = computed(() => [...(overview.value?.tasks || [])].sort((a, b) => {
+  const first = a.created_at || a.started_at || a.finished_at || '';
+  const second = b.created_at || b.started_at || b.finished_at || '';
+  return second.localeCompare(first) || b.id.localeCompare(a.id);
+}));
 const expired = ref(true);
 let disposed = false;
 let pollTimer: ReturnType<typeof setTimeout> | undefined;
@@ -156,7 +160,9 @@ async function refresh(poll = false) {
     if (disposed) return;
     overview.value = data;
     unavailable.value = '';
-    Object.assign(schedule, data.schedule);
+    schedule.enabled = data.schedule.enabled;
+    schedule.time = data.schedule.time;
+    schedule.timezone = data.schedule.timezone;
     if (trackingRestore && !data.tasks.some(task => task.id === trackingRestore && task.status === 'awaiting_maintenance')) trackingRestore = '';
     pollFailures = 0;
     error.value = '';
@@ -215,8 +221,11 @@ async function onFileChange(event: Event) {
 }
 async function saveSchedule() {
   if (!/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/.test(schedule.time)) { error.value = '请选择有效的 HH:mm 时间。'; return; }
-  await perform('schedule', async () => { const { schedule: saved } = await api.saveBackupSchedule({ ...schedule });
-    if (!disposed && overview.value) { overview.value = { ...overview.value, schedule: saved }; Object.assign(schedule, saved); }
+  await perform('schedule', async () => { const { schedule: saved } = await api.saveBackupSchedule({ enabled: schedule.enabled, time: schedule.time, timezone: schedule.timezone });
+    if (!disposed && overview.value) {
+      overview.value = { ...overview.value, schedule: saved };
+      schedule.enabled = saved.enabled; schedule.time = saved.time; schedule.timezone = saved.timezone;
+    }
   });
 }
 async function verify(archive: api.BackupArchive) {
@@ -259,8 +268,8 @@ async function confirm() {
     if (task.status !== 'awaiting_maintenance') throw new Error('Unexpected restore state');
     trackingRestore = task.id;
     if (overview.value) overview.value = { ...overview.value, tasks: [
-      { id: task.id, kind: 'restore', status: 'awaiting_maintenance', archive_id: selected.value?.archive_id,
-        created_at: new Date().toISOString() }, ...overview.value.tasks.filter(item => item.id !== task.id),
+      { id: task.id, kind: 'restore', status: 'awaiting_maintenance', archive_id: selected.value?.archive_id },
+      ...overview.value.tasks.filter(item => item.id !== task.id),
     ] };
     dialog.value = false; clearPreflight();
     await refreshAfterMutation();
@@ -273,7 +282,10 @@ async function confirm() {
 }
 async function refreshAfterMutation() {
   try { const data = await api.getBackupOverview();
-    if (!disposed) { overview.value = data; Object.assign(schedule, data.schedule); }
+    if (!disposed) {
+      overview.value = data;
+      schedule.enabled = data.schedule.enabled; schedule.time = data.schedule.time; schedule.timezone = data.schedule.timezone;
+    }
   } catch { if (!disposed) error.value = '确认已提交，但任务列表刷新失败；请刷新核对任务状态后再执行维护命令。'; }
 }
 async function copyCommand(id: string) {
