@@ -134,6 +134,8 @@ def backup_schedule(request):
     try:
         schedule = save_backup_schedule(root, payload['enabled'], payload['time'],
                                         payload['timezone'])
+    except BlockingIOError:
+        return _error(409, 'Backup service is busy')
     except ValueError:
         return _error(400, 'Invalid backup schedule settings')
     return JsonResponse({'schedule': {key: schedule[key] for key in (
