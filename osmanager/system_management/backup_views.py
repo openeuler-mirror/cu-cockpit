@@ -138,6 +138,8 @@ def backup_schedule(request):
         return _error(409, 'Backup service is busy')
     except ValueError:
         return _error(400, 'Invalid backup schedule settings')
+    except OSError:
+        return _error(503, 'Backup schedule storage is unavailable')
     return JsonResponse({'schedule': {key: schedule[key] for key in (
         'enabled', 'time', 'timezone', 'next_run')}})
 
