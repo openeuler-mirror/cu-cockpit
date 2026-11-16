@@ -207,7 +207,10 @@ def backup_restore_confirm(request):
 @audited_admin_api('backup', 'restore_preflight')
 @require_POST
 def backup_restore_preflight(request):
-    archive_id = _verify_request(request)
+    try:
+        archive_id = _verify_request(request)
+    except (ValueError, UnicodeDecodeError):
+        return _error(400, 'Expected only a valid archive_id')
     root = require_installation()
     result = preflight_restore(root, archive_id, backup_database(), backup_configs(),
                                BACKUP_COMPAT_VERSION, get_session_identity(request).username,
