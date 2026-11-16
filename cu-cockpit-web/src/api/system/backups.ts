@@ -20,7 +20,7 @@ export interface BackupTask {
   error?: string;
   requires_manual_recovery?: boolean;
   safety_archive_id?: string;
-  created_at: string;
+  created_at?: string;
   started_at?: string;
   finished_at?: string;
   archive_id?: string;
@@ -28,10 +28,13 @@ export interface BackupTask {
   confirmed_at?: string;
 }
 
-export interface BackupSchedule {
+export interface BackupScheduleInput {
   enabled: boolean;
   time: string;
   timezone: string;
+}
+
+export interface BackupSchedule extends BackupScheduleInput {
   next_run: string | null;
 }
 
@@ -77,8 +80,10 @@ export const importBackup = (file: File): Promise<{ backup: BackupArchive }> => 
   });
 };
 
-export const saveBackupSchedule = (data: Pick<BackupSchedule, 'enabled' | 'time' | 'timezone'>): Promise<{ schedule: BackupSchedule }> => request<{ schedule: BackupSchedule }, { schedule: BackupSchedule }>({
-  url: `${base}/schedule`, method: 'post', data, withCredentials: true, headers: csrf(),
+export const saveBackupSchedule = (data: BackupScheduleInput): Promise<{ schedule: BackupSchedule }> => request<{ schedule: BackupSchedule }, { schedule: BackupSchedule }>({
+  url: `${base}/schedule`, method: 'post',
+  data: { enabled: data.enabled, time: data.time, timezone: data.timezone },
+  withCredentials: true, headers: csrf(),
 });
 
 export const verifyBackup = (archive_id: string): Promise<{ archive_id: string; members: string[]; total_size: number }> => request<{ archive_id: string; members: string[]; total_size: number }, { archive_id: string; members: string[]; total_size: number }>({
