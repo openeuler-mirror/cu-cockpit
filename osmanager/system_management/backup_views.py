@@ -168,6 +168,8 @@ def backup_restore_confirm(request):
         return _error(503, 'Backup installation is unavailable')
     try:
         task = confirm_restore(root, task_id, token, get_session_identity(request).username)
+    except BlockingIOError:
+        return _error(409, 'Backup service is busy')
     except ValueError:
         return _error(409, 'Restore confirmation rejected')
     return JsonResponse({'task': {key: task[key] for key in ('id', 'status')}}, status=202)
