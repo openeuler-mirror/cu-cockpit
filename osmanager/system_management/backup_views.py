@@ -81,16 +81,21 @@ def backup_overview(request):
         return JsonResponse({'available': False, 'reason': 'Backup installation is invalid or inaccessible',
                              'capabilities': {'create': False, 'verify': False, 'schedule': False}},
                             status=503)
-    index = read_backup_index(root) if os.path.lexists(root / 'index.json') else {
-        'backups': {}, 'tasks': {}}
-    backups = [{key: record[key] for key in (
-        'archive_id', 'application_version', 'actor', 'size') if key in record}
-        for record in index['backups'].values()]
-    tasks = [{key: task[key] for key in (
-        'id', 'kind', 'status', 'created_at', 'started_at', 'finished_at', 'archive_id')
-        if key in task} for task in index['tasks'].values()
-        if task.get('kind', 'backup') == 'backup']
-    schedule = read_backup_schedule(root)
+    try:
+        index = read_backup_index(root) if os.path.lexists(root / 'index.json') else {
+            'backups': {}, 'tasks': {}}
+        backups = [{key: record[key] for key in (
+            'archive_id', 'application_version', 'actor', 'size') if key in record}
+            for record in index['backups'].values()]
+        tasks = [{key: ('Backup operation failed' if task.get('kind', 'backup') == 'backup'
+                        else 'Restore operation failed') if key == 'error' else task[key]
+            for key in (
+            'id', 'kind', 'status', 'phase', 'error', 'requires_manual_recovery', 'safety_archive_id',
+            'created_at', 'started_at', 'finished_at', 'archive_id', 'expires_at',
+            'confirmed_at') if key in task} for task in index['tasks'].values()]
+        schedule = read_backup_schedule(root)
+    except (OSError, ValueError, KeyError, TypeError):
+        return _error(503, 'Backup index or schedule is unavailable')
     try:
         can_create = backup_database().is_file() and bool(backup_configs())
     except (OSError, ValueError):
@@ -230,6 +235,8 @@ def backup_restore_preflight(request):
         return _error(400, 'Archive or restore targets failed preflight validation')
     except (KeyError, zipfile.BadZipFile):
         return _error(400, 'Archive or restore targets failed preflight validation')
+    except OSError:
+        return _error(503, 'Backup archive or restore storage is unavailable')
     return JsonResponse(result, status=200)
 
 
@@ -274,17 +281,22 @@ def backup_download(request, archive_id):
         return _error(422, 'Archive is not registered or failed verification')
     except OSError:
         return _error(503, 'Backup archive storage is unavailable')
-    descriptor = os.open(root / f'{archive_id}.zip', os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
-    with ExitStack() as opened:
-        archive = opened.enter_context(os.fdopen(descriptor, 'rb'))
-        details = os.fstat(archive.fileno())
-        if not stat.S_ISREG(details.st_mode) or details.st_nlink != 1:
-            raise ValueError('Archive file is not a standalone regular file')
-        if not hmac.compare_digest(hashlib.file_digest(archive, 'sha256').hexdigest(),
-                                   expected_hash):
-            raise ValueError('Archive file changed after verification')
-        archive.seek(0)
-        response = FileResponse(archive, as_attachment=True, filename=f'{archive_id}.zip')
-        response['Cache-Control'] = 'private, no-store'
-        opened.pop_all()
-        return response
+    try:
+        descriptor = os.open(root / f'{archive_id}.zip', os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+        with ExitStack() as opened:
+            archive = opened.enter_context(os.fdopen(descriptor, 'rb'))
+            details = os.fstat(archive.fileno())
+            if not stat.S_ISREG(details.st_mode) or details.st_nlink != 1:
+                raise ValueError('Archive file is not a standalone regular file')
+            if not hmac.compare_digest(hashlib.file_digest(archive, 'sha256').hexdigest(),
+                                       expected_hash):
+                raise ValueError('Archive file changed after verification')
+            archive.seek(0)
+            response = FileResponse(archive, as_attachment=True, filename=f'{archive_id}.zip')
+            response['Cache-Control'] = 'private, no-store'
+            opened.pop_all()
+            return response
+    except ValueError:
+        return _error(422, 'Archive changed during download')
+    except OSError:
+        return _error(503, 'Backup archive storage is unavailable')
