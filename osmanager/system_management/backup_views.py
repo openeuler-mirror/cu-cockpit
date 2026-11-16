@@ -166,7 +166,10 @@ def backup_restore_confirm(request):
         root = require_installation()
     except (OSError, ValueError):
         return _error(503, 'Backup installation is unavailable')
-    task = confirm_restore(root, task_id, token, get_session_identity(request).username)
+    try:
+        task = confirm_restore(root, task_id, token, get_session_identity(request).username)
+    except ValueError:
+        return _error(409, 'Restore confirmation rejected')
     return JsonResponse({'task': {key: task[key] for key in ('id', 'status')}}, status=202)
 
 
