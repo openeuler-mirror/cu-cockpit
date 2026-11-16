@@ -16,6 +16,10 @@ from .backup_center import (backup_lock, create_backup_archive, read_backup_inde
                             validate_backup_root, write_backup_index)
 
 
+class BackupTaskCapacityError(ValueError):
+    pass
+
+
 def queue_backup(root, actor):
     if not isinstance(actor, str) or not actor or len(actor) > 128:
         raise ValueError('Invalid backup actor')
@@ -202,7 +206,7 @@ def queue_due_backup(root, now=None):
                                   if task.get('kind', 'backup') == 'backup' and
                                   task['status'] in ('succeeded', 'failed')), None)
                 if completed is None:
-                    raise ValueError('Backup task history is full')
+                    raise BackupTaskCapacityError('Backup task history is full')
                 del index['tasks'][completed]
             task = {'id': task_id, 'kind': 'backup', 'actor': 'daily-schedule', 'status': 'queued',
                     'created_at': instant.astimezone(timezone.utc).isoformat()}
