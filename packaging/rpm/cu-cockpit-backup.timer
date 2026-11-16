@@ -1,0 +1,12 @@
+[Unit]
+Description=Check cu-cockpit backup schedule every minute
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+AccuracySec=1s
+Persistent=false
+Unit=cu-cockpit-backup.service
+
+[Install]
+WantedBy=timers.target
