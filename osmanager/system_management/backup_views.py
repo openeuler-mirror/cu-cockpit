@@ -227,7 +227,9 @@ def backup_restore_preflight(request):
     except ValueError as error:
         if str(error) == 'Restore task history is full':
             return _error(409, 'Restore task history is full')
-        raise
+        return _error(400, 'Archive or restore targets failed preflight validation')
+    except (KeyError, zipfile.BadZipFile):
+        return _error(400, 'Archive or restore targets failed preflight validation')
     return JsonResponse(result, status=200)
 
 
