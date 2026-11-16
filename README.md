@@ -47,6 +47,8 @@ venv/bin/python manage.py backup_center restore TASK_ID --confirm-maintenance
 ID，不接受自定义数据库或配置路径；执行前验证任务、归档、版本及服务名单。恢复时
 停用本应用的 timer 和 writer，保留恢复前安全备份，并把结果写入任务状态。若返回
 `manual_recovery_required`，不要盲目重启服务，先按任务记录的安全归档人工排查。
+失败清理会尝试停止全部已登记的 writer；若无法确认某个单元已停，任务错误会列出该
+单元，且不会执行数据回滚。服务重启失败时清理后保持停服，等待人工恢复。
 
 ## 备份导入部署限制
 

@@ -428,7 +428,7 @@ class RestoreConfirmedTest(unittest.TestCase):
         with closing(sqlite3.connect(self.database)) as connection:
             self.assertEqual(connection.execute('SELECT value FROM data').fetchone(), ('new',))
         self.assertEqual(self.config.read_bytes(), config_bytes)
-        self.controller.stop.assert_called_once_with('cu-cockpit.service')
+        self.assertEqual(self.controller.stop.call_count, 2)
         self.controller.start.assert_called_once_with('cu-cockpit.service')
 
     def test_worker_wal_does_not_mask_rolled_back_database(self):
@@ -461,9 +461,11 @@ class RestoreConfirmedTest(unittest.TestCase):
         result = restore_confirmed(self.root, task_id, self.database,
                                    {'service': self.config}, '1.0', self.controller)
 
-        self.assertEqual(result['status'], 'failed', result)
-        self.assertEqual(starts, ['cu-cockpit.service', 'cu-cockpit-metrics.service'] * 2)
-        self.assertEqual(read_backup_index(self.root)['tasks'][task_id]['status'], 'failed')
+        self.assertEqual(result['status'], 'manual_recovery_required', result)
+        self.assertEqual(starts, ['cu-cockpit.service', 'cu-cockpit-metrics.service'])
+        self.assertEqual(read_backup_index(self.root)['tasks'][task_id]['status'],
+                 'manual_recovery_required')
+        self.assertEqual(states, {'cu-cockpit.service': False, 'cu-cockpit-metrics.service': False})
         with closing(sqlite3.connect(self.database)) as connection:
             self.assertEqual(connection.execute('SELECT value FROM data').fetchone(),
                              ('safe-current',))
@@ -493,7 +495,7 @@ class RestoreConfirmedTest(unittest.TestCase):
 
         task = read_backup_index(self.root)['tasks'][task_id]
         self.assertEqual(len(db_replacements), 2)
-        self.controller.stop.assert_called_once_with('cu-cockpit.service')
+        self.assertEqual(self.controller.stop.call_count, 2)
         self.controller.start.assert_not_called()
         self.assertEqual(result['status'], task['status'])
         self.assertEqual(task['status'], 'manual_recovery_required')
