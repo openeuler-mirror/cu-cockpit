@@ -211,10 +211,16 @@ def backup_restore_preflight(request):
         archive_id = _verify_request(request)
     except (ValueError, UnicodeDecodeError):
         return _error(400, 'Expected only a valid archive_id')
-    root = require_installation()
-    result = preflight_restore(root, archive_id, backup_database(), backup_configs(),
+    try:
+        root = require_installation()
+        database = backup_database()
+        configs = backup_configs()
+        services = maintenance_services()
+    except (OSError, ValueError):
+        return _error(503, 'Backup installation or restore targets are unavailable')
+    result = preflight_restore(root, archive_id, database, configs,
                                BACKUP_COMPAT_VERSION, get_session_identity(request).username,
-                               maintenance_services())
+                               services)
     return JsonResponse(result, status=200)
 
 
