@@ -54,6 +54,7 @@ class BackupCommandTest(unittest.TestCase):
         units = self.directory / 'units'
         units.mkdir()
         (units / 'cu-cockpit.service').touch()
+        self.units = units
         self.enterContext(patch('osmanager.system_management.backup_restore.SYSTEMD_UNIT_DIRS',
                                 (units,)))
 
@@ -183,6 +184,92 @@ class BackupCommandTest(unittest.TestCase):
         self.assertEqual(read_backup_index(self.root)['tasks'][preview['task_id']]['status'],
                          'completed')
         controller.stop.assert_called_once_with('cu-cockpit.service')
+        with closing(sqlite3.connect(self.database)) as database:
+            self.assertEqual(database.execute('SELECT value FROM data').fetchone(), ('saved',))
+
+    def _multi_unit_restore(self):
+        services = ('cu-cockpit.service', 'cu-cockpit-metrics.service',
+                    'cu-cockpit-backup.timer')
+        self.enterContext(patch.dict(os.environ, {'BACKUP_RESTORE_SERVICES': ','.join(services)}))
+        for service in services:
+            (self.units / service).touch()
+        self.command('init')
+        archive = create_backup_archive(self.root, self.database,
+                                        {'chrony': self.config}, BACKUP_COMPAT_VERSION, 'user')
+        with closing(sqlite3.connect(self.database)) as database:
+            database.execute('UPDATE data SET value = ?', ('new',))
+            database.commit()
+        preview = preflight_restore(self.root, archive['archive_id'], self.database,
+                                    {'chrony': self.config}, BACKUP_COMPAT_VERSION, 'user',
+                                    services)
+        confirm_restore(self.root, preview['task_id'], preview['token'], 'user')
+        return preview['task_id'], services
+
+    def _restore_with_failed_timer(self, *, query_failure=False):
+        task_id, services = self._multi_unit_restore()
+        states = dict.fromkeys(services, 'active')
+        calls = []
+        probes = dict.fromkeys(services, 0)
+
+        def systemctl(argv, **kwargs):
+            self.assertEqual(argv[0], 'systemctl')
+            self.assertIn(argv[-1], services)
+            self.assertNotIn('shell', kwargs)
+            calls.append((argv[1], argv[-1]))
+            action, service = argv[1], argv[-1]
+            if action == 'show':
+                probes[service] += 1
+                if query_failure and service == 'cu-cockpit-metrics.service' and probes[service] == 4:
+                    return subprocess.CompletedProcess(argv, 1, '')
+                return subprocess.CompletedProcess(argv, 0, states[service] + '\n')
+            if action == 'is-active':
+                state = states[service]
+                return subprocess.CompletedProcess(argv, 0 if state == 'active' else 3,
+                                                   state + '\n')
+            if action == 'stop':
+                states[service] = 'inactive'
+                return subprocess.CompletedProcess(argv, 0, '')
+            if action == 'start':
+                if service == 'cu-cockpit-backup.timer':
+                    states[service] = 'failed'
+                    return subprocess.CompletedProcess(argv, 1, '')
+                states[service] = 'active'
+                return subprocess.CompletedProcess(argv, 0, '')
+            self.fail(f'Unexpected systemctl action: {action}')
+
+        output = io.StringIO()
+        with patch('osmanager.system_management.management.commands.backup_center.subprocess.run',
+                   side_effect=systemctl):
+            with self.assertRaises(CommandError):
+                call_command('backup_center', 'restore', task_id,
+                             '--confirm-maintenance', stdout=output)
+        result = json.loads(output.getvalue())
+        task = read_backup_index(self.root)['tasks'][task_id]
+        self.assertEqual(result['status'], 'manual_recovery_required')
+        self.assertEqual(task['status'], result['status'])
+        self.assertTrue(task['requires_manual_recovery'])
+        self.assertEqual(task['safety_archive_id'], result['safety_archive_id'])
+        self.assertTrue((self.root / f"{task['safety_archive_id']}.zip").is_file())
+        self.assertIn(('start', 'cu-cockpit.service'), calls)
+        self.assertIn(('start', 'cu-cockpit-backup.timer'), calls)
+        self.assertTrue(all(state != 'active' for state in states.values()), states)
+        self.assertEqual({service for action, service in calls if action == 'stop'},
+                         set(services))
+        return task, states, calls
+
+    def test_failed_timer_restart_stops_all_writers_and_rolls_back(self):
+        task, states, calls = self._restore_with_failed_timer()
+        self.assertEqual(set(states.values()), {'inactive'})
+        self.assertIn('manual service restart', task['error'])
+        self.assertEqual(sum(action == 'start' for action, _ in calls), 3)
+        with closing(sqlite3.connect(self.database)) as database:
+            self.assertEqual(database.execute('SELECT value FROM data').fetchone(), ('new',))
+
+    def test_failed_cleanup_query_does_not_skip_other_writer_stops(self):
+        task, states, calls = self._restore_with_failed_timer(query_failure=True)
+        self.assertIn('cu-cockpit-metrics.service', task['error'])
+        self.assertIn(('stop', 'cu-cockpit.service'), calls)
+        self.assertEqual(states['cu-cockpit.service'], 'inactive')
         with closing(sqlite3.connect(self.database)) as database:
             self.assertEqual(database.execute('SELECT value FROM data').fetchone(), ('saved',))
 

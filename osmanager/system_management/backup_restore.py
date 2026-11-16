@@ -194,6 +194,19 @@ def _pause_services(controller, services: list) -> list:
     return active
 
 
+def _stop_restore_writers(controller, services: list) -> None:
+    unconfirmed = []
+    for service in sorted(services, key=lambda name: not name.endswith('.timer')):
+        try:
+            controller.stop(service)
+            if controller.is_active(service) not in (False, 'inactive'):
+                unconfirmed.append(service)
+        except Exception:
+            unconfirmed.append(service)
+    if unconfirmed:
+        raise RuntimeError(f'Cannot confirm restore writers stopped: {", ".join(unconfirmed)}')
+
+
 def _validate_restore_database(current: Path, candidate: Path) -> bool:
     if not verify_sqlite(current) or not verify_sqlite(candidate):
         raise ValueError('Restore database is damaged')
@@ -347,25 +360,29 @@ def _apply_confirmed_restore(root: Path, task: dict, targets: dict, version: str
     safety_id = safety['archive_id']
     _set_restore_state(root, task['id'], 'running', safety_archive_id=safety_id)
     changed = []
+    resume_attempted = False
     with _stage_restore(root, safety_id, targets, version, clear_sessions=False) as rollback:
         try:
             with _stage_restore(root, task['archive_id'], targets, version) as staged:
                 _replace_targets(targets, staged, changed)
                 if not verify_sqlite(targets['app.sqlite3']):
                     raise RuntimeError('Restored database failed integrity check')
+            resume_attempted = True
             _resume_services(controller, active)
             _set_restore_state(root, task['id'], 'completed',
                                completed_at=datetime.now(timezone.utc).isoformat())
         except Exception as error:
             try:
                 if changed:
-                    if any(controller.is_active(service) for service in task['services']):
-                        _pause_services(controller, task['services'])
+                    _stop_restore_writers(controller, task['services'])
                     _rollback_restore_targets(targets, rollback, changed)
             except Exception as rollback_error:
                 raise _ManualRecoveryRequired(
                     f'Restore failed; manual rollback from {safety_id} required: '
                     f'{rollback_error}') from error
+            if resume_attempted:
+                raise _ManualRecoveryRequired(
+                    f'Restore rolled back; manual service restart required: {error}') from error
             raise
     return safety_id
 
