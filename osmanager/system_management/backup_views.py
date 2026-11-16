@@ -218,9 +218,12 @@ def backup_restore_preflight(request):
         services = maintenance_services()
     except (OSError, ValueError):
         return _error(503, 'Backup installation or restore targets are unavailable')
-    result = preflight_restore(root, archive_id, database, configs,
-                               BACKUP_COMPAT_VERSION, get_session_identity(request).username,
-                               services)
+    try:
+        result = preflight_restore(root, archive_id, database, configs,
+                                   BACKUP_COMPAT_VERSION, get_session_identity(request).username,
+                                   services)
+    except BlockingIOError:
+        return _error(409, 'Backup service is busy')
     return JsonResponse(result, status=200)
 
 
