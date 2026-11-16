@@ -311,6 +311,11 @@ class RestoreConfirmedTest(unittest.TestCase):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
         self.root = Path(directory.name).resolve()
+        self.units = self.root / 'units'
+        self.units.mkdir()
+        (self.units / 'cu-cockpit.service').touch()
+        self.enterContext(patch('osmanager.system_management.backup_restore.SYSTEMD_UNIT_DIRS',
+                    (self.units,)))
         initialize_installation(self.root, '1.0')
         self.database = self.root / 'app.sqlite3'
         with closing(sqlite3.connect(self.database)) as connection:
@@ -435,6 +440,7 @@ class RestoreConfirmedTest(unittest.TestCase):
         with closing(sqlite3.connect(self.database)) as connection:
             connection.execute('UPDATE data SET value = ?', ('safe-current',))
             connection.commit()
+        (self.units / 'cu-cockpit-metrics.service').touch()
         environment = patch.dict(os.environ, {'BACKUP_RESTORE_SERVICES':
                                                 'cu-cockpit.service,cu-cockpit-metrics.service'})
         environment.start()
@@ -552,6 +558,19 @@ class RestoreConfirmedTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'confirmation rejected'):
             confirm_restore(self.root, preview['task_id'], 'wrong-token', 'tester')
         self.assertEqual(read_backup_index(self.root), original)
+
+    def test_preflight_rejects_missing_installed_writer_units(self):
+        (self.units / 'cu-cockpit-inspection.service').touch()
+        (self.units / 'cu-cockpit-inspection.timer').touch()
+        original = read_backup_index(self.root)
+        with self.assertRaisesRegex(ValueError, 'not safely configured'):
+            preflight_restore(self.root, self.archive['archive_id'], self.database,
+                              {'service': self.config}, '1.0', 'tester',
+                              ['cu-cockpit.service'])
+        self.assertEqual(read_backup_index(self.root), original)
+        with closing(sqlite3.connect(self.database)) as connection:
+            self.assertEqual(connection.execute('SELECT value FROM data').fetchone(), ('new',))
+        self.assertEqual(self.config.read_bytes(), b'new config')
 
     def test_consumed_confirmation_token_cannot_be_replayed(self):
         preview = preflight_restore(self.root, self.archive['archive_id'], self.database,
