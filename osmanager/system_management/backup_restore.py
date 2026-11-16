@@ -25,6 +25,16 @@ class _ManualRecoveryRequired(RuntimeError):
     pass
 
 
+RESTORE_UNITS = frozenset({
+    'cu-cockpit.service', 'cu-cockpit-metrics.service', 'cu-cockpit-metrics.timer',
+    'cu-cockpit-inspection.service', 'cu-cockpit-inspection.timer',
+    'cu-cockpit-backup.service', 'cu-cockpit-backup.timer',
+})
+SYSTEMD_UNIT_DIRS = (Path('/etc/systemd/system'), Path('/run/systemd/system'),
+                     Path('/usr/local/lib/systemd/system'), Path('/usr/lib/systemd/system'),
+                     Path('/lib/systemd/system'))
+
+
 def _restore_targets(db_path: Path, configs: dict) -> dict:
     if not isinstance(configs, dict) or len(configs) > MAX_CONFIG_TARGETS:
         raise ValueError('Invalid restore configuration registry')
@@ -71,12 +81,11 @@ def _registered_archive(root: Path, archive_id: str, version: str) -> tuple:
 
 
 def _restore_services(services) -> list:
-    allowed = {'cu-cockpit.service', 'cu-cockpit-metrics.service',
-               'cu-cockpit-metrics.timer', 'cu-cockpit-inspection.service',
-               'cu-cockpit-inspection.timer', 'cu-cockpit-backup.service',
-               'cu-cockpit-backup.timer'}
     configured = set(filter(None, os.environ.get('BACKUP_RESTORE_SERVICES', '').split(',')))
-    if not configured or not configured <= allowed:
+    installed = {unit for unit in RESTORE_UNITS if any(
+        os.path.lexists(directory / unit) for directory in SYSTEMD_UNIT_DIRS)}
+    if ('cu-cockpit.service' not in configured or not configured <= RESTORE_UNITS or
+            not installed <= configured):
         raise ValueError('Restore services are not safely configured')
     if (not isinstance(services, (list, tuple)) or not services or
             len(services) != len(set(services)) or set(services) != configured or
@@ -148,7 +157,7 @@ def _resume_services(controller, active: list) -> None:
     for service in reversed(active):
         try:
             controller.start(service)
-            if not controller.is_active(service):
+            if controller.is_active(service) not in (True, 'active'):
                 failed.append(service)
         except Exception:
             failed.append(service)
@@ -161,9 +170,10 @@ def _pause_services(controller, services: list) -> list:
     try:
         for service in sorted(services, key=lambda name: not name.endswith('.timer')):
             state = controller.is_active(service)
-            if state is not False and state != 'inactive':
-                if state is True or state == 'active':
-                    active.append(service)
+            if state not in (True, False, 'active', 'inactive'):
+                raise RuntimeError('Restore service state is unknown')
+            if state is True or state == 'active':
+                active.append(service)
                 controller.stop(service)
         states = [controller.is_active(service) for service in services]
         if any(state is not False and state != 'inactive' for state in states):
