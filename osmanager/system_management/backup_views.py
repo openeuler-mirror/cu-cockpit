@@ -15,7 +15,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 from .backup_center import read_backup_index
 from .backup_jobs import queue_backup, read_backup_schedule, save_backup_schedule
-from .backup_restore import _registered_archive
+from .backup_restore import _registered_archive, confirm_restore
 from .backup_runtime import (BACKUP_COMPAT_VERSION, backup_configs, backup_database,
                              require_installation)
 from .permissions import admin_required_api, audited_admin_api, get_session_identity
@@ -153,6 +153,15 @@ def backup_schedule(request):
         return _error(503, 'Backup schedule storage is unavailable')
     return JsonResponse({'schedule': {key: schedule[key] for key in (
         'enabled', 'time', 'timezone', 'next_run')}})
+
+
+@audited_admin_api('backup', 'restore_confirm')
+@require_POST
+def backup_restore_confirm(request):
+    task_id, token = _confirm_request(request)
+    root = require_installation()
+    task = confirm_restore(root, task_id, token, get_session_identity(request).username)
+    return JsonResponse({'task': {key: task[key] for key in ('id', 'status')}}, status=202)
 
 
 @audited_admin_api('backup', 'verify')
