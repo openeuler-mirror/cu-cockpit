@@ -28,11 +28,7 @@ class InspectionCenterTest(unittest.TestCase):
                          'collect_root_percent', 'collect_inode_percent')
         }
         self.query = self.stack.enter_context(patch.object(
-            inspection_collectors, '_run_readonly', side_effect=lambda args, **kwargs:
-            subprocess.CompletedProcess(args, 0, stdout=(
-                'NTPSynchronized=yes\n' if args[0] == 'timedatectl' else
-                'LoadState=loaded\nActiveState=active\nSubState=running\nResult=success\n'),
-                stderr=''),
+            inspection_collectors, '_run_readonly', side_effect=self._query_result,
         ))
         self.sample = self.stack.enter_context(patch.object(
             monitoring, 'collect_metric_sample', side_effect=AssertionError('Unexpected write'),
@@ -40,6 +36,16 @@ class InspectionCenterTest(unittest.TestCase):
         self.evaluate = self.stack.enter_context(patch.object(
             alerts, 'evaluate_alert_rules', side_effect=AssertionError('Unexpected alert'),
         ))
+
+    def _query_result(self, args, **kwargs):
+        inspection_collectors._validate_command(args)
+        if args[0] == 'timedatectl':
+            self.assertEqual(args, ['timedatectl', 'show', '--no-pager',
+                                    '--property=NTPSynchronized', '--property=NTP'])
+            output = 'NTPSynchronized=yes\nNTP=yes\n'
+        else:
+            output = 'LoadState=loaded\nActiveState=active\nSubState=running\nResult=success\n'
+        return subprocess.CompletedProcess(args, 0, stdout=output, stderr='')
 
     def _start_child(self, *args, **kwargs):
         process = self.popen(*args, **kwargs)
@@ -140,21 +146,46 @@ class InspectionCenterTest(unittest.TestCase):
         self.assertNotIn('error', result['evidence'])
         self.query.assert_called_once_with(command)
 
+    def test_time_sync_repeated_properties_classifies_actual_synchronization(self):
+        command = ['timedatectl', 'show', '--no-pager',
+                   '--property=NTPSynchronized', '--property=NTP']
+        self.assertEqual(inspection_collectors._validate_command(command), tuple(command))
+        self.query.side_effect = None
+        for synchronized, ntp, status, value in (
+                ('yes', 'yes', 'pass', True), ('no', 'yes', 'fail', False),
+                ('no', 'no', 'fail', False)):
+            with self.subTest(synchronized=synchronized, ntp=ntp):
+                output = f'NTP={ntp}\nNTPSynchronized={synchronized}\n'
+                self.query.reset_mock()
+                self.query.return_value = subprocess.CompletedProcess(command, 0, stdout=output)
+                result = inspection_collectors.collect_time_sync()
+                self.assertEqual(result['id'], 'time_sync')
+                self.assertEqual(result['status'], status)
+                self.assertIs(result['value'], value)
+                self.assertEqual(result['reason'], f'NTPSynchronized={synchronized}')
+                self.assertEqual(result['threshold'], {'NTPSynchronized': 'yes'})
+                self.assertEqual(result['evidence']['command'], command)
+                self.assertEqual(result['evidence']['output'], output)
+                self.assertEqual(result['evidence']['returncode'], 0)
+                self.assertNotIn('error', result['evidence'])
+                self.query.assert_called_once_with(command)
+
     def test_time_sync_without_synchronization_evidence_returns_error(self):
         command = ['timedatectl', 'show', '--no-pager',
-                   '--property=NTPSynchronized,NTP,CanNTP']
+                   '--property=NTPSynchronized', '--property=NTP']
         self.query.side_effect = None
-        self.query.return_value = subprocess.CompletedProcess(
-            command, 0, stdout='NTP=yes\nCanNTP=yes\n',
-        )
-        result = inspection_collectors.collect_time_sync()
-        self.assertEqual(result['id'], 'time_sync')
-        self.assertEqual(result['status'], 'error')
-        self.assertIsNone(result['value'])
-        self.assertIsNone(result['threshold'])
-        self.assertEqual(result['evidence']['error'], 'ValueError')
-        self.assertIn('Invalid or missing systemd properties', result['reason'])
-        self.query.assert_called_once_with(command)
+        for output in ('', 'NTP=yes\n', 'NTP=yes\nNTPSynchronized=\n'):
+            with self.subTest(output=output):
+                self.query.reset_mock()
+                self.query.return_value = subprocess.CompletedProcess(command, 0, stdout=output)
+                result = inspection_collectors.collect_time_sync()
+                self.assertEqual(result['id'], 'time_sync')
+                self.assertEqual(result['status'], 'error')
+                self.assertIsNone(result['value'])
+                self.assertIsNone(result['threshold'])
+                self.assertEqual(result['evidence']['error'], 'ValueError')
+                self.assertIn('Invalid or missing systemd properties', result['reason'])
+                self.query.assert_called_once_with(command)
 
     def test_metric_exception_preserves_other_items_without_writes(self):
         self.metrics['collect_cpu_percent'].side_effect = monitoring.MetricCollectionError(
@@ -263,6 +294,12 @@ class InspectionCenterTest(unittest.TestCase):
             ('top', '-bn2', '-d0.2', '-p1', '|', 'head'),
             ('df', '-P', '--', '/tmp'),
             ('df', '-P', '--', '/', '--help'),
+            ('timedatectl', 'show', '--no-pager', '--property=NTPSynchronized,NTP,CanNTP'),
+            ('timedatectl', 'show', '--no-pager', '--property=NTPSynchronized,NTP'),
+            ('timedatectl', 'show', '--no-pager', '--property=NTPSynchronized'),
+            ('timedatectl', 'show', '--no-pager',
+             '--property=NTPSynchronized', '--property=NTP', '|', 'cat'),
+            ('timedatectl', 'set-ntp', 'true'),
             ('systemctl', 'is-active', 'nginx.service'),
             ('systemctl', 'show', '--no-pager',
              '--property=LoadState,ActiveState,SubState,Result', '--', 'unregistered.service'),

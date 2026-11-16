@@ -16,7 +16,7 @@ def _validate_command(args):
         ('df', '-P', '--', '/'),
         ('df', '-Pi', '--', '/'),
         ('timedatectl', 'show', '--no-pager',
-         '--property=NTPSynchronized,NTP,CanNTP'),
+         '--property=NTPSynchronized', '--property=NTP'),
     )
     service_prefix = (
         'systemctl', 'show', '--no-pager',
@@ -194,7 +194,8 @@ def collect_time_sync():
     started = time.monotonic()
     try:
         evidence = _query_properties(
-            ['timedatectl', 'show', '--no-pager', '--property=NTPSynchronized,NTP,CanNTP'],
+            ['timedatectl', 'show', '--no-pager',
+             '--property=NTPSynchronized', '--property=NTP'],
             ('NTPSynchronized',),
         )
         if evidence['properties']['NTPSynchronized'] not in ('yes', 'no'):
