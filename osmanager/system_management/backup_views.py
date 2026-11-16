@@ -13,7 +13,7 @@ from django.http import FileResponse, JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_GET, require_POST
 
-from .backup_center import import_backup_archive, read_backup_index
+from .backup_center import MAX_ARCHIVE_BYTES, import_backup_archive, read_backup_index
 from .backup_jobs import queue_backup, read_backup_schedule, save_backup_schedule
 from .backup_restore import _registered_archive, confirm_restore
 from .backup_runtime import (BACKUP_COMPAT_VERSION, backup_configs, backup_database,
@@ -134,6 +134,13 @@ def backup_create(request):
 @audited_admin_api('backup', 'import')
 @require_POST
 def backup_import(request):
+    length = request.META.get('CONTENT_LENGTH', '')
+    if (not length.isdecimal() or int(length) > MAX_ARCHIVE_BYTES + 1024 * 1024 or
+            request.content_type != 'multipart/form-data'):
+        return _error(400, 'Bounded multipart upload required')
+    if (request.POST or set(request.FILES) != {'file'} or
+            len(request.FILES.getlist('file')) != 1):
+        return _error(400, 'Expected exactly one file field')
     root = require_installation()
     archive = import_backup_archive(root, request.FILES['file'], BACKUP_COMPAT_VERSION,
                                     get_session_identity(request).username)
