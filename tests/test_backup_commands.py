@@ -19,7 +19,7 @@ from osmanager.system_management.backup_center import (
     create_backup_archive, initialize_installation, read_backup_index, write_backup_index,
 )
 from osmanager.system_management.backup_jobs import (
-    queue_backup, read_backup_schedule, save_backup_schedule,
+    queue_backup, queue_due_backup, read_backup_schedule, save_backup_schedule,
 )
 from osmanager.system_management.backup_restore import confirm_restore, preflight_restore
 from osmanager.system_management.backup_runtime import BACKUP_COMPAT_VERSION
@@ -111,6 +111,62 @@ class BackupCommandTest(unittest.TestCase):
         self.assertEqual(json.loads(output.getvalue())['id'], queued['id'])
         self.assertEqual(json.loads(output.getvalue())['status'], 'failed')
         self.assertEqual(read_backup_index(self.root)['tasks'][queued['id']]['status'], 'failed')
+
+    def test_scheduled_worker_drains_full_queue_before_queuing_daily_slot(self):
+        self.command('init')
+        save_backup_schedule(self.root, True, '00:00')
+        safety = create_backup_archive(self.root, self.database,
+                                       {'chrony': self.config}, BACKUP_COMPAT_VERSION, 'user')
+        restore_id = 'f' * 32
+        restore = {'id': restore_id, 'kind': 'restore', 'status': 'manual_recovery_required',
+                   'requires_manual_recovery': True, 'safety_archive_id': safety['archive_id']}
+        tasks = {restore_id: restore}
+        for number in range(255):
+            task_id = f'{number:032x}'
+            tasks[task_id] = {'id': task_id, 'kind': 'backup', 'status': 'queued',
+                              'actor': 'user', 'created_at': '2020-01-01T00:00:00+00:00'}
+        write_backup_index(self.root, {'tasks': tasks, 'backups': read_backup_index(self.root)[
+            'backups']})
+
+        first = self.command('run-scheduled')
+        self.assertEqual(first['id'], f'{0:032x}')
+        self.assertEqual(first['status'], 'succeeded')
+        self.assertIsNone(read_backup_schedule(self.root)['last_slot'])
+        self.assertEqual(len(read_backup_index(self.root)['tasks']), 256)
+
+        second = self.command('run-scheduled')
+        self.assertEqual(second['id'], f'{1:032x}')
+        self.assertEqual(second['status'], 'succeeded')
+        index = read_backup_index(self.root)
+        self.assertEqual(len(index['tasks']), 256)
+        self.assertEqual(index['tasks'][restore_id], restore)
+        self.assertTrue((self.root / f"{safety['archive_id']}.zip").is_file())
+        self.assertNotIn(first['id'], index['tasks'])
+        daily = [task for task in index['tasks'].values()
+                 if task.get('actor') == 'daily-schedule']
+        self.assertEqual(len(daily), 1)
+        self.assertEqual(daily[0]['status'], 'queued')
+        self.assertEqual(read_backup_schedule(self.root)['last_slot'],
+                         daily[0]['created_at'][:10])
+        self.assertIsNone(queue_due_backup(self.root))
+        self.assertEqual(read_backup_index(self.root), index)
+
+    def test_scheduled_worker_reports_non_capacity_schedule_errors(self):
+        self.command('init')
+        save_backup_schedule(self.root, True, '00:00')
+        queued = queue_backup(self.root, 'user')
+        for filename, payload, message in (
+                ('schedule.json', b'{"enabled": true}', 'Invalid backup schedule fields'),
+                ('index.json', b'{"tasks": []}', 'Backup index requires task and backup mappings')):
+            path = self.root / filename
+            original = path.read_bytes()
+            try:
+                path.write_bytes(payload)
+                with self.assertRaisesRegex(CommandError, message):
+                    self.command('run-scheduled')
+            finally:
+                path.write_bytes(original)
+        self.assertEqual(read_backup_index(self.root)['tasks'][queued['id']]['status'], 'queued')
 
     def test_restore_rejects_missing_flag_and_invalid_task_before_stop(self):
         self.command('init')

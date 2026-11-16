@@ -12,7 +12,7 @@ from osmanager.system_management.backup_center import (
     write_backup_index,
 )
 from osmanager.system_management.backup_jobs import (
-    queue_due_backup, run_pending, write_backup_schedule,
+    BackupTaskCapacityError, queue_due_backup, run_pending, write_backup_schedule,
 )
 from osmanager.system_management.backup_restore import RESTORE_UNITS, restore_confirmed
 from osmanager.system_management.backup_runtime import (
@@ -115,7 +115,10 @@ class Command(BaseCommand):
                     database = backup_database()
                     configs = backup_configs()
                     if action == 'run-scheduled':
-                        queue_due_backup(root)
+                        try:
+                            queue_due_backup(root)
+                        except BackupTaskCapacityError:
+                            pass
                     result = run_pending(root, database, configs, BACKUP_COMPAT_VERSION)
             self.stdout.write(json.dumps(result, allow_nan=False))
             if isinstance(result, dict) and result.get('status') in (

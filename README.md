@@ -33,6 +33,8 @@ systemctl status cu-cockpit-backup.timer
 `manage.py backup_center run-scheduled`（先排当日任务，再处理一个排队任务）；
 也可在 SSH 终端以 root 执行 `venv/bin/python manage.py backup_center run-pending`。
 两者输出实际处理的任务 JSON（无任务为 `null`），任务失败时退出非零。
+若任务索引满且没有可回收的已完成备份，定时 worker 仍会先处理一个排队任务，
+下一轮再尝试排入当日日程；无容量时不会提前标记该日程为已排队。
 
 恢复必须在**独立 SSH 维护进程**中以 root 执行，不能在 Web 请求或备份 timer
 的服务进程中运行。先通过管理页面完成预检及 token 确认，再在确认有效期内执行：
