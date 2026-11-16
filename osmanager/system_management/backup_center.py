@@ -388,8 +388,9 @@ def _read_signed_manifest(package: zipfile.ZipFile, entries: dict, identity: dic
             raise ValueError('Invalid archive member metadata')
     signature = manifest['signature']
     unsigned = {key: value for key, value in manifest.items() if key != 'signature'}
-    if not isinstance(signature, str) or not hmac.compare_digest(
-            signature, _backup_signature(unsigned, identity['hmac_key'])):
+    if (not isinstance(signature, str) or not re.fullmatch(r'[0-9a-f]{64}', signature) or
+            not hmac.compare_digest(signature, _backup_signature(unsigned,
+                                                                 identity['hmac_key']))):
         raise ValueError('Invalid archive signature')
     return manifest
 

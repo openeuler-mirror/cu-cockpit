@@ -1,16 +1,18 @@
 """Backup HTTP contracts through the production URL configuration."""
 
+import io
 import json
 import os
 import sqlite3
 import tempfile
+import zipfile
 from contextlib import closing
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 
 from osmanager.system_management.backup_center import (
     create_backup_archive, initialize_installation, read_backup_index, write_backup_index,
@@ -93,7 +95,8 @@ class BackupAPITest(TestCase):
                 response = (self.client.get(self.base + path) if path.startswith('download/')
                             else self.client.post(self.base + path, '{}',
                                                   content_type='application/json'))
-                self.assertEqual(response.status_code, 401 if path.startswith('download/') else 403)
+                self.assertEqual(response.status_code, 401 if path == 'import' or
+                                 path.startswith('download/') else 403)
         token = self.login()
         self.login(uid=1000)
         self.assertEqual(self.client.get(self.base + 'download/' + 'a' * 32).status_code, 403)
@@ -166,6 +169,106 @@ class BackupAPITest(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertFalse(read_backup_index(self.root)['backups'] if
                          (self.root / 'index.json').exists() else {})
+
+    def test_import_gate_rejects_without_parsing_multipart(self):
+        token = self.login()
+        self.client.cookies.pop('sessionid', None)
+        upload = b'x' * (3 * 1024 * 1024)
+
+        def rejected(expected, **headers):
+            with patch('django.http.request.HttpRequest._load_post_and_files',
+                       side_effect=AssertionError('multipart parsed')) as parse, patch(
+                       'django.core.files.uploadhandler.TemporaryFileUploadHandler.receive_data_chunk',
+                       side_effect=AssertionError('upload written')) as write:
+                response = self.client.post(self.base + 'import', {
+                    'file': SimpleUploadedFile('backup.zip', upload)}, **headers)
+            self.assertEqual(response.status_code, expected)
+            parse.assert_not_called()
+            write.assert_not_called()
+            return response
+
+        rejected(401, HTTP_X_CSRFTOKEN=token)
+        self.login(uid=1000)
+        rejected(403, HTTP_X_CSRFTOKEN=token)
+        token = self.login()
+        with patch('osmanager.system_management.backup_import_gate.MAX_ARCHIVE_BYTES',
+                   2 * 1024 * 1024):
+            rejected(400, HTTP_X_CSRFTOKEN=token)
+        with patch('osmanager.system_management.backup_import_gate.MAX_ARCHIVE_BYTES',
+                   2 * 1024 * 1024):
+            rejected(400, HTTP_X_CSRFTOKEN='wrongtoken')
+        rejected(400, HTTP_X_CSRFTOKEN=token, CONTENT_LENGTH='')
+        rejected(400, HTTP_X_CSRFTOKEN=token, CONTENT_LENGTH='9' * 5000)
+        denied = OperationAudit.objects.filter(module='system', action='permission_denied')
+        self.assertTrue(denied.exists())
+        self.assertNotIn(token, str(list(denied.values_list('detail', flat=True))))
+
+    def test_import_gate_keeps_csrf_and_exact_path(self):
+        token = self.login()
+        response = self.client.post(self.base + 'import', {
+            'file': SimpleUploadedFile('backup.zip', b'not a ZIP')})
+        self.assertEqual(response.status_code, 403)
+        self.assertIn(b'CSRF', response.content)
+        self.assertEqual(self.client.post(self.base + 'import', {
+            'file': SimpleUploadedFile('backup.zip', b'not a ZIP')},
+            HTTP_X_CSRFTOKEN='wrongtoken').status_code, 403)
+        self.assertEqual(self.client.post(self.base + 'import/', {
+            'file': SimpleUploadedFile('backup.zip', b'not a ZIP')},
+            HTTP_X_CSRFTOKEN=token).status_code, 404)
+
+    @override_settings(DEBUG=True)
+    def test_import_malformed_manifest_never_exposes_installation_key(self):
+        token = self.login()
+        record = self.archive()
+        secret = json.loads((self.root / 'metadata.json').read_text())['hmac_key']
+        with zipfile.ZipFile(self.root / f'{record["archive_id"]}.zip') as original:
+            manifest = json.loads(original.read('manifest.json'))
+            members = {name: original.read(name) for name in original.namelist()
+                       if name != 'manifest.json'}
+
+        for signature in ('é', 123, None, [], 'g' * 64, 'A' * 64):
+            with self.subTest(signature=signature):
+                modified = {**manifest, 'signature': signature}
+                self._assert_invalid_import(token, members, json.dumps(modified).encode(), secret)
+        for payload in (b'{', b'\xff'):
+            with self.subTest(payload=payload):
+                self._assert_invalid_import(token, members, payload, secret)
+        self._assert_invalid_import(token, members, json.dumps(manifest).encode(), secret,
+                                    compression=zipfile.ZIP_BZIP2)
+
+    def _assert_invalid_import(self, token, members, manifest, secret,
+                               compression=zipfile.ZIP_STORED):
+        archive = io.BytesIO()
+        with zipfile.ZipFile(archive, 'w', compression=compression) as package:
+            package.writestr('manifest.json', manifest)
+            for name, content in members.items():
+                package.writestr(name, content)
+        response = self.client.post(self.base + 'import', {
+            'file': SimpleUploadedFile('backup.zip', archive.getvalue())},
+            HTTP_X_CSRFTOKEN=token)
+        self.assertEqual(response.status_code, 422)
+        self.assertNotIn(secret, response.content.decode())
+        self.assertNotIn('Traceback', response.content.decode())
+
+    def test_import_accepts_upload_at_request_limit(self):
+        token = self.login()
+        self.config.write_bytes(os.urandom(1024 * 1024))
+        record = self.archive()
+        content = (self.root / f'{record["archive_id"]}.zip').read_bytes()
+        index = read_backup_index(self.root)
+        index['backups'].clear()
+        write_backup_index(self.root, index)
+        (self.root / f'{record["archive_id"]}.zip').unlink()
+        from django.test.client import BOUNDARY, encode_multipart
+
+        request_size = len(encode_multipart(BOUNDARY, {
+            'file': SimpleUploadedFile('backup.zip', content)}))
+        with patch('osmanager.system_management.backup_import_gate.MAX_ARCHIVE_BYTES',
+                   request_size - 1024 * 1024):
+            response = self.client.post(self.base + 'import', {
+                'file': SimpleUploadedFile('backup.zip', content)}, HTTP_X_CSRFTOKEN=token)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()['backup']['archive_id'], record['archive_id'])
 
     def test_import_accepts_signed_archive_without_client_paths(self):
         token = self.login()
