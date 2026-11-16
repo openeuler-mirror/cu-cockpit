@@ -60,3 +60,30 @@ ID，不接受自定义数据库或配置路径；执行前验证任务、归档
 代理侧身份准入。后续 installer 配置 Nginx 时应为该路径设置不超过 257m 的请求体上限，
 并在需要避免匿名上传占用代理临时磁盘时增加代理侧准入；不能把 Django 的限制当作
 Nginx 已经拒绝上传的保证。
+
+## 备份测试运行环境
+
+部署主机只需 Python 依赖和已构建的前端 dist，不必安装 Node.js 或前端编译依赖。
+在仓库根目录运行备份和巡检相关后端测试（将 `venv/bin/python` 替换为本机已验证的虚拟环境解释器）：
+
+```bash
+venv/bin/python manage.py test \
+	tests.test_backup_restore_center tests.test_backup_jobs tests.test_backup_api \
+	tests.test_backup_commands tests.test_inspection_center tests.test_inspection_jobs \
+	tests.test_inspection_api --noinput
+```
+
+全仓库旧测试的已知基线失败单独处理，不属于上述功能测试门槛。
+
+其中仅备份页面请求体到严格日程 API 的跨 runtime 集成测试需要 Node.js、
+`cu-cockpit-web/node_modules/typescript` 和 `cu-cockpit-web/node_modules/@vue/compiler-sfc`。
+部署主机缺少这些工具时，该方法应报告 1 个 skip（附缺失原因），其余纯 Python
+日程成功和 `next_run` 只读字段拒绝测试仍须执行；不要将 skip 计作跨 runtime 验证通过。
+前端源码与依赖齐全的本地开发环境还须运行：
+
+```bash
+node --test tests/frontend/backup-workspace.test.cjs
+```
+
+本地后端测试中的跨 runtime 方法也必须实际通过；Node 脚本执行失败属于测试失败，
+不应转为 skip。
