@@ -127,7 +127,10 @@ def backup_schedule(request):
         payload = _schedule_request(request)
     except (ValueError, UnicodeDecodeError):
         return _error(400, 'Expected only enabled, time and timezone')
-    root = require_installation()
+    try:
+        root = require_installation()
+    except (OSError, ValueError):
+        return _error(503, 'Backup installation is unavailable')
     try:
         schedule = save_backup_schedule(root, payload['enabled'], payload['time'],
                                         payload['timezone'])
