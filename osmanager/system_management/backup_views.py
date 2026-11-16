@@ -224,6 +224,10 @@ def backup_restore_preflight(request):
                                    services)
     except BlockingIOError:
         return _error(409, 'Backup service is busy')
+    except ValueError as error:
+        if str(error) == 'Restore task history is full':
+            return _error(409, 'Restore task history is full')
+        raise
     return JsonResponse(result, status=200)
 
 
