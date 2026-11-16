@@ -19,6 +19,7 @@ export default {
         process: 'Processes',
         network: 'Network & Firewall',
         inspection: 'Inspection Center',
+        backups: 'Backup & Restore',
         assistant: 'AI Operations',
     },
     staticRoutes: {
